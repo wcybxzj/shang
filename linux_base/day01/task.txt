@@ -1,0 +1,10 @@
+
+1.在root用户的家目录下创建三个目录：
+  book, music, note
+2.在music下创键两个文件：zhm.mp3, syz.mp3
+3.将syz.mp3移动到note下
+4.将passwd文件的内容复制到zhm.mp3中
+5.显示文件的二十到二十五行
+6.复制/etc/group到book,并搜索出有多少个root关键字
+7.删除note和zhm.mp3文件
+

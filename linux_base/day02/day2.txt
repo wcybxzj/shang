@@ -1,0 +1,206 @@
+
+1.关机命令
+	shutdown -h now
+	poweroff
+	halt
+	init 0
+2.重启命令
+	shutdown -r now
+	reboot
+	init 6
+查看系统启动级别：
+	/etc/inittab
+3.date
+	获取当前系统时间
+4.cal
+	获取当前日期所对应的日历
+	cal month year
+	显示year年month月日历
+	cal year
+	显示year年全年日历
+
+			用户
+1.useradd 
+	功能：创建用户
+	使用: useradd username
+	当创建成功一个用户，改变的地方：
+	@/home/username
+	@/etc/passwd
+	@/etc/shadow
+	@/etc/group
+	@/etc/gshadow
+	@/var/spool/mail
+/etc/passwd各个字段的含义
+test:x:503:503::/home/test:/bin/bash
+第一个字段：
+	用户名
+第二个字段：
+	密码占位
+第三个字段：
+	用户名所对应的id
+第四个字段：
+	默认组所对应的id
+第五个字段：
+	对用户作解释
+第六个字段：
+	用户所对应的主文件夹（家目录）
+第七个字段：
+	默认启用的shell
+/etc/shadow各个字段的含义
+test:$6$X6xajgO8$MgJxjnwah6BgwcWNJSwNO3VnRiLyeIuMqOJqFAsRyT6GK67j.378YpqvvuYWMfqV8mdYeOmjHmpOtPaWVSbiq.:16673:0:99999:7:::
+第一个字段：
+	用户名
+第二个字段：
+	密码
+第三个字段：
+	密码修改的时间（以1970年1月1日为基准）
+第四个字段：
+	两次密码修改的间隔时间
+第五个字段：
+	有效期
+
+2.passwd [username]
+	功能：给用户名添加密码
+或
+  echo "123456" | passwd --stdin username
+
+3.su [username] 
+	切换用户
+	-:切换用户的同时将工作路径修改为家目录
+4.exit
+	退出登录的用户
+5.userdel -r [username]
+
+6.groupadd [groupname]	
+	添加组
+	给指定的组添加成员
+  	#gpasswd -a [username] [groupname]
+	给指定的组移除成员
+	#gpasswd -d [username] [groupname]
+7.groupdel [groupname]
+	删除一个组
+8.usermod [option] [group] [user]
+	参数：
+		-g:修改用户的宿主组
+		-G:修改用户的附加组
+创建用户的同时指定所属组
+	useradd -g [group] [username]
+9.id [username]
+	查看用户的信息
+
+			查找
+1.which [command]
+	查找可执行文件的路径
+2.whereis [command]
+	同上，还可以显示安装包的位置
+3.locate [files]
+	遍历数据库查找
+	优点：速度快
+	缺点：配合更新数据库使用
+updatedb:
+	更新数据库
+4.find [path] [way] [file]
+	遍历磁盘
+	way:
+		<1>按照名字查找 -name
+			find / -name passwd
+		<2>按照文件的大小 -size
+			find /etc/ -size +1M
+			在/etc路径下查找大于1M的文件
+			find /etc/ -size -5M
+			在/etc路径下查找小于5M的文件
+			find /etc/ -size +1M -a -size -5M
+			在/etc路径下查找大于1M小于5M的文件
+		<3>按照文件权限查找 -perm
+			find /var/ -perm +466
+		<4>按照文件时间
+			-atime
+			-ctime
+			-mtime
+		<5>按照文件的类型查找
+			-type
+		<6>
+			-exec
+			-ok
+		find /etc -name unused -exec cp {} ../ \;	
+		找到unused文件的同时会执行后面的动作
+		
+		通配：
+			?:通配一个    
+			*:通配所有	
+
+5.grep [file]
+	过滤文件内容
+	参数：
+		-n:显示行号
+		-i:忽略大小写
+		-w:精确查找
+	举例：
+		cat /etc/passwd | grep -n root	
+
+6.wc [option] [files]
+	参数：
+		-l:统计文件的行数	
+		-c:统计文件的字符个数
+		-w:统计文件的单词个数
+		
+		打包、压缩
+文件
+1.	.gz格式
+	不会保留原文件
+	压缩
+		gzip [file]
+	解压缩
+		gunzip [compressed file]
+2.	.bz2格式
+	压缩
+		bzip2 [file]
+		-k:保留原文件
+	解压缩
+		bunzip2 [compressed file]
+文件和目录
+3.	.zip格式
+	会保留原文件
+	压缩
+		zip name.zip file dir		
+	解压缩
+		unzip xxx.zip	
+4.tar (常用)
+	-c:创建包
+	-v:过程可视化
+	-f:后跟包名
+	-x:解包
+	-z:压缩成gz格式的压缩文件
+	-j:压缩乘bz2格式的压缩文件
+	
+	创建一个gz格式的压缩包
+	tar -cvf bao.tar file1 file2 dir1 dir2
+	gzip bao.tar
+	或
+	tar -czvf bao.tar.gz file1 file2 dir2 dir1
+	
+	创建一个bz2格式的压缩包
+	tar -cvf bzzz.tar file1 file2 dir*
+	bzip2 bzzz.tar
+	或
+	tar -cjvf bzzz.tar.bz2 file* dir*
+
+	解包解压缩
+	tar -xvf bao.tar.xx	
+	
+6.rpm包
+	rpm -ivh xxxx.rpm 
+	-C:制定路径
+
+配置网络
+	1.setup
+			
+	2.通过图形化（右上角）
+	
+	重启网络服务
+	service network restart
+	查看ip
+	ifconfig eth0
+网络对应的配置文件
+	/etc/sysconfig/network-script/ifcfg-eth0	
+

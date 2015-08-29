@@ -1,0 +1,37 @@
+
+
+
+fd1 = open()
+fd2 = open();
+
+seek(fd1,10)
+seek(fd2,11);
+
+while()
+{
+	read(fd2)
+	write(fd1);
+
+}
+	
+
+
+
+
+
+fd = open();
+
+while(1)
+{
+	seek + read 
+	read
+	seek + write
+	 write
+}
+
+
+
+
+
+
+

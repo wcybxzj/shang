@@ -1,0 +1,133 @@
+
+yum 	在线升级机制
+1.配置/etc/yum.repo.d/xxxx.repo
+	[rhel-source]
+	name=Red Hat
+	baseurl=ftp://172.16.8.100/rhel6.4
+	#baseurl=file://
+	enabled=1
+	gpgcheck=0	
+2.yum repolist
+	查看成功检测到rpm包的个数
+3.yum install 软件名
+	安装
+4.yum remove 软件名
+	卸载
+5.yum update 
+	更新所有当前系统按装的软件包
+	 
+nfs
+	network file system
+	端口：2049
+	协议：tcp
+服务器端：
+	<1>配置文件：
+		/etc/exports
+	/root/class	*(rw,ro,sync,no_root_squash)	
+	/root/abc	172.16.120.0/24(rw)	
+	/root/abc	172.16.120.0/255.255.255.0(rw)	
+	<2>查看端口
+	netstat -anutp | grep 2049
+	<3>重启nfs服务
+	service nfs restart
+
+客户端：
+	<1>查看ip为172.16.120.186共享的目录
+	showmount -e 172.16.120.186
+	<2>临时挂载
+	mount -t nfs 172.16.120.186:/root/class /mnt/nfs
+	自动挂载
+	/etc/fstab
+172.16.120.186:/var/0812  /mnt/nfs     nfs   		defaults 0 0
+要挂载的文件		  挂载的路径   文件系统类型	默认
+	<3>mount -a
+	安照fstab文件进行挂载
+
+**********************************************************************
+			vim编辑器
+			一般模式
+	插入模式			命令行模式
+三种模式之间的切换：
+一般模式进入插入模式：
+	i:在光标所在位置的前一个位置插入
+	I:在光标所在位置的行首插入
+	a:在光标所在位置的后一个位置插入	
+	A:在光标所在位置的行末插入
+	o:在光标所在行的上一行插入
+	O:在光标所在行的下一行插入
+	s:将光标所在字符删除并且插入
+	S:将光标所在行删除并插入
+插入模式进入一般模式:
+	Esc或Ctrl+c
+插入模式不能直接命令行模式
+一般模式进入命令行模式:
+	:
+
+一般模式快捷：
+	1.删除一行：dd
+	  删除n行：n+dd
+	2.复制一行：yy
+	  复制n行：n+yy
+	3.粘贴：p
+	4.删除一个字符：将光标定位到要删除字符的位置，x向后，X向前
+	  删除一个单词：dw
+	5.回到文件的首行：
+		gg
+	  去到文件的最后
+		G
+	  任意去到第n行
+		n+G
+	6.替换一个字符：r+想要替换的字符
+	7.任意替换	R
+	8.撤销		u
+	9.块操作
+		<1>ctrl+v
+		<2>I前插 A后插
+		<3>两下Esc
+	10./key 至上而下的查找
+	   ?key	至下而上的查找
+
+命令行模式：
+	1.将文本中所有出现oldstring替换成newstring
+	%s/oldstring/newstring/g
+	2.
+	w:保存
+	q:退出
+	a:全部
+	!:强制
+	x:保存退出
+	X:加密
+	3.分屏
+	水平：sp file
+	垂直：vsp file
+	4.将文件显示到当前文件
+	:r filename
+	  将shell命令结果显示到当前文件
+	:r !cmd
+	
+**************************************************
+补充：
+	1.3,10dd
+	:删除3到10行
+	2.+nyy可以复制到其他文件
+	  +p在其他文件进行粘贴
+	3.ctrl+z
+		挂起
+	  fg	
+		返回挂起
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

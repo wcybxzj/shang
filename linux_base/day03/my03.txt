@@ -1,0 +1,12 @@
+标准输入重定向
+mmmm||ls > 1.txt
+标准错误重定向
+adsadas 2> 1.txt
+
+
+ctrl+f1/f2/f3
+write username tty号码 < 1.txt
+
+
+可以查看用户对应的终端 
+ps -aux 

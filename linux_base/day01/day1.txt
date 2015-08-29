@@ -1,0 +1,151 @@
+
+Unix 1969~1972 汇编编写（可移植性低）
+C	 1973产生，为改写Unix 
+Linux 1991 ken.tompton
+
+linux名言：
+	1.一切皆文件	
+	2.没有消息的消息就是最好的消息
+
+基本命令：
+@善于使用tab键，补齐。
+@善于使用方向键，显示历史命令
+@主动使用man帮助手册
+
+1.man man
+	1      User Commands
+	
+	2      System Calls
+	
+	3      C Library Functions
+2.ls
+	-l: 以长格式形式显示
+	-a:	显示隐藏文件
+	-h:	将文件大小以人类能够理解的方式显示
+	-d:	显示当前目录信息
+	-i:	显示文件inode
+3.pwd 显示当前工作路径
+
+4.cd 改变工作路径
+	cd [dir]
+	绝对路径：从/开始
+	相对路径：从当前路径开始
+	.: 当前
+	..: 上一级
+
+5.touch [file]
+	1.如果文件不存在，创建新的空文件
+	2.如果文件存在，则更新文件的创建时间	
+
+6.mkdir [dir]
+	创建一个空目录的大小4K，包含.和..两个目录
+	-p:创建多个父子关系的目录
+
+7.alias 给命令起别名
+	alias name='command'
+
+8.cat [file]
+	显示文件的全部内容
+
+9.more [file]
+  less [file]
+  都是能够从头读取文件
+less:
+	通过方向键或者PaUp和PaDn定位
+	Enter按行阅读 空格按屏阅读
+	搜索：
+		/key
+	n:从上至下搜索
+	N:从下至上搜索	
+通常配合管道使用"|"
+
+head [file]
+	默认显示文件的前十行。
+head -3 file
+	前三行
+tail [file]
+	默认显示文件的后十行。
+tail -3 file
+	后三行
+
+10.cp
+	复制文件: cp src dest
+		目录: -r递归复制
+
+11.mv
+	剪切：mv src dest	
+	重命名：mv srcname destname
+
+12.rm:删除一个文件或这目录
+	rm file
+	-f:强制执行
+	-r:递归执行
+注意：慎用删除命令
+
+-3.diff [file1] [file2]
+	比较两个文件的异同	
+
+			文件的属性
+ls -l
+-rw-rw-r--. 1 aug0812 aug0812 1724 8月  25 14:50 day1.txt
+第一个字段：-
+			文件的类型
+	七种：
+		-:普通文件		regular
+		d:目录文件		directory
+		l:链接文件		link
+		c:字符设备文件	charactor
+		b:块设备文件	block
+		s:套接字文件	socket
+		p:管道文件		pipe
+file [file]
+	查看文件的类型
+第二个字段：rw-rw-r--
+			文件的权限
+	分为：
+		u:文件拥有者的权限rw-
+		g:文件所属组的权限rw-
+		o:文件其他用户权限r--
+	基本权限：
+		读	写	执行 
+		r   w   x
+修改文件的权限：
+	chmod u-w file
+	chmod o+x file	
+	
+	rw- rw- r--
+	110	110 100
+	6   6   4
+	
+	rwx r-- r-x
+	chmod 745 file
+.标识selinux服务是否启动
+查看配置文件/etc/sysconfig/selinux
+
+第三字段：文件硬链接的个数
+	软链接：
+		ln -s src softfile
+		cp -s src softfile
+		保存了原文件的文件名的路径，与原文件的inode不用。
+		所以可以跨分区（平台）
+		一旦原文件删除，软链接文件则无效
+	硬链接
+		ln src hardfile
+		cp -l src hardfile
+		与原文件inode相同，不可以跨分区（平台）。
+		当彻底删除一个文件成功，必须在硬链接个数达到为0时。
+	
+第四个字段：文件的拥有者
+	chown username file		
+第五个字段：文件的所属组
+	chgrp group    file
+	修改文件拥有者的同时修改文件所属组
+	chown username:grpname file
+
+第六个字段: 文件的创建时间(mtime)
+	atime: access time
+	ctime: change time
+	mtime:	modify time
+
+第七个字段：文件名
+
