@@ -30,10 +30,13 @@ int main()
 		}
 		write(1,"\n",1);
 
-		sigsuspend(&oset);
+		//sigsuspend(&oset);
 #if 0
+		//功能和上边一样但是有个问题,在5个*内触发的SIGINT会触发
+		//但是pause还没运行所以程序会阻塞
 		sigset_t tmpset;
 		sigprocmask(SIG_SETMASK,&oset,&tmpset);
+		//printf("解除阻塞触发信号");
 		pause();
 		sigprocmask(SIG_SETMASK,&tmpset,NULL);
 #endif
