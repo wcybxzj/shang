@@ -37,7 +37,7 @@ int main(int argc, const char *argv[])
 		printf("%d/%d=%d\n",num, jinzhi, tmp_num);
 
 		result[i] = num%jinzhi;
-		printf("%d \% %d=%d\n",num, jinzhi, result[i]);
+		printf("%d %c %d=%d\n", num, '%' ,jinzhi, result[i]);
 
 		i--;
 		num = tmp_num;
