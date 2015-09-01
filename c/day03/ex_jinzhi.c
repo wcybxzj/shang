@@ -24,7 +24,7 @@ int main(int argc, const char *argv[])
 	int left_num;
 	scanf("%d %d", &num, &jinzhi);
 	char result[LEN]={};//初始化为0
-	int i = LEN;
+	int i = LEN-1;
 
 	while (1) {
 		if (i < 0) {
@@ -36,6 +36,7 @@ int main(int argc, const char *argv[])
 		printf("===========\n");
 		printf("%d/%d=%d\n",num, jinzhi, tmp_num);
 
+		printf("i is %d\n", i);
 		result[i] = num%jinzhi;
 		printf("%d %c %d=%d\n", num, '%' ,jinzhi, result[i]);
 

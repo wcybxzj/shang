@@ -1,22 +1,17 @@
 #include <stdio.h>
 int main(int argc, const char *argv[])
 {
-	//printf("\33[100;100H\n");
-	printf("\33[43m");
-	printf("\33[43m");
-	printf("\33[43m");
-	printf("\33[43m");
-	printf("\33[43m");
-	printf("\33[43m");
-	printf("\33[43m");
-	printf("\33[43m");
-	printf("\33[43m");
-	printf("\33[43m");
-	printf("\33[43m");
-	printf("\33[43m");
-	printf("\33[43m");
-	printf("\33[43m");
-	printf("\33[43m");
-	printf("\33[0m");
+	int i = 0;
+	for (i = 0; i < 3; i++) {
+		printf("\33[50;50H ");
+		printf("\33[43m ");
+		printf("\33[43m ");
+		printf("\33[43m ");
+		printf("\33[43m ");
+		printf("\33[43m ");
+		printf("\33[43m ");
+		printf("\33[0m ");
+		printf("\n");
+	}
 	return 0;
 }
