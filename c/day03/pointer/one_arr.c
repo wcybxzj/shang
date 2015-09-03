@@ -20,27 +20,34 @@ int main(int argc, const char *argv[])
 	int every_len;
 
 	//arr 和 &arr 值一样但是含义不一样
-	//arr  是指数组第一个数据的地址
+	//arr  是指数组第一个数据的地址 &arr[0]
 	//&arr 是指整个数组的首地址
-	printf("arr %p\n", arr);//两者的值相同
-	printf("&arr %p\n", &arr);
-	printf("&arr[1]%p\n", &arr[1]);
-	printf("&arr+1 %p\n", &arr+1);
-	printf("(&arr)+1 %p\n", (&arr)+1);//&arr
+	printf("arr %p\n", arr);		//0x7fff54751820
+	printf("&arr[0] %p\n", &arr[0]);//0x7fff54751820
+	printf("&arr %p\n", &arr);		//0x7fff54751820
+
+	printf("arr+1 %p\n", arr+1);		//0x7fff54751824
+	printf("&arr[0]+1 %p\n", &arr[0]+1);//0x7fff54751824
+
+	printf("&arr+1 %p\n", &arr+1);	  //0x7fff54751848
+	printf("(&arr)+1 %p\n", (&arr)+1);//0x7fff54751848
 
 	//把指针类型进行统一下面才能计算
-	int *begin= (void *)arr;
-	int *end= (void *)(&arr+1);//两者的区别
-	int *one= (void *)(arr+1);//
+	int begin = arr;
+	int end = (&arr+1);
+	int one = (arr+1);
+
+	printf("begin%d\n",begin);
+	printf("end %d\n",end);
+	printf("one %d\n", one);
 
 	//总长度
-	printf("begin%p\n",begin);
-	printf("end %p\n",end);
 	total_len = end-begin;//40
+	printf("total_len is %d\n", total_len);
 
 	//每个长度
-	//printf("%p\n", one);
 	every_len = one-begin;//4
+	printf("every_len is %d\n", every_len);
 	printf("arr len is %d\n", total_len/every_len);
 
 	printf("=============方法2==============\n");
