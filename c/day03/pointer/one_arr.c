@@ -14,7 +14,8 @@ int main(int argc, const char *argv[])
 	printf("&arr[3] %p\n", &arr[3]);
 	printf("&arr[9] %p\n", &arr[9]);
 
-	//方法1:
+	printf("==========方法1==========\n");
+	printf("==========方法1==========\n");
 	printf("==========方法1==========\n");
 	int total_len;
 	int every_len;
@@ -37,6 +38,10 @@ int main(int argc, const char *argv[])
 	int end = (&arr+1);
 	int one = (arr+1);
 
+	printf("指针类型如果加1 地址的增加是按照指针类型进行的\n");
+	printf("一旦类型转为int +1 操作就会变成普通的加1:\n");
+	printf("begin +1 %d\n", begin+1); 
+
 	printf("begin%d\n",begin);
 	printf("end %d\n",end);
 	printf("one %d\n", one);
@@ -51,7 +56,10 @@ int main(int argc, const char *argv[])
 	printf("arr len is %d\n", total_len/every_len);
 
 	printf("=============方法2==============\n");
-	//方法2:
+	printf("=============方法2==============\n");
+	printf("=============方法2==============\n");
+	printf("sizeof(arr) %lu\n", sizeof(arr));
+	printf("sizeof(arr[0]) %lu\n", sizeof(arr[0]));
 	printf("%lu\n",sizeof(arr)/sizeof(arr[0]));
 
 	return 0;
