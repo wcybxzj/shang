@@ -36,5 +36,8 @@ int main(int argc, const char *argv[])
 	int *b;
 	b = &a;
 	printf("%d\n", *b);
+
+	printf("=====8指针的大小就是内存地址所以指针大小和类型无关====\n");
+
 	return 0;
 }

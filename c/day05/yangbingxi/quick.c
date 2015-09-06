@@ -1,6 +1,7 @@
 #include <stdio.h>
 #define NUM 10
-
+//in mac os
+//gcc quick.c -std=c89
 void swap(int *p, int m, int n)
 {
 	int tmp;
@@ -54,7 +55,7 @@ int main(void)
 		arr[i] = rand() % 100;
 	}
 	traval(arr);
-	qucik(arr,0, NUM-1);
+	quick(arr,0, NUM-1);
 	traval(arr);
 
 	return 0;
