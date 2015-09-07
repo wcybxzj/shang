@@ -1,5 +1,6 @@
 #include <stdio.h>
 #define NUM 10
+
 //in mac os
 //gcc quick.c -std=c89
 void swap(int *p, int m, int n)

@@ -1,0 +1,10 @@
+1.
+	strlen()
+2.
+	strcpy()
+
+3.	
+	strcat()
+
+4.	
+	strcmp()
