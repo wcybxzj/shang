@@ -1,0 +1,12 @@
+
+
+	int *arr[5];
+
+	int (*arr)[5];
+
+	int (*arr)(int, int (*p)[2]);
+
+	int *(*arr)(int **, char);
+
+	char **(*arr[5])(int, int (**p)[3]);
+

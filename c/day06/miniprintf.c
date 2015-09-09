@@ -10,7 +10,7 @@ void miniprintf(const char *p, ...)
 		switch (*p) {
 			case '%':
 				switch (*(++p)) {
-					case 'd'://下面的顺序不能变
+					case 'd':
 						printf("%d", va_arg(ap, int));
 						break;
 					case 'c':

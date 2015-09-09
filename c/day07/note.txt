@@ -1,0 +1,39 @@
+
+动态开辟堆空间:
+	1.malloc()  calloc()  realloc()
+	
+	malloc()不会将申请的空间初始化
+	自行初始化：memset(); 按字节填充
+
+补充：
+	realloc();
+	如果指定的指针为空,功能和malloc一样
+
+	malloc()实现realloc()功能;
+	1.重新开辟空间 malloc();
+	2.将old空间的内容赋值到new空间  memcpy(); memmove();
+	3.free(old);
+
+	free();
+	谁申请谁释放
+	申请的空间一定要释放，否则内存泄漏
+void 和 void *
+void 空类型
+void *万能指针,注意不能取值，没有步长
+
+二级指针
+	一级指针的地址
+
+二维数组
+	type name[num][each_elment];
+	
+
+数组指针
+	int (*p)[3];
+	定义一个指向有三个整型数的数组的地址。
+
+指针数组
+	int * arr[3];
+
+函数指针
+

@@ -1,0 +1,6 @@
+
+
+./a.out
+
+[niuxtao]#add 1 2
+[niuxtao]#sub         1       2
