@@ -3,11 +3,12 @@
 #include <string.h>
 
 int create_arr(int (**p)[5], int row);
-int find_max(int *arr[], int (*p)[5], int row);
+int find_max(int **arr, int (*p)[5], int row);
 
 void output(int (*p)[5], int row)
 {
 	int i, j;
+
 	for (i = 0; i < row; i++) {
 		for (j = 0; j < 5; j++) {
 			printf("%3d ", p[i][j]);
@@ -61,12 +62,12 @@ int create_arr(int (**q)[5], int row)
 	return 0;
 }
 
-int find_max(int *arr[], int (*p)[5], int row)
+int find_max(int **arr, int (*p)[5], int row)
 {
 	int i, j;
 
 	for (i = 0; i < row; i++) {
-		arr[i] = p[i];//&p[i][0]
+		arr[i]  = p[i];
 		for (j = 0; j < 5; j++) {
 			if (*arr[i] < p[i][j]) {
 				arr[i] = &p[i][j];
