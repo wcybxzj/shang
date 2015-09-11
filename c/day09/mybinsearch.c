@@ -10,11 +10,20 @@ typedef struct stu_st {
 	int eng;
 }stu_t;
 
-int cmpare(const void *data, const void *key)
+int cmpare(const void *key, const void *data)
 {
 	const stu_t *d = data;
 	const int *k = key;
-	return d->id - *k;	
+	//printf("k is %d\n", *k);
+	//printf("data is %d\n",d->id);
+	return *k - d->id;	
+}
+
+int func(const void * a, const void *b)
+{
+	const int * a1 = a;
+	const int * b1 = b;
+	return *a1 - *b1;
 }
 
 int main(void)
@@ -36,6 +45,7 @@ int main(void)
 		printf("find it: %d %s %d %d\n", ret->id, ret->name,\
 				ret->ch, ret->eng);
 	}
+	printf("===========================================\n");
 
 	return 0;
 }

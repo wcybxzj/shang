@@ -5,7 +5,6 @@ int func(const void * a, const void *b)
 {
 	const int * a1 = a;
 	const int * b1 = b;
-
 	return *a1 - *b1;
 }
 

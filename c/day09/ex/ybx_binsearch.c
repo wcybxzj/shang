@@ -51,7 +51,7 @@ void *my_bsearch(const void *key, const void *base, size_t nmemb, size_t size, i
 
 	while (start<=end) {
 		middle = (start + end)/2;
-		ret = 
+		ret = compar();//TODO
 	}
 
 	return NULL;
