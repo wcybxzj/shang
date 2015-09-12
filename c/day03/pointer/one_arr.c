@@ -40,11 +40,11 @@ int main(int argc, const char *argv[])
 
 	printf("指针类型如果加1 地址的增加是按照指针类型进行的\n");
 	printf("一旦类型转为int +1 操作就会变成普通的加1:\n");
-	printf("begin +1 %d\n", begin+1); 
+	printf("begin +1:%d\n", begin+1); //1486755873
 
-	printf("begin%d\n",begin);
-	printf("end %d\n",end);
-	printf("one %d\n", one);
+	printf("begin	:%d\n",begin);//1486755872
+	printf("end	 	:%d\n",end);//1486755912
+	printf("one  	:%d\n", one);//1486755876
 
 	//总长度
 	total_len = end-begin;//40

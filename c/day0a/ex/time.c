@@ -5,7 +5,7 @@
 int main(int argc, const char *argv[])
 {
 	FILE *fp;
-	fp = fopen("time.txt", "r");
+	fp = fopen("time.txt", "r+");
 	if (fp==NULL) {
 		fp = fopen("time.txt", "w+");
 	} else {
@@ -14,6 +14,8 @@ int main(int argc, const char *argv[])
 		printf("上一次的时间是:\n");
 		fwrite(buff, 1, BUFFSIZE, stdout);
 	}
+
+	rewind(fp);
 
 	time_t tim;
 	struct tm *p = NULL;
@@ -27,9 +29,10 @@ int main(int argc, const char *argv[])
 			p->tm_mday, p->tm_hour, p->tm_min,\
 			p->tm_sec);
 
-	//printf("\n=========本次时间:=========\n");
-	//printf("str len is%s\n", len);
-	//fwrite(str, 1, len, fp);
+	printf("\n=========本次时间:=========\n");
+	printf("str len is%d\n", len);
+	printf("%s\n", str);
+	fwrite(str, 1, len, fp);
 	fclose(fp);
 
 	return 0;

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define FLNAME "fgets.c"
+#define FLNAME "1.txt"
 #define BUFSIZE 20
 
 #define EXIT(name)\
@@ -24,6 +24,7 @@ int main(void)
 	
 	while (1) {
 		cnt = fread(buf, 1, BUFSIZE, fp);	
+		//printf("%d\n", cnt);
 		if (cnt <= 0)
 			break;
 		fwrite(buf, 1, cnt, stdout);

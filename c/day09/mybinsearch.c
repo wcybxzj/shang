@@ -14,16 +14,7 @@ int cmpare(const void *key, const void *data)
 {
 	const stu_t *d = data;
 	const int *k = key;
-	//printf("k is %d\n", *k);
-	//printf("data is %d\n",d->id);
 	return *k - d->id;	
-}
-
-int func(const void * a, const void *b)
-{
-	const int * a1 = a;
-	const int * b1 = b;
-	return *a1 - *b1;
 }
 
 int main(void)
@@ -52,17 +43,16 @@ int main(void)
 
 void *mybsearch(const void *key, const void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *))
 {
-	int start, end;
-	const char *tmp = base;
-	int mid, ret;
+	int start, end, mid, ret;
+	//const char *tmp = base;
 
 	start = 0, end = nmemb - 1;
 
 	while (start <= end) {
 		mid = (start + end) / 2;
-		ret = compar(key, tmp + mid * size);//TODO
+		ret = compar(key, base + mid * size);
 		if (ret == 0) {
-			return (void *)(tmp + mid * size);
+			return (void *)(base+ mid * size);
 		}	
 		if (ret > 0) {
 			start = mid + 1;

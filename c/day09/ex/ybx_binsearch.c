@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void *my_bsearch(const void *key, const void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *));
+void *my_bsearch_arr(const void *key, const void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *));
 
 typedef struct stu_st {
 	int id;
@@ -35,7 +35,7 @@ int main(void)
 	int id;
 	stu_t *ret = NULL;
 	key = 7;
-	ret = my_bsearch(&id, arr, 10, sizeof(stu_t), func);
+	ret = my_bsearch_arr(&id, arr, 10, sizeof(stu_t), func);
 	if (NULL == ret ) {
 		printf("not match\n");
 	}else {
@@ -44,14 +44,15 @@ int main(void)
 	return 0;
 }
 
-void *my_bsearch(const void *key, const void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *)){
+
+void *my_bsearch_arr(const void *key, const void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *)){
 	int start, end ,middle, ret;
 	start = 0;
 	end = nmemb - 1;
 
 	while (start<=end) {
 		middle = (start + end)/2;
-		ret = compar();//TODO
+		ret = compar();
 	}
 
 	return NULL;
