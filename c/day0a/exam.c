@@ -13,5 +13,9 @@ int main(void)
 	memcpy(&d, str, sizeof(d));	
 
 	printf("d.a = %d, d.b = %d\n", d.a, d.b);
+	// 6 0
+	// 11 3
+	// 16 1 
+
 	return 0;
 }

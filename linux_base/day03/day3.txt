@@ -34,11 +34,17 @@ nfs
 客户端：
 	<1>查看ip为172.16.120.186共享的目录
 	showmount -e 172.16.120.186
+
 	<2>临时挂载
-	mount -t nfs 172.16.120.186:/root/class /mnt/nfs
-	自动挂载
+	mount -t nfs 172.16.120.186:/var/0812 /mnt/nfs
+	mount -t nfs 172.16.120.186:/var/share0812 /mnt/share0812
+
+	<3>自动挂载
 	/etc/fstab
-172.16.120.186:/var/0812  /mnt/nfs     nfs   		defaults 0 0
+	172.16.120.186:/var/0812		/mnt/nfs  nfs defaults 0 0
+	172.16.120.186:/var/share0812		/mnt/share0812  nfs defaults 0 0
+
+
 要挂载的文件		  挂载的路径   文件系统类型	默认
 	<3>mount -a
 	安照fstab文件进行挂载
