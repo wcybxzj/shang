@@ -16,7 +16,7 @@ int main(void)
 //	*q = 'a';错误的，同上
 
 	*r = 'm';
-//	r ++;变量只读
+//	r++;变量只读
 	printf("%s\n", r);
 
 	return 0;

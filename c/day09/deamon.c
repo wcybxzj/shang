@@ -13,12 +13,13 @@ union {
 
 int main(void)
 {
-//	printf("sizeof(var) = %d\n", sizeof(var));
+	printf("sizeof(test) = %d\n", sizeof(test));//4
 
+	printf("----------------------------\n");
 	test.e = 255;
 
 	printf("test.var.a = %d, test.var.b = %d, test.var.c = %d,\
-			test.var.d = %d\n", test.var.a, test.var.b, test.var.c, test.var.d);
+			test.var.d = %d\n", test.var.a, test.var.b, test.var.c, test.var.d);//结果都是3
 
 	return 0;
 }

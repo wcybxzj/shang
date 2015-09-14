@@ -54,6 +54,7 @@ void parse(char *p)
 	char *argv[8] = {};	
 	int flag = 0;
 
+	// \0的ascii 是0
 	while (*p) {
 		if (*p == ' ' && flag == 0) {
 			*p = '\0';

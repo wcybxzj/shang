@@ -52,7 +52,7 @@ void *mybsearch(const void *key, const void *base, size_t nmemb, size_t size, in
 		mid = (start + end) / 2;
 		ret = compar(key, base + mid * size);
 		if (ret == 0) {
-			return (void *)(base+ mid * size);
+			return (void *)(base + mid * size);
 		}	
 		if (ret > 0) {
 			start = mid + 1;

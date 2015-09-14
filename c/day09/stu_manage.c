@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define OK 		0
 #define FAIL	1
 
-enum menu_en{INSERT = 1, DELETE, UPDATE, SCAN, QUIT=9};
+enum menu_en{INSERT = 1, DELETE, UPDATE, SCAN, QUIT=9, CLEAN = 10};
 
 typedef int (*cmpare_t)(const void *, const void *);
 
@@ -15,6 +16,9 @@ typedef struct stu_st {
 	int grade;
 }Stu_t;
 
+void clean(Stu_t **ptr,  int* stu_num);
+int delete(Stu_t **ptr, int *num, const void *key, cmpare_t op);
+int update(Stu_t **ptr, int num, Stu_t stu, const void *key, cmpare_t op);
 int insert(Stu_t **ptr, Stu_t stu, int *num);
 void scan(Stu_t *ptr, int num);
 void menulist(void);
@@ -55,7 +59,7 @@ int main(void)
 				snprintf(tmp.name, 32, "stu%d", i);
 				tmp.grade = 100-i;
 				i++;
-				printf("[%d]%d %s %d\n", __LINE__, tmp.id, tmp.name, tmp.grade);
+				printf("[行号%d]id: %d name:%s grade:%d\n", __LINE__, tmp.id, tmp.name, tmp.grade);
 				sleep(1);
 				insert(&p, tmp, &stu_num); break;
 			case DELETE:
@@ -69,10 +73,13 @@ int main(void)
 				update(&p, stu_num, tmp, &id, id_compare); break;
 			case SCAN:
 				scan(p, stu_num); 
-				sleep(3);
+				sleep(2);
 				break;
 			case QUIT:
 				goto quit;
+			case CLEAN:
+				clean(&p, &stu_num);
+				break;
 			default:
 				goto error;
 				break;
@@ -100,7 +107,6 @@ int insert(Stu_t **ptr, Stu_t stu, int *num)
 		return FAIL; 
 	}
 	memset(p, 0x00, sizeof(Stu_t)*(*num+1));
-
 	memcpy(p, *ptr, sizeof(Stu_t) * (*num));
 	memcpy(p+(*num), &stu, sizeof(stu));
 
@@ -114,7 +120,6 @@ int insert(Stu_t **ptr, Stu_t stu, int *num)
 int delete(Stu_t **ptr, int *num, const void *key, cmpare_t op)
 {
 	int i;
-
 	for (i = 0; i < *num; i++) {
 		if (!op(key, (*ptr)+i))	
 			break;
@@ -125,16 +130,12 @@ int delete(Stu_t **ptr, int *num, const void *key, cmpare_t op)
 
 	(*num)--;
 	*ptr = realloc(*ptr, (*num)*sizeof(Stu_t));
-	//if error;
-
 	return OK;
 }
 
 int update(Stu_t **ptr, int num, Stu_t stu, const void *key, cmpare_t op)
 {
-
 	int i;
-
 	for (i = 0; i < num; i++) {
 		if (!op(key, (*ptr)+i))
 			break;
@@ -142,7 +143,6 @@ int update(Stu_t **ptr, int num, Stu_t stu, const void *key, cmpare_t op)
 	if (i == num)
 		return FAIL;
 	memcpy(*ptr+i, &stu, sizeof(stu));	
-
 	return OK;
 }
 
@@ -155,3 +155,8 @@ void scan(Stu_t *ptr, int num)
 	}
 }
 
+void clean(Stu_t **ptr,  int* stu_num){
+	free(*ptr);
+	*ptr = NULL;
+	*stu_num = 0;
+}
