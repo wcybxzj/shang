@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
-
-#include "seqlist.h"//?
+#include <stdio.h>
+#include <seqlist.h>
 
 DARR_T *init_darr(int size)
 {
@@ -19,15 +19,47 @@ DARR_T *init_darr(int size)
 
 status insert_darr(DARR_T *ptr, const void *data)
 {
-	char *tmp = NULL;
-	tmp = malloc(ptr->size * (ptr->num+1));	
-	if (NULL == tmp)
+	ptr->arr = realloc(ptr->arr, (ptr->num+1)*ptr->size);
+	if (NULL == ptr->arr)
 		return FAIL;
-	memcpy(tmp, ptr->arr, ptr->num * ptr->size);
-	memcpy(tmp+ptr->num*ptr->size, data, ptr->size);
+	memcpy(ptr->arr+ptr->num*ptr->size, data, ptr->size);
+
 	(ptr->num) ++;
+
+	return OK;
+}
+
+status insert_darr_qsort(DARR_T *ptr, const void *data, const void *key, compare_t cmp){
+	int i;
+	void* tmp = NULL;
+	for (i = 0; i < ptr->num; i++) {
+		if(cmp(key, ptr->arr + i*ptr->size) < 0){
+			break;
+		}
+	}
+
+	printf("curent i is:%d\n", i);
+
+	tmp = malloc( (ptr->num+1) * ptr->size );//分配比原来大1的空间
+	if (NULL == tmp) {
+		return FAIL;
+	}
+	if (i==0) {
+		memcpy(tmp, data, ptr->size);
+		memcpy(tmp+ptr->size, ptr->arr, ptr->num * ptr->size);
+	}else if(i==ptr->num){
+		memcpy(tmp, ptr->arr, ptr->num * ptr->size);
+		memcpy(tmp+(ptr->num * ptr->size), data, ptr->size);
+	}else{
+		memcpy(tmp, ptr->arr, (i+1) * ptr->size);
+		memcpy(tmp+(i) * ptr->size , data, ptr->size);
+		memcpy(tmp+(i+1)*ptr->size , ptr->arr+i*ptr->size, (ptr->num-i+1) * ptr->size);
+	}
+
+	(ptr->num)++;
 	free(ptr->arr);
 	ptr->arr = tmp;
+
 	return OK;
 }
 
@@ -47,12 +79,9 @@ status delete_darr(DARR_T *ptr, const void *key, compare_t cmp)
 	memmove(ptr->arr+i*ptr->size, ptr->arr+(i+1)*ptr->size, \
 			(ptr->num-(i+1))*ptr->size);
 	(ptr->num) --;
-	tmp = malloc(ptr->num * ptr->size);
-	if (NULL == tmp)
+	ptr->arr = realloc(ptr->arr, ptr->num * ptr->size);
+	if (NULL == ptr->arr)
 		return FAIL;
-	memcpy(tmp, ptr->arr, ptr->num * ptr->size);
-	free(ptr->arr);
-	ptr->arr = tmp;
 
 	return OK;
 }
@@ -74,6 +103,7 @@ status search_darr(DARR_T *ptr, const void *key, void *data, compare_t cmp)
 void traval_darr(DARR_T *ptr, print_t op)
 {
 	int i;
+
 	for (i = 0; i < ptr->num; i++) {
 		op(ptr->arr+i*ptr->size);
 	}

@@ -17,12 +17,12 @@ DARR_T *init_darr(int size);
 //插入任何类型的数据 
 status insert_darr(DARR_T *ptr, const void *data);
 
-status del_darr(DARR_T *ptr, const void *key, compare compr);
+status delete_darr(DARR_T *ptr, const void *key, compare compr);
 
 status search_darr(DARR_T *ptr, const void *key, const void *data, compare compr);
 
 //打印
-void travel_darr(DARR_T *, print_t pr);
+void travel_darr(DARR_T *ptr, print_t pr);
 
 void destory(DARR_T *ptr);
 

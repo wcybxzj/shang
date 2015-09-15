@@ -10,7 +10,7 @@
 
 
 动态库
-	1.gcc --shared -fPIC file.c file2.c -o libxxxx.so 
+	1.gcc -shared -fPIC file.c file2.c -o libxxxx.so 
 	-shared:共享库
 	-fPIC:表示与位置无关
 	
