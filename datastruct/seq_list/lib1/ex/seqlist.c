@@ -39,6 +39,9 @@ status delete_darr(DARR_T *ptr, const void *key, compare compr){
 	if (i == ptr->num) {
 		return FAIL;
 	}
+
+	printf("delete i:%d\n", i);
+
 	memmove(ptr->arr+(ptr->size*i), ptr->arr+(ptr->size*i+1),
 			(ptr->num-i+1)*ptr->size);
 	ptr->num--;

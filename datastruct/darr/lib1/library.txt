@@ -1,0 +1,37 @@
+
+
+静态库
+	man ar
+	
+	1.gcc -c insert.c
+	2.ar -cr -o libxxx.a  insert.o	
+	3.gcc main.c -o main -lxxx -Lpath
+
+
+
+动态库
+	1.gcc -shared -fPIC file.c file2.c -o libxxxx.so 
+	-shared:共享库
+	-fPIC:表示与位置无关
+	
+	2.gcc main.c -o main -Lpath -lname
+	-l:跟库名字
+	-L:库路径
+
+	3.ldd main
+	查看是否装载成功
+
+	4.
+	<1>临时修改环境变量
+		export LD_LIBRARY_PATH=.
+	<2>修改配置文件
+		/etc/ld.so.conf
+		将动态库路径写入
+
+		重读配置文件
+		ldconfig /etc/ld.so.conf
+	<3>拷到/lib64
+
+
+
+	

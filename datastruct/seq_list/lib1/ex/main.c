@@ -41,6 +41,13 @@ int main(int argc, const char *argv[])
 
 	travel_darr(you, print_func);
 
+	//id:3 name:dacong3 grade:97
+	//id:2 name:dacong2 grade:98
+	//id:1 name:dacong1 grade:99
+	//id:9 name:dacong9 grade:91
+	//id:2 name:dacong2 grade:98
+	//id:4 name:dacong4 grade:96
+
 	printf("删除后=============\n");//TODO
 	int del_id = 9;
 	delete_darr(you, &del_id, id_compare);

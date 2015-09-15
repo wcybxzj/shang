@@ -8,6 +8,7 @@ int main(void)
 	int kill = 0;
 
 	for (i = 1; kill < 41 || !printf("game over\n"); i = (i+1)%43) {
+		printf("is i:%d\n",i);
 		if (!arr[i]) {
 			cnt++;
 			if (cnt == 3) {
