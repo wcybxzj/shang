@@ -1,0 +1,11 @@
+
+
+all:
+	gcc -shared -fPIC -o libllist.so llist.c
+	mv libllist.so /lib64
+
+install:
+	gcc -o llist main.c -lllist
+
+clean:
+	rm llist -f 

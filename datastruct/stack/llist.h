@@ -23,9 +23,17 @@ status_t insert_llist(LLIST *ptr, const void *data, way_t way);
 
 status_t delete_llist(LLIST *ptr, const void *key, compare_t cmp);
 
+status_t empty_llist(LLIST *ptr);
+
 void *search_llist(LLIST *ptr, const void *key, compare_t cmp);
 
 status_t fetch_llist(LLIST *ptr, const void *key, void *data, compare_t cmp);
+
+int get_listnum(LLIST *ptr);
+
+void reverse_llist(LLIST **ptr);
+
+void reverse_r(LLIST *ptr);
 
 void traval_llist(LLIST *ptr, traval_t op);
 
