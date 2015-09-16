@@ -11,6 +11,7 @@ struct node_st {
 	void *data;
 	struct node_st *next;
 };
+
 typedef struct {
 	struct node_st head;
 	int size;	

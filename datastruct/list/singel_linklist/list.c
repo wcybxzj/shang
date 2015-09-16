@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-
 #include <list.h>
 
 LIST *init_head(int size)
@@ -76,7 +75,7 @@ void destroy_list(LIST *ptr)
 {
 	struct node_st *cur, *after;		
 
-	for (cur = ptr->head.next;cur != &ptr->head; cur = after) {
+	for (cur = ptr->head.next; cur != &ptr->head; cur = after) {
 		after = cur->next;
 		free(cur->data);
 		free(cur);
