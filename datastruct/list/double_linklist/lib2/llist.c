@@ -49,6 +49,11 @@ status_t delete_llist(LLIST *ptr, const void *key, compare_t cmp)
 	}
 	if (cur == &ptr->head) 
 		return FAIL;
+
+	//printf("------------------\n");
+	//const int *d = cur->data;
+	//printf("del data is %d\n", *d);
+
 	cur->prev->next = cur->next;
 	cur->next->prev = cur->prev;
 	free(cur);
@@ -74,6 +79,7 @@ status_t fetch_llist(LLIST *ptr, const void *key, void *data, compare_t cmp)
 	for (tmp = ptr->head.next; tmp != &ptr->head; tmp = tmp->next) {
 		if (!cmp(key, tmp->data)) {
 			memcpy(data, tmp->data, ptr->size);
+			//delete_llist(ptr, key, cmp);
 			tmp->prev->next = tmp->next;
 			tmp->next->prev = tmp->prev;
 			free(tmp);
