@@ -1,0 +1,9 @@
+all:
+	gcc -shared -fPIC -o liblinktack.so linkstack.c llist.c
+	mv linkstack.so /lib64
+
+install:
+	gcc -o linkstack main.c -llinkstack
+
+clean:
+	rm  -f linkstack *.o

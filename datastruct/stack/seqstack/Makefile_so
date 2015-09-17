@@ -1,0 +1,9 @@
+all:
+	gcc -shared -fPIC -o libseqstack.so seqstack.c
+	mv libseqstack.so /lib64
+
+install:
+	gcc -o seqlist main.c -lseqstack
+
+clean:
+	rm  seqstack -f 

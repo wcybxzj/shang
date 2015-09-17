@@ -8,9 +8,9 @@ typedef void (*traval_t)(const void *);
 typedef int (*compare_t)(const void *, const void *);
 
 struct node_st {
+	void *data;
 	struct node_st *prev;
 	struct node_st *next;
-	char data[0];
 };
 typedef struct {
 	struct node_st head;
@@ -22,6 +22,8 @@ LLIST *init_llist(int size);
 status_t insert_llist(LLIST *ptr, const void *data, way_t way);
 
 status_t delete_llist(LLIST *ptr, const void *key, compare_t cmp);
+
+status_t empty_llist(LLIST *ptr);
 
 void *search_llist(LLIST *ptr, const void *key, compare_t cmp);
 

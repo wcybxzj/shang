@@ -37,28 +37,29 @@ int main(void)
 	traval_llist(my, fun_print);
 	printf("\n\n");
 
-	//del = 1;
-	//delete_llist(my, &del, id_cmp);
-	//traval_llist(my, fun_print);
-	//printf("\n\n");
+#if 0
+	del = 1;
+	delete_llist(my, &del, id_cmp);
+	traval_llist(my, fun_print);
+	printf("\n\n");
+	del = 5;
+	p = search_llist(my, &del, id_cmp);
+	if (NULL == p) {
+		printf("not found\n");
+	} else {
+		printf("find it: %d\n", *p);
+	}
 
-	//del = 5;
-	//p = search_llist(my, &del, id_cmp);
-	//if (NULL == p) {
-	//	printf("not found\n");
-	//} else {
-	//	printf("find it: %d\n", *p);
-	//}
+	printf("***********fetch************\n");
+	i = 4;
+	if ( fetch_llist(my, &i, &del, id_cmp) < 0) {
+		printf("fetch failed\n");
+	}
+	printf("fetch:%d\n", del);
+	traval_llist(my, fun_print);
+	printf("\n\n");
 
-	//printf("***********fetch************\n");
-	//i = 4;
-	//if ( fetch_llist(my, &i, &del, id_cmp) < 0) {
-	//	printf("fetch failed\n");
-	//}
-	//printf("fetch:%d\n", del);
-	//traval_llist(my, fun_print);
-	//printf("\n\n");
-
+#endif
 
 	printf("the number of linklist is %d\n", get_listnum(my));
 	reverse_llist(&my);

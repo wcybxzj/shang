@@ -12,6 +12,7 @@ LLIST *init_llist(int size)
 		return NULL;
 	}
 	me->size = size;
+	me->head.data = NULL;
 	me->head.prev = me->head.next = &me->head;
 
 	return me;
@@ -21,9 +22,14 @@ status_t insert_llist(LLIST *ptr, const void *data, way_t way)
 {
 	struct node_st *new = NULL;
 
-	new = calloc(1, sizeof(*new) + ptr->size);
+	new = calloc(1, sizeof(*new));
 	if (NULL == new)
 		return FAIL;
+	new->data = calloc(1, ptr->size);
+	if (NULL == new->data) {
+		free(new);
+		return FAIL;
+	}
 	memcpy(new->data, data, ptr->size);
 
 	if (way == FRONT) {
@@ -51,6 +57,7 @@ status_t delete_llist(LLIST *ptr, const void *key, compare_t cmp)
 		return FAIL;
 	cur->prev->next = cur->next;
 	cur->next->prev = cur->prev;
+	free(cur->data);
 	free(cur);
 
 	return OK;
@@ -76,6 +83,7 @@ status_t fetch_llist(LLIST *ptr, const void *key, void *data, compare_t cmp)
 			memcpy(data, tmp->data, ptr->size);
 			tmp->prev->next = tmp->next;
 			tmp->next->prev = tmp->prev;
+			free(tmp->data);
 			free(tmp);
 			return OK;
 		}
@@ -141,6 +149,11 @@ void reverse_r(LLIST *ptr)
 	free(data);
 }
 
+status_t empty_llist(LLIST *ptr)
+{
+	return ptr->head.next == &ptr->head && ptr->head.prev == &ptr->head;	
+}
+
 void destroy_llist(LLIST *ptr)
 {
 	struct node_st *cur = NULL;
@@ -148,6 +161,7 @@ void destroy_llist(LLIST *ptr)
 
 	for (cur = ptr->head.next; cur != &ptr->head; cur = after) {
 			after = cur->next;
+			free(cur->data);
 			free(cur);
 	}
 

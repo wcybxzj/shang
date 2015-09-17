@@ -5,7 +5,6 @@ struct list_head {
 	struct list_head *prev;
 	struct list_head *next;
 };
-
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
 //stddef.h
 

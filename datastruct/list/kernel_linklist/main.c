@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <mylist.h>
+
+#include "mylist.h"
 
 #define NAMESIZE 32
 
@@ -11,12 +11,9 @@ struct stu_st {
 	struct list_head node;
 };
 
-//gcc main.c -I.
-//gcc main.c -I. -E
 int main(void)
 {
-	//struct list_head head = { &(head), &(head) };
-	LIST_HEAD(head);
+	LIST_HEAD(head);	
 	struct stu_st *data = NULL;
 	struct stu_st *cur = NULL;
 	struct list_head *pos = NULL;
@@ -33,10 +30,7 @@ int main(void)
 		list_add_tail(&data->node, &head);
 	}
 
-	//for (pos = (&head)->next; pos != (&head); pos = pos->next) {
 	list_for_each(pos, &head) {
-		//cur = ({ const typeof( ((struct stu_st *)0)->node ) *__mptr = (pos);  \
-				(struct stu_st *)( (char *)__mptr - ((size_t) &((struct stu_st *)0)->node) );});
 		cur = list_entry(pos, struct stu_st, node);
 		printf("%-3d%s\n", cur->id, cur->name);
 	}
@@ -50,7 +44,6 @@ int main(void)
 			break;
 		}
 	}
-
 	list_for_each(pos, &head) {
 		cur = list_entry(pos, struct stu_st, node);
 		printf("%-3d%s\n", cur->id, cur->name);
