@@ -29,6 +29,7 @@ static int isRight(char ch)
 static int priority(char ch)
 {
 	int ret = 0;
+
 	if (ch == '+' || ch == '-') 
 		ret = 1;
 	if (ch == '*' || ch == '/')
@@ -57,7 +58,7 @@ static int transform(const char *ptr, char *buf)
 			push_stack(res, end);	
 		} else if (isOperator(*end)) {
 			while (1) {
-				if (get_top(tmp, &data) == FAIL) {
+				if (get_top(tmp, &data) != 0) {
 					push_stack(tmp, end);
 					break;
 				}else {
@@ -106,13 +107,76 @@ static int transform(const char *ptr, char *buf)
 	return 0;
 }
 
+static int cal_num(char op, int left, int right)
+{
+	int res;
+
+	switch (op) {
+		case '+':
+			res = left + right;break;
+		case '-':
+			res = left - right;break;
+		case '*':
+			res = left * right;break;
+		case '/':
+			res = left / right;break;
+		default:
+			exit(1);
+	}	
+	return res;
+}
+
+static int caculate(const char *ptr)
+{
+	STACK *res = NULL;
+	int i;
+	int tmp;
+	char left, right;
+
+	res = init_stack(sizeof(char));	
+	if (NULL == res)
+		exit(1);
+	i = strlen(ptr)-1;	
+
+	while (i >= 0) {
+		if (isNumber(ptr[i])) {
+			tmp = ptr[i] - '0';		
+			push_stack(res, &tmp);
+		} else if (isOperator(ptr[i])){
+			if (!empty_stack(res)) {
+				pop_stack(res, &left);
+			} else 
+				break;
+			if (!empty_stack(res))
+				pop_stack(res, &right);
+			else 
+				break;
+			tmp = cal_num(ptr[i], left, right);
+			push_stack(res, &tmp);
+		}else
+			break;
+		i--;
+	}
+
+	if (i < 0 && !empty_stack(res)) {
+		pop_stack(res, &tmp);	
+		if (!empty_stack(res)) {
+			exit(1);
+		}
+		return tmp;
+	}
+	exit(1);
+}
+
 int main(void)
 {
 	char buf[BUFSIZE] = {};
-	if (transform("3*(2+1)-5/2*7", buf) < 0) {
+
+	if (transform("3*(2+1)-5+4", buf) < 0) {
 		printf("expression is invalued\n");
 	}else {
 		puts(buf);
+		printf("the result is %d\n", caculate(buf));
 	}
 
 	exit(0);
