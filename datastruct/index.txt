@@ -1,6 +1,7 @@
-darr顺序存储结构
-list链表
-stack栈
+darr顺序存储结构:
+
+list链表:
+
+stack栈:
+
 queue:
-	逆波兰
-	球摆

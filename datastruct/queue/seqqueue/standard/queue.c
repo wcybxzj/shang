@@ -35,7 +35,7 @@ status_t deq_queue(QUEUE *ptr, DATA_T *data)
 {
 	if (empty_queue(ptr))
 		return FAIL;
-	*data = ptr->queue[ptr->front];
+	*data = ptr->que_data[ptr->front];
 	ptr->front = (ptr->front + 1) % QUEUEMAX;
 	
 	return OK;

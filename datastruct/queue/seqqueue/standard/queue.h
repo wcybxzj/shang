@@ -6,7 +6,7 @@
 typedef int	DATA_T; 
 typedef enum{OK, FAIL}status_t;
 
-typedef struct  {
+typedef struct {
 	DATA_T *queue;//队列的首地址
 	int front;//队头
 	int rear;//队尾的下一个位置

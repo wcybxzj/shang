@@ -6,6 +6,7 @@
 int main(void)
 {
 	QUEUE *me = NULL;
+	int count;
 	int arr[] = {1,2,3,4,5,6,7,8,9,10};
 	int i, j, tmp;
 
@@ -15,12 +16,21 @@ int main(void)
 		exit(1);
 	}	
 
+	count =  sizeof(arr)/sizeof(*arr);
+	printf("count is %d\n", count);
+
 	for (j = 0; j < 5; j++) {
-		for (i = 0; i < sizeof(arr)/sizeof(*arr); i++) {
-			enq_queue(me, arr[i]);
+		for (i = 0; i < count; i++) {
+			if (FAIL == enq_queue(me, arr[i])) {
+				printf("enq faild arr[i] is %d \n", arr[i]);
+				break;
+			}
 		}
 		for (i = 0; i < 3; i++) {
-			deq_queue(me, &tmp);
+			if (FAIL == deq_queue(me, &tmp)) {
+				printf("deq fail\n");
+				break;
+			}
 			printf("%d ", tmp);
 		}
 		printf("\n");
