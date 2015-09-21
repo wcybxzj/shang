@@ -7,13 +7,13 @@
 
 QUEUE *init_queue(int size){
 	seq_queue *que = NULL;
-	que = malloc(sizeof(*que)+size*QUEUEMAX);
-	que->que_data = malloc(size * QUEUEMAX) ;//如果使用遍尝结构体要注释掉次行
+	//que = malloc(sizeof(*que)+size*QUEUEMAX);//变长结构体使用这行
+	que = malloc(sizeof(*que));
+	que->que_data = malloc(size * QUEUEMAX) ;//使用变长结构体注释掉这行
 	que->size = size;
 	que->front = que->rear = 0;
 	return que;
 }
-
 
 //入
 status_t enq_queue(QUEUE *ptr, const void *data){
@@ -35,11 +35,6 @@ status_t deq_queue(QUEUE *ptr, void *data){
 	memcpy(data, p->que_data+p->front, p->size);
 	p->front = (p->front+p->size)%(QUEUEMAX*p->size);
 	return OK;
-}
-
-int len_queue(QUEUE *ptr){
-	seq_queue *p = ptr;
-	return (p->rear - p->front)/p->size;
 }
 
 status_t empty_queue(QUEUE *ptr){

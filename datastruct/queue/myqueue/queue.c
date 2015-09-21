@@ -16,7 +16,6 @@ static int always(const void *d1, const void *d2)
 	return 0;
 }
 
-
 status_t out_queue(QUEUE *myqueue, void *data){
 	return fetch_llist(myqueue, NULL, data, always);
 }

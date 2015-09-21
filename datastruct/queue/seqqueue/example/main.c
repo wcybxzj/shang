@@ -56,7 +56,7 @@ int main(void)
 
 	while (1) {
 		deq_queue(ball, &tmp);	
-		timecnt ++;
+		timecnt++;
 		if (get_stacknum(onemin) < 4) {
 			pushstack(onemin, tmp);
 		} else {
