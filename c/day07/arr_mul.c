@@ -26,6 +26,10 @@ int main(void)
 		printf("\n");
 	}
 
+	//arr = 0x7fff89ff5b10
+	//arr+1 = 0x7fff89ff5b1c
+	//&arr = 0x7fff89ff5b10
+	//&arr+1 = 0x7fff89ff5b34
 	printf("arr = %p\n", arr);
 	printf("arr+1 = %p\n", arr+1);
 	printf("&arr = %p\n", &arr);

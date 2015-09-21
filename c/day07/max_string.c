@@ -18,6 +18,7 @@ int main(void)
 
 	max_str(arr, 2, &max);
 
+
 	puts(max);
 
 	free(arr[0]);

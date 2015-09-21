@@ -1,0 +1,40 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+CC	Makefile	/^CC=gcc$/;"	m
+FAIL	llist.h	/^typedef enum{FAIL = -1, OK}status_t;$/;"	e	enum:__anon1
+FRONT	llist.h	/^typedef enum{FRONT, REAR}way_t;$/;"	e	enum:__anon2
+LLIST	llist.h	/^}LLIST;$/;"	t	typeref:struct:__anon3
+MY_LLIST_H	llist.h	2;"	d
+OBJS	Makefile	/^OBJS=main.o llist.o$/;"	m
+OK	llist.h	/^typedef enum{FAIL = -1, OK}status_t;$/;"	e	enum:__anon1
+REAR	llist.h	/^typedef enum{FRONT, REAR}way_t;$/;"	e	enum:__anon2
+RM	Makefile	/^RM=rm$/;"	m
+TARGET	Makefile	/^TARGET=llist$/;"	m
+alway_cmp	llist.c	/^static int alway_cmp(const void *d1, const void *d2)$/;"	f	file:
+compare_t	llist.h	/^typedef int (*compare_t)(const void *, const void *);$/;"	t
+data	llist.h	/^	void *data;$/;"	m	struct:node_st
+delete_llist	llist.c	/^status_t delete_llist(LLIST *ptr, const void *key, compare_t cmp)$/;"	f
+destroy_llist	llist.c	/^void destroy_llist(LLIST *ptr)$/;"	f
+fetch_llist	llist.c	/^status_t fetch_llist(LLIST *ptr, const void *key, void *data, compare_t cmp) $/;"	f
+fun_print	main.c	/^static void fun_print(const void *data)$/;"	f	file:
+get_listnum	llist.c	/^int get_listnum(LLIST *ptr)$/;"	f
+head	llist.h	/^	struct node_st head;$/;"	m	struct:__anon3	typeref:struct:__anon3::node_st
+id_cmp	main.c	/^static int id_cmp(const void *key, const void *data)$/;"	f	file:
+init_llist	llist.c	/^LLIST *init_llist(int size)$/;"	f
+insert_llist	llist.c	/^status_t insert_llist(LLIST *ptr, const void *data, way_t way)$/;"	f
+main	main.c	/^int main(void)$/;"	f
+next	llist.h	/^	struct node_st *next;$/;"	m	struct:node_st	typeref:struct:node_st::node_st
+node_st	llist.h	/^struct node_st {$/;"	s
+prev	llist.h	/^	struct node_st *prev;$/;"	m	struct:node_st	typeref:struct:node_st::node_st
+reverse_llist	llist.c	/^void reverse_llist(LLIST **ptr)$/;"	f
+reverse_r	llist.c	/^void reverse_r(LLIST *ptr)$/;"	f
+search_llist	llist.c	/^void *search_llist(LLIST *ptr, const void *key, compare_t cmp)$/;"	f
+size	llist.h	/^	int size;$/;"	m	struct:__anon3
+status_t	llist.h	/^typedef enum{FAIL = -1, OK}status_t;$/;"	t	typeref:enum:__anon1
+traval_llist	llist.c	/^void traval_llist(LLIST *ptr, traval_t op)$/;"	f
+traval_t	llist.h	/^typedef void (*traval_t)(const void *);$/;"	t
+way_t	llist.h	/^typedef enum{FRONT, REAR}way_t;$/;"	t	typeref:enum:__anon2

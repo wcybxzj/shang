@@ -1,0 +1,23 @@
+
+
+
+1
+	pre: abdgcefh
+	mid: dgbaechf
+
+2.
+	pre: GDAFEMHZ
+	mid: ADEFGHMZ
+
+3.
+	mid: HLDBEKAFCG
+	end: LHDKEBFGCA
+
+4.
+	pre: ABDECF
+	mid: DBEAFC	
+
+5.
+	end:DBCEFGHA
+	mid:EDCBAHFG
+
