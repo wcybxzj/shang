@@ -40,9 +40,16 @@ int main(void)
 		snprintf(tmp.name, NAMESIZE, "%c%c%c",'a'+rand()%26, 'a'+rand()%26, rand()%26+'a');	
 		tmp.age = 20 + i;
 		tmp.sex = rand()%2==0?'f':'m';
-
 		insert_list(my, &tmp, REAR);
 	}
+	traval_list(my, print_fun);
+	printf("\n\n");
+
+
+	snprintf(tmp.name, NAMESIZE, "测试尾部插入 %d",123);	
+	tmp.age = 20;
+	tmp.sex = 'm';
+	insert_list(my, &tmp, REAR);
 	traval_list(my, print_fun);
 	printf("\n\n");
 
