@@ -25,12 +25,39 @@ vga=可设置的值可以用工具fbset（没有的话用sudo apt-get install fb
 
 #include "fb_draw.h"
 
+#define BACK_HIGH 700
+#define BACK_WIDTH 600
+
 static int pos_x=100, pos_y = 100;
+enum PIC_TYPE{BACK_GROUP,GUN,RECT,FUCK,LIANG,ZUO,YOU};
+
+static void draw_element(int x, int y, int color);
+void sig_handler(int s);
+void draw(enum PIC_TYPE type);
+void init();
+
+int main(int argc, const char *argv[])
+{
+	init();
+	int ret;
+	int i, j;
+
+	ret = fb_open();	
+	//if error
+	//draw_element(pos_x, pos_y, 0xfa);
+
+	//signal(SIGALRM, sig_handler);
+	//alarm(1);
+	//while (1);
+
+	fb_close();
+
+	return 0;
+}
 
 static void draw_element(int x, int y, int color)
 {
 	int i, j;	
-
 	for (i = 0; i < 50; i++) {
 		for (j = 0; j < 50; j++) {
 			fb_draw_point(x+j, y+i, color);
@@ -42,27 +69,35 @@ void sig_handler(int s)
 {
 	alarm(1);	
 
-	draw_element(pos_x, pos_y, 0x00);
+	draw_element(pos_x, pos_y, 0x00);//0x00 黑 0xff白
 	pos_y+=10;
 	draw_element(pos_x, pos_y, 0xfa);
 }
 
-int main(int argc, const char *argv[])
+void draw(enum PIC_TYPE type){
+	if (type == BACK_GROUP) {
+		
+		draw_element(BACK_WIDTH, BACK_HIGH, 0xfa);
+	}
+
+		//case GUN:
+		//	break;
+		//case RECT:
+		//	break;
+		//case FUCK:
+		//	break;
+		//case LIANG:
+		//	break;
+		//case ZUO:
+		//	break;
+		//case YOU:
+		//	break;
+}
+
+void init()
 {
-	int ret;
-	int i, j;
-
-	ret = fb_open();	
-	//if error
-	
-	draw_element(pos_x, pos_y, 0xfa);
-
-	signal(SIGALRM, sig_handler);
-	alarm(1);
-
-	while (1);
-	fb_close();
-
-	return 0;
+	draw(BACK_GROUP);
+	//1.clean window
+	//2.background
 }
 
