@@ -1,3 +1,3 @@
 
 all:
-	gcc *.c -o treris
+	gcc *.c -o treris -Wall

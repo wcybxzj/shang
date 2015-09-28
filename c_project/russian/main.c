@@ -6,44 +6,107 @@
 
 #include "fb_draw.h"
 
+#define PINK 0xfa
+#define BLUE 0x1a
+
 #define COL_CANVAS 4
 #define ROW_CANVAS 4
 
 #define ROW 10
 #define COL 20
+#define DEGREE 2
 
 #define DRAW_BLOCK_SIZE 20
 
-
-struct block_info{
-
-}
-static int pos_x=100, pos_y = 100;
 enum PIC_TYPE{BACK_GROUP,GUN,RECT,FUCK,LIANG,ZUO,YOU};
-enum POSITION{UP,DOWN,LEFT,RIGHT};
+enum POSITION{UP,LEFT,DOWN,RIGHT};
 
-static enum PIC_TYPE block_status;
+typedef struct{
+	enum PIC_TYPE type;
+	enum POSITION pos;
+	char (*arr)[COL_CANVAS];
+}block,*block_entry_pointer;
+
+static int max_x, max_y, min_x, min_y;
+static int current_max_x, current_max_y, curret_min_x, current_min_y;
+
 static int (*russian_p)[COL];
-static char (*block_p)[COL_CANVAS];
+static int autodown_y;
 static int autodown_x;
+static block_entry_pointer block_entry_p = NULL;
 
 static void draw_element(int x, int y, int color);
 void sig_handler(int s);
-void draw_picture(enum PIC_TYPE type, char (**block_p)[COL_CANVAS],int row_canvas,int color);
+void sig_handler_back(int s);
+void draw_picture(int row_canvas, int color);
 void init(int (**russian_p)[COL], int row);
+
+void reset_block()
+{
+	int i,j;
+	int x,y;
+	for (i = 0; i < ROW_CANVAS; i++) {
+		for (j = 0; j < COL_CANVAS; j++) {
+			if ( block_entry_p->arr[i][j] == 1 ) {
+				block_entry_p->arr[i][j] = 0;
+				x = i * DRAW_BLOCK_SIZE;
+				y = j * DRAW_BLOCK_SIZE;
+				draw_element(x+autodown_x, y+autodown_y, PINK);
+			}
+		}
+	}
+}
+
+void change()
+{
+	reset_block();
+	block_entry_p->pos = (block_entry_p->pos+1)%4;
+	draw_picture(ROW_CANVAS, BLUE);
+}
+
+void init_current_block()
+{
+	block_entry_p = calloc(1,sizeof(block));//4x16=56
+	block_entry_p->arr = calloc(1,sizeof(char) * COL_CANVAS *16);//4x16=56
+	block_entry_p->type = FUCK;
+	block_entry_p->pos = UP;
+}
+
+void left()
+{
+	if (autodown_x-10 < min_x) {
+		return;
+	}
+	draw_picture(ROW_CANVAS, 0xfa);
+	autodown_x-=10;
+	printf("autodown_x %d\n", autodown_x);
+	draw_picture(ROW_CANVAS, 0x1a);
+}
+
+void right()
+{
+	if (autodown_x+10 > max_x) {
+		return;
+	}
+	draw_picture(ROW_CANVAS, 0xfa);
+	autodown_x+=10;
+	draw_picture(ROW_CANVAS, 0x1a);
+}
+
+void down()
+{
+	if (autodown_y+10 > max_y) {
+		return;
+	}
+	draw_picture(ROW_CANVAS, 0xfa);
+	autodown_y+=10;
+	draw_picture(ROW_CANVAS, 0x1a);
+}
 
 int main(int argc, const char *argv[])
 {
 	int ret,ch;
-	int i, j;
-
 	ret = fb_open();	
-
-	//if error
-	//draw_element(pos_x, pos_y, 0xfa);
-
-	signal(SIGALRM, sig_handler);
-	alarm(1);
 
 	struct termios tc, old_tc;
 	tcgetattr(0, &tc);//0是输入
@@ -52,22 +115,30 @@ int main(int argc, const char *argv[])
 	tc.c_lflag &= (~ECHO);//ECHO 使用回显  &~(ECHO) 取消回显
 	tcsetattr(0, TCSANOW, &tc);//TCSANOW 立刻生效
 
+	init(&russian_p, ROW);
+
+	init_current_block();
+	draw_picture(ROW_CANVAS, 0x1a);
+
+	signal(SIGALRM, sig_handler);
+	alarm(1);
+
 	while (1) {
 		ch = getchar();
-		//printf("%c %d\n",ch, ch);
 		if (ch == 'q') {//exit
 			break;
 		}
-		if (ch =='w') {//pause
-			change(&block_p);
+		if (ch =='w') {
+			change();
 		}
-		if (ch =='a') {//pause
+		if (ch =='a') {
+			left();
 		}
-		if (ch =='s') {//pause
-
-		}
-		if (ch =='d') {//pause
-
+		if (ch =='s') {
+			down();
+ 		}
+		if (ch =='d') {
+			right();
 		}
 	}
 
@@ -89,79 +160,96 @@ static void draw_element(int x, int y, int color)
 
 void sig_handler(int s)
 {
+	draw_picture(ROW_CANVAS, 0xfa);
+	autodown_y+=10;
+	draw_picture(ROW_CANVAS, 0x1a);
 	alarm(1);	
-	init(&russian_p, ROW);
-	draw_picture(FUCK, &block_p, ROW_CANVAS, 0xfa);
-	autodown_x+=10;
-	draw_picture(FUCK, &block_p, ROW_CANVAS, 0x1a);
-
-	//draw_element(pos_x, pos_y, 0x00);//0x00 黑 0xff白
-	//pos_y+=10;
-	//draw_element(pos_x, pos_y, 0xfa);
 }
 
-void draw_picture(enum PIC_TYPE type, char (**block_p)[COL_CANVAS],int row_canvas, int color){
+void draw_picture(int row_canvas, int color){
 	int i,j;
 	int x,y;
-	*block_p = calloc(1,sizeof(char) * COL_CANVAS * row_canvas);//4x16=56
 
-	//create canvas
-
-	//0,1 1,0 1,1 1,2
-	if (type == FUCK) {
-		(*block_p)[0][1] =1;
-		(*block_p)[1][0] =1;
-		(*block_p)[1][1] =1;
-		(*block_p)[1][2] =1;
+	switch(block_entry_p->type){
+		case FUCK:
+			switch(block_entry_p->pos){
+				case UP:
+					block_entry_p->arr[0][1] = 1;
+					block_entry_p->arr[1][0] = 1;//left
+					block_entry_p->arr[1][1] = 1;//down
+					block_entry_p->arr[1][2] = 1;//right
+				break;
+				case DOWN:
+					block_entry_p->arr[1][1] = 1;//left
+					block_entry_p->arr[0][0] = 1;
+					block_entry_p->arr[0][1] = 1;//
+					block_entry_p->arr[0][2] = 1;//
+				break;
+				case LEFT:
+					block_entry_p->arr[0][0] = 1;
+					block_entry_p->arr[1][0] = 1;
+					block_entry_p->arr[1][1] = 1;
+					block_entry_p->arr[2][0] = 1;
+				break;
+				case RIGHT:
+					block_entry_p->arr[0][1] = 1;
+					block_entry_p->arr[1][0] = 1;
+					block_entry_p->arr[1][1] = 1;
+					block_entry_p->arr[2][1] = 1;
+				break;
+				default:
+				break;
+			}
+		break;
+		default:break;
 	}
 
 	for (i = 0; i < row_canvas; i++) {
 		for (j = 0; j < COL_CANVAS; j++) {
-			if ( (*block_p)[i][j] == 1 ) {
-				//printf("i %d j %d",i ,j);
-				//printf(" =%d |",(*block_p)[i][j]);
-
+			if ( block_entry_p->arr[i][j] == 1 ) {
 				x = i*DRAW_BLOCK_SIZE;
 				y = j*DRAW_BLOCK_SIZE;
-
-				//printf("x %d y %d||||||",x ,y);
-				//draw_element(y, x+autodown_x , 0x1a);
-				draw_element(x+autodown_x, y, color);
+				draw_element(x+autodown_x, y+autodown_y, color);
 			}
 		}
 	}
-	//case GUN:
-	//	break;
-	//case RECT:
-	//	break;
-	//case FUCK:
-	//	break;
-	//case LIANG:
-	//	break;
-	//case ZUO:
-	//	break;
-	//case YOU:
-	//	break;
+
 }
 
-void init(int (**russian_p)[COL], int row)
+void init(int (**russian_p)[COL],int row)
 {
 	int i,j;
 	int x,y;
+	int is_init = 0;
 
 	*russian_p = malloc(sizeof(int) * COL * row);
-	memset(*russian_p,0,sizeof(int) * COL * row);
+	memset(*russian_p, 0, sizeof(int) * COL * row);
 
-	printf("\33[2J");
 	for (i = 0; i <= row; i++) {
 		for (j = 0; j <=COL; j++) {
 			x=i*DRAW_BLOCK_SIZE;
 			y=j*DRAW_BLOCK_SIZE;
+			if (is_init == 0) {
+				max_x = min_x = x;
+				max_y = min_y = y;
+				is_init = 1;
+			}else{
+				if (x > max_x) {
+					max_x = x;
+				}
+				if (x < min_x) {
+					min_x = x;
+				}
+				if (y > max_y) {
+					max_y = y;
+				}
+				if (y < min_y) {
+					min_y = y;
+				}
+			}
 			draw_element(x, y, 0xfa);
 		}
 	}
-	//draw(BACK_GROUP);
-	//1.clean window
-	//2.background
+
 }
 
