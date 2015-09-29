@@ -8,6 +8,7 @@
 
 #define PINK 0xfa
 #define BLUE 0x1a
+#define YELLOW 0x2a
 
 #define COL_CANVAS 4
 #define ROW_CANVAS 4
@@ -19,7 +20,8 @@
 #define DRAW_BLOCK_SIZE 20
 
 enum PIC_TYPE{BACK_GROUP,GUN,RECT,FUCK,LIANG,ZUO,YOU};
-enum POSITION{UP,LEFT,DOWN,RIGHT};
+enum POSITION{UP,RIGHT,DOWN,LEFT};
+enum IS_DRAW{IS_DRAW, NOT_DRAW};
 
 typedef struct{
 	enum PIC_TYPE type;
@@ -28,18 +30,22 @@ typedef struct{
 }block,*block_entry_pointer;
 
 static int max_x, max_y, min_x, min_y;
-static int current_max_x, current_max_y, curret_min_x, current_min_y;
-
+static int current_max_x, current_max_y, current_min_x;
 static int (*russian_p)[COL];
 static int autodown_y;
 static int autodown_x;
 static block_entry_pointer block_entry_p = NULL;
+static char tmp_arr[ROW][COL]={};
 
 static void draw_element(int x, int y, int color);
 void sig_handler(int s);
 void sig_handler_back(int s);
-void draw_picture(int row_canvas, int color);
-void init(int (**russian_p)[COL], int row);
+void draw_picture(int row_canvas, int color, int is_draw);
+void init();
+void verify(enum PIC_TYPE type, enum POSITION pos, int row_canvas,
+	   	int *test_current_max_x, int *test_current_min_x, int *test_current_max_y);
+void copy();
+
 
 void reset_block()
 {
@@ -59,48 +65,99 @@ void reset_block()
 
 void change()
 {
-	reset_block();
-	block_entry_p->pos = (block_entry_p->pos+1)%4;
-	draw_picture(ROW_CANVAS, BLUE);
+	int is_allow = 1;
+	int test_current_max_x, test_current_min_x, test_current_max_y;
+	enum POSITION next_pos = (block_entry_p->pos+1)%4;
+
+	verify(block_entry_p->type, next_pos, ROW_CANVAS,
+					&test_current_max_x, &test_current_min_x, &test_current_max_y);
+
+	if (block_entry_p->type == FUCK) {
+		if (next_pos == DOWN) {
+			if (test_current_min_x + autodown_x < min_x) {
+				is_allow = 0;
+			}
+		}else if(next_pos == UP){
+			if (test_current_max_x + autodown_x > max_x) {
+				is_allow = 0;
+			}
+		}else if(next_pos == RIGHT){
+			if (test_current_max_y + autodown_y > max_y) {
+				is_allow = 0;
+			}
+		}
+	}
+
+	//printf("is_allow %d", is_allow);
+	if(is_allow == 1){
+		reset_block();
+		block_entry_p->pos = next_pos;
+		draw_picture(ROW_CANVAS, BLUE, IS_DRAW);
+	}
 }
 
 void init_current_block()
 {
-	block_entry_p = calloc(1,sizeof(block));//4x16=56
-	block_entry_p->arr = calloc(1,sizeof(char) * COL_CANVAS *16);//4x16=56
+	block_entry_p = calloc(1, sizeof(block));
+	block_entry_p->arr = calloc(COL_CANVAS * ROW_CANVAS, sizeof(char));
 	block_entry_p->type = FUCK;
 	block_entry_p->pos = UP;
 }
 
 void left()
 {
-	if (autodown_x-10 < min_x) {
+	if (current_min_x+autodown_x-DRAW_BLOCK_SIZE < min_x) {
 		return;
 	}
-	draw_picture(ROW_CANVAS, 0xfa);
-	autodown_x-=10;
-	printf("autodown_x %d\n", autodown_x);
-	draw_picture(ROW_CANVAS, 0x1a);
+	draw_picture(ROW_CANVAS, 0xfa, IS_DRAW);
+	autodown_x-=DRAW_BLOCK_SIZE;
+	draw_picture(ROW_CANVAS, 0x1a, IS_DRAW);
 }
 
 void right()
 {
-	if (autodown_x+10 > max_x) {
+	if (current_max_x+autodown_x+DRAW_BLOCK_SIZE > max_x) {
 		return;
 	}
-	draw_picture(ROW_CANVAS, 0xfa);
-	autodown_x+=10;
-	draw_picture(ROW_CANVAS, 0x1a);
+	draw_picture(ROW_CANVAS, 0xfa, IS_DRAW);
+	autodown_x+=DRAW_BLOCK_SIZE;
+	draw_picture(ROW_CANVAS, 0x1a, IS_DRAW);
 }
 
 void down()
 {
-	if (autodown_y+10 > max_y) {
+	if (current_max_y+autodown_y+DRAW_BLOCK_SIZE > max_y) {
+		copy();
+		reset_block();
+		free(block_entry_p->arr);
+		free(block_entry_p);
+		exit(1);
 		return;
 	}
-	draw_picture(ROW_CANVAS, 0xfa);
-	autodown_y+=10;
-	draw_picture(ROW_CANVAS, 0x1a);
+	draw_picture(ROW_CANVAS, 0xfa, IS_DRAW);
+	autodown_y+=DRAW_BLOCK_SIZE;
+	draw_picture(ROW_CANVAS, 0x1a, IS_DRAW);
+}
+
+void copy(){
+	int i, j ,l, m, x, y , p, q;
+
+	for (i = 0; i < ROW; i++) {
+		for (j = 0; j < COL; j++) {
+			x=i*DRAW_BLOCK_SIZE;
+			y=j*DRAW_BLOCK_SIZE;
+			for (l = 0; l < ROW_CANVAS; l++) {
+				for (m = 0; m < COL_CANVAS; m++) {
+					p=l*DRAW_BLOCK_SIZE+autodown_x;
+					q=m*DRAW_BLOCK_SIZE+autodown_y;
+					if(x == p && y ==q){
+						russian_p[i][j]=1;
+						draw_element(p, q, BLUE);
+					}
+				}
+			}
+		}
+	}
 }
 
 int main(int argc, const char *argv[])
@@ -115,10 +172,9 @@ int main(int argc, const char *argv[])
 	tc.c_lflag &= (~ECHO);//ECHO 使用回显  &~(ECHO) 取消回显
 	tcsetattr(0, TCSANOW, &tc);//TCSANOW 立刻生效
 
-	init(&russian_p, ROW);
-
+	init();
 	init_current_block();
-	draw_picture(ROW_CANVAS, 0x1a);
+	draw_picture(ROW_CANVAS, 0x1a, IS_DRAW);
 
 	signal(SIGALRM, sig_handler);
 	alarm(1);
@@ -151,6 +207,8 @@ int main(int argc, const char *argv[])
 static void draw_element(int x, int y, int color)
 {
 	int i, j;	
+	x+=600;
+	//y+=200;
 	for (i = 0; i < DRAW_BLOCK_SIZE; i++) {
 		for (j = 0; j < DRAW_BLOCK_SIZE; j++) {
 			fb_draw_point(x+j, y+i, color);
@@ -160,43 +218,136 @@ static void draw_element(int x, int y, int color)
 
 void sig_handler(int s)
 {
-	draw_picture(ROW_CANVAS, 0xfa);
-	autodown_y+=10;
-	draw_picture(ROW_CANVAS, 0x1a);
+	down();
 	alarm(1);	
 }
-
-void draw_picture(int row_canvas, int color){
+	
+void verify(enum PIC_TYPE type, enum POSITION pos, int row_canvas,
+	   	int *test_current_max_x, int *test_current_min_x, int *test_current_max_y){
 	int i,j;
 	int x,y;
+	int max_x_i,  max_x_j, min_x_i,  min_x_j, max_y_i,  max_y_j;
+	switch(type){
+		case FUCK:
+			switch(pos){
+				case UP:
+					tmp_arr[1][0] = 1;
+					tmp_arr[0][1] = 1;
+					tmp_arr[1][1] = 1;
+					tmp_arr[2][1] = 1;
+					min_x_i = 0; min_x_j = 1;
+					max_x_i = 2; max_x_j = 1;
+					max_y_i = 2; max_y_j = 1;
+				break;
+
+				case DOWN:
+					tmp_arr[0][0] = 1;
+					tmp_arr[1][0] = 1;
+					tmp_arr[2][0] = 1;
+					tmp_arr[1][1] = 1;
+					min_x_i = 0; min_x_j = 0;
+					max_x_i = 2; max_x_j = 0;
+					max_y_i = 1; max_y_j = 1;
+				break;
+
+				case LEFT:
+					tmp_arr[1][0] = 1;
+					tmp_arr[0][1] = 1;
+					tmp_arr[1][1] = 1;
+					tmp_arr[1][2] = 1;
+					min_x_i = 0; min_x_j = 1;
+					max_x_i = 1; max_x_j = 0;
+					max_y_i = 1; max_y_j = 2;
+				break;
+
+				case RIGHT:
+					tmp_arr[1][0] = 1;
+					tmp_arr[1][2] = 1;
+					tmp_arr[1][1] = 1;
+					tmp_arr[2][1] = 1;
+					min_x_i = 1; min_x_j = 0;
+					max_x_i = 2; max_x_j = 1;
+					max_y_i = 1; max_y_j = 2;
+				break;
+
+				default:
+				break;
+			}
+		break;
+		default:break;
+	}
+
+	for (i = 0; i < row_canvas; i++) {
+		for (j = 0; j < COL_CANVAS; j++) {
+			if (tmp_arr[i][j] == 1 ) {
+				x = i*DRAW_BLOCK_SIZE;
+				y = j*DRAW_BLOCK_SIZE;
+				if(max_x_i == i && max_x_j == j){
+					*test_current_max_x = x;
+				}
+				if(min_x_i == i && min_x_j == j){
+					*test_current_min_x = x;
+				}
+				if(max_y_i == i && max_y_j == j){
+					*test_current_max_y =y;
+				}
+				//reset!!
+				tmp_arr[i][j] = 0;
+			}
+		}
+	}
+
+	return;
+}
+
+void draw_picture(int row_canvas, int color, int is_draw){
+	int i,j;
+	int x,y;
+	int max_x_i,  max_x_j, min_x_i,  min_x_j, max_y_i,  max_y_j;
 
 	switch(block_entry_p->type){
 		case FUCK:
 			switch(block_entry_p->pos){
 				case UP:
-					block_entry_p->arr[0][1] = 1;
-					block_entry_p->arr[1][0] = 1;//left
-					block_entry_p->arr[1][1] = 1;//down
-					block_entry_p->arr[1][2] = 1;//right
-				break;
-				case DOWN:
-					block_entry_p->arr[1][1] = 1;//left
-					block_entry_p->arr[0][0] = 1;
-					block_entry_p->arr[0][1] = 1;//
-					block_entry_p->arr[0][2] = 1;//
-				break;
-				case LEFT:
-					block_entry_p->arr[0][0] = 1;
 					block_entry_p->arr[1][0] = 1;
-					block_entry_p->arr[1][1] = 1;
-					block_entry_p->arr[2][0] = 1;
-				break;
-				case RIGHT:
 					block_entry_p->arr[0][1] = 1;
-					block_entry_p->arr[1][0] = 1;
 					block_entry_p->arr[1][1] = 1;
 					block_entry_p->arr[2][1] = 1;
+					min_x_i = 0; min_x_j = 1;
+					max_x_i = 2; max_x_j = 1;
+					max_y_i = 2; max_y_j = 1;
 				break;
+
+				case DOWN:
+					block_entry_p->arr[0][0] = 1;
+					block_entry_p->arr[1][0] = 1;
+					block_entry_p->arr[2][0] = 1;
+					block_entry_p->arr[1][1] = 1;
+					min_x_i = 0; min_x_j = 0;
+					max_x_i = 2; max_x_j = 0;
+					max_y_i = 1; max_y_j = 1;
+				break;
+
+				case LEFT:
+					block_entry_p->arr[1][0] = 1;
+					block_entry_p->arr[0][1] = 1;
+					block_entry_p->arr[1][1] = 1;
+					block_entry_p->arr[1][2] = 1;
+					min_x_i = 0; min_x_j = 1;
+					max_x_i = 1; max_x_j = 0;
+					max_y_i = 1; max_y_j = 2;
+				break;
+
+				case RIGHT:
+					block_entry_p->arr[1][0] = 1;
+					block_entry_p->arr[1][2] = 1;
+					block_entry_p->arr[1][1] = 1;
+					block_entry_p->arr[2][1] = 1;
+					min_x_i = 1; min_x_j = 0;
+					max_x_i = 2; max_x_j = 1;
+					max_y_i = 1; max_y_j = 2;
+				break;
+
 				default:
 				break;
 			}
@@ -209,24 +360,36 @@ void draw_picture(int row_canvas, int color){
 			if ( block_entry_p->arr[i][j] == 1 ) {
 				x = i*DRAW_BLOCK_SIZE;
 				y = j*DRAW_BLOCK_SIZE;
-				draw_element(x+autodown_x, y+autodown_y, color);
+				if(max_x_i == i && max_x_j == j){
+					current_max_x = x;
+				}
+				if(min_x_i == i && min_x_j == j){
+					current_min_x = x;
+				}
+				if(max_y_i == i && max_y_j == j){
+				
+					current_max_y =y;
+				}
+				if (is_draw == IS_DRAW) {
+					draw_element(x+autodown_x, y+autodown_y, color);
+				}
 			}
 		}
 	}
+	//printf(" current_max_x %d  current_max_y %d current_min_x %d \n", current_max_x, current_max_y, current_min_x);
 
 }
 
-void init(int (**russian_p)[COL],int row)
+void init()
 {
 	int i,j;
 	int x,y;
 	int is_init = 0;
 
-	*russian_p = malloc(sizeof(int) * COL * row);
-	memset(*russian_p, 0, sizeof(int) * COL * row);
+	russian_p = calloc(COL*ROW, sizeof(int));
 
-	for (i = 0; i <= row; i++) {
-		for (j = 0; j <=COL; j++) {
+	for (i = 0; i < ROW; i++) {
+		for (j = 0; j < COL; j++) {
 			x=i*DRAW_BLOCK_SIZE;
 			y=j*DRAW_BLOCK_SIZE;
 			if (is_init == 0) {
@@ -250,6 +413,7 @@ void init(int (**russian_p)[COL],int row)
 			draw_element(x, y, 0xfa);
 		}
 	}
+	//printf("max_x %d min_x %d max_y %d min_y %d\n", max_x, min_x, max_y, min_y);
 
 }
 
