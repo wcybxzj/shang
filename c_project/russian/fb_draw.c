@@ -62,7 +62,8 @@ void fb_draw_point(int x, int y, int color)
      unsigned long offet;
 
  	//fb0.var.xres 
-     //offet = fb0.bpp * (x + y * 1280);
+    //offet = fb0.bpp * (x + y * 1280);
+    //offet = fb0.bpp * (x + y * 768);
     offet = fb0.bpp * (x + y * fb0.var.xres);//debug!!
      //offet = fb0.bpp * (y + x * fb0.var.xres);
      memset(fb0.fbp + offet, color, fb0.bpp);

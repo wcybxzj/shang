@@ -56,6 +56,7 @@ int main(int argc, const char *argv[])
 	//if error
 	
 	draw_element(pos_x, pos_y, 0xfa);
+	draw_element(pos_x+50, pos_y, 0xfa);
 
 	signal(SIGALRM, sig_handler);
 	alarm(1);
