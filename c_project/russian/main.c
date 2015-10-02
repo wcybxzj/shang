@@ -19,7 +19,8 @@
 
 #define DRAW_BLOCK_SIZE 20
 
-enum MOVE_TYPE{VERRIFY_DOWN, VERRIFY_LEFT, VERRIFY_RIGHT};
+enum ALLOW_TYPE{NOT_ALLOW, ALLOW};
+enum MOVE_VERIFY_TYPE{VERRIFY_DOWN, VERRIFY_LEFT, VERRIFY_RIGHT};
 enum PIC_TYPE{BACK_GROUP,GUN,RECT,FUCK,LIANG,ZUO,YOU};
 enum POSITION{UP,RIGHT,DOWN,LEFT};
 enum IS_DRAW{IS_DRAW, NOT_DRAW};
@@ -29,6 +30,11 @@ typedef struct{
 	enum POSITION pos;
 	char (*arr)[COL_CANVAS];
 }block,*block_entry_pointer;
+
+typedef struct st_top_i_j{
+	int i;
+	int j;
+}top_i_j;
 
 static int max_x, max_y, min_x, min_y;
 static int current_max_x, current_max_y, current_min_x;
@@ -43,9 +49,9 @@ void sig_handler(int s);
 void sig_handler_back(int s);
 void draw_picture(int row_canvas, int color, int is_draw);
 void init();
-int verify(enum PIC_TYPE type, int row_canvas);
+enum ALLOW_TYPE verify(enum PIC_TYPE type, enum POSITION pos, int row_canvas);
 void copy();
-int is_stop(enum MOVE_TYPE move_type);
+int is_stop(enum MOVE_VERIFY_TYPE move_verify_type);
 
 void reset_block()
 {
@@ -65,11 +71,11 @@ void reset_block()
 
 void change()
 {
-	int is_allow = 1;
+	enum ALLOW_TYPE is_allow;
 	enum POSITION next_pos = (block_entry_p->pos+1)%4;
 
-	is_allow = verify(block_entry_p->type, ROW_CANVAS);
-	if(is_allow == 1){
+	is_allow = verify(block_entry_p->type, next_pos,ROW_CANVAS);
+	if(is_allow == ALLOW){
 		reset_block();
 		block_entry_p->pos = next_pos;
 		draw_picture(ROW_CANVAS, BLUE, IS_DRAW);
@@ -132,7 +138,7 @@ void get_current_block(){
 	}
 }
 
-int is_stop(enum MOVE_TYPE type){
+int is_stop(enum MOVE_VERIFY_TYPE type){
 	int i, j, x, y;
 	int l, m, p, q;
 	int origin_q;
@@ -188,10 +194,11 @@ void down()
 		copy();
 		//printf("-------333333333333--------------\n");
 		//get_russian();
-		//sleep(15);
+		//sleep(5);
 
 		free(block_entry_p->arr);
 		free(block_entry_p);
+
 
 		init_current_block();
 		draw_picture(ROW_CANVAS, 0x1a, IS_DRAW);
@@ -205,8 +212,20 @@ void down()
 	draw_picture(ROW_CANVAS, 0x1a, IS_DRAW);
 }
 
+
 void copy(){
-	int i, j ,l, m, x, y , p, q;
+	int k;
+	int i, j ,l, m, x, y, z , p, q;
+	int is_game_over = 0;
+
+	//set top level i j for copy gamever
+	top_i_j tmp;
+	top_i_j i_j_arr[COL];
+	for (k = 0; k < COL; k++) {
+		tmp.i = 0;
+		tmp.j = k;
+		i_j_arr[k] =tmp;
+	}
 
 	for (i = 0; i < ROW; i++) {
 		for (j = 0; j < COL; j++) {
@@ -221,12 +240,65 @@ void copy(){
 							//printf("wwwwwwwwwwwwwwwwwwwwwwww i %d j %d\n", i, j);
 							russian_p[i][j]=1;
 							draw_element(p, q, YELLOW);
-							//sleep(5);
+							for (k = 0; k < COL; k++) {
+								if (i==i_j_arr[k].i && j ==i_j_arr[k].j) {
+									is_game_over=1;
+								}
+							}
 						}
 					}
 				}
 			}
 		}
+	}
+
+	//delete complete block
+	int delete_num = 0;
+	int last_delete_row = 0;
+	for (i = ROW-1; i > 0; i--) {
+		for (j = 0; j < COL; j++) {
+			if (russian_p[i][j] == 0) {
+				break;
+			}
+			if (j==COL-1) {
+				for (k = 0; k < COL; k++) {
+					x=k*DRAW_BLOCK_SIZE;
+					y=i*DRAW_BLOCK_SIZE;
+					draw_element(x, y, PINK);
+					russian_p[i][k] = 0;
+					printf("delete i %d k %d\n",i,k);
+				}
+				delete_num++;
+				last_delete_row = i;
+				printf("---------------------------------\n");
+				sleep(2);
+			}
+		}
+	}
+	printf("delete_num %d\n", delete_num);
+
+	//after delete move down
+	if (delete_num) {
+		for (j = 0; j < COL; j++) {
+			for (i = last_delete_row-1; i >= 0 ; i--) {
+				x = j * DRAW_BLOCK_SIZE;
+				y = i * DRAW_BLOCK_SIZE;
+				z = (i+delete_num) * DRAW_BLOCK_SIZE;
+				if (russian_p[i][j] == 1) {
+					draw_element(x, y, PINK);
+					russian_p[i][j] = 0;
+					//sleep(2);
+					printf("z %d y %d\n",z, y);
+					draw_element(x, z, YELLOW);
+					russian_p[i+delete_num][j] = 1;
+				}
+			}
+		}
+	}
+
+	if (is_game_over) {
+		printf("game over!!!");
+		exit(1);
 	}
 }
 
@@ -296,15 +368,14 @@ void sig_handler(int s)
 	alarm(1);	
 }
 
-int verify(enum PIC_TYPE type, int row_canvas){
+enum ALLOW_TYPE verify(enum PIC_TYPE type, enum POSITION pos, int row_canvas){
 	int test_current_max_x, test_current_min_x, test_current_max_y;
 	int i, j, l, m;
 	int x, y, p, q, real_x, real_y;
 	int max_x_i,  max_x_j, min_x_i,  min_x_j, max_y_i,  max_y_j;
-	enum POSITION next_pos = (block_entry_p->pos+1)%4;
 	switch(type){
 		case FUCK:
-			switch(next_pos){
+			switch(pos){
 				case UP:
 					tmp_arr[0][1] = 1;
 					tmp_arr[1][0] = 1;
@@ -376,7 +447,7 @@ int verify(enum PIC_TYPE type, int row_canvas){
 						q=l*DRAW_BLOCK_SIZE;
 						if(p==real_x && q==real_y){
 							if(russian_p[l][m]==1){
-								return 0;
+								return NOT_ALLOW;
 							}
 						}
 					}
@@ -385,23 +456,23 @@ int verify(enum PIC_TYPE type, int row_canvas){
 		}
 	}
 
-	if (block_entry_p->type == FUCK) {
-		if (next_pos == DOWN) {
+	if (type == FUCK) {
+		if (pos == DOWN) {
 			if (test_current_min_x + autodown_x < min_x) {
-				return 0;
+				return NOT_ALLOW;
 			}
-		}else if(next_pos == UP){
+		}else if(pos == UP){
 			if (test_current_max_x + autodown_x > max_x) {
-				return 0;
+				return NOT_ALLOW;
 			}
-		}else if(next_pos == RIGHT){
+		}else if(pos == RIGHT){
 			if (test_current_max_y + autodown_y > max_y) {
-				return 0;
+				return NOT_ALLOW;
 			}
 		}
 	}
 
-	return 1;
+	return ALLOW;
 }
 
 void draw_picture(int row_canvas, int color, int is_draw){
@@ -519,8 +590,5 @@ void init()
 	}
 	//printf("max_x %d min_x %d max_y %d min_y %d\n", max_x, min_x, max_y, min_y);
 
-}
 
-//void clean(){
-//
-//}
+}
