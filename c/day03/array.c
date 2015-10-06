@@ -21,7 +21,7 @@ int main(void)
 	printf("sizeof(arr) = %d\n", sizeof(arr));
 	printf("sizeof(arr[0]) = %d\n", sizeof(arr[0]));
 	printf("*(arr+1) = %d\n", *(arr+1));
-
+	printf("--------------------\n");
 	printf("arr 	= %p\n", arr);
 	printf("&arr[0] = %p\n", &arr[0]);
 	printf("&arr 	= %p\n", &arr);
