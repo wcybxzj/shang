@@ -1,0 +1,13 @@
+vim /etc/yum.repos.d/rhel.reop:
+
+[rhel]
+name=rhel6.5
+baseurl=ftp://172.16.8.100/rhel6.4
+enabled=1
+gpgcheck=0
+
+yum install -y vncviewer
+yum install -y tigervnc
+yum install  -y lftp
+
+
