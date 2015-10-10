@@ -99,6 +99,8 @@ int main(int argc,char **argv)
 		printf("linebuf_size = %d\n",linebuf_size);
 		printf("%d\n",strlen(linebuf));
 		printf("%s", linebuf);
+		free(linebuf);
+		linebuf = NULL;
 	}
 
 	printf("--------------------------------------\n");
@@ -110,6 +112,8 @@ int main(int argc,char **argv)
 		printf("linebuf_size = %d\n",linebuf_size);
 		printf("%d\n",strlen(linebuf));
 		printf("%s", linebuf);
+		free(linebuf);
+		linebuf = NULL;
 	}
 
 
