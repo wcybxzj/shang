@@ -1,0 +1,90 @@
+linebuf_size = 120
+35
+# Network services, Internet style
+linebuf_size = 120
+2
+#
+linebuf_size = 120
+77
+# Note that it is presently the policy of IANA to assign a single well-known
+linebuf_size = 120
+77
+# port number for both TCP and UDP; hence, officially ports have two entries
+linebuf_size = 120
+55
+# even if the protocol doesn't support UDP operations.
+linebuf_size = 120
+2
+#
+linebuf_size = 120
+70
+# Updated from http://www.iana.org/assignments/port-numbers and other
+linebuf_size = 120
+72
+# sources like http://www.freebsd.org/cgi/cvsweb.cgi/src/etc/services .
+linebuf_size = 120
+75
+# New ports will be added on request if they have been officially assigned
+linebuf_size = 120
+72
+# by IANA and used in the real-world or are needed by a debian package.
+buffsize:1200
+linebuf_size = 1200
+1139
+# If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.
+linebuf_size = 1200
+2
+#
+linebuf_size = 1200
+288
+tcpmux		1/tcp				# TCP port service multiplexer tcpmux		1/tcp				# TCP port service multiplexer tcpmux		1/tcp				# TCP port service multiplexer tcpmux		1/tcp				# TCP port service multiplexer tcpmux		1/tcp				# TCP port service multiplexer tcpmux		1/tcp				# TCP port service multiplexer
+linebuf_size = 1200
+160
+echo		7/tcp
+xer tcpmux		1/tcp				# TCP port service multiplexer tcpmux		1/tcp				# TCP port service multiplexer tcpmux		1/tcñdrv	# TCP port service multiplexer
+--------------------------------------
+linebuf_size = 1200
+35
+# Network services, Internet style
+linebuf_size = 1200
+2
+#
+linebuf_size = 1200
+77
+# Note that it is presently the policy of IANA to assign a single well-known
+linebuf_size = 1200
+77
+# port number for both TCP and UDP; hence, officially ports have two entries
+linebuf_size = 1200
+55
+# even if the protocol doesn't support UDP operations.
+linebuf_size = 1200
+2
+#
+linebuf_size = 1200
+70
+# Updated from http://www.iana.org/assignments/port-numbers and other
+linebuf_size = 1200
+72
+# sources like http://www.freebsd.org/cgi/cvsweb.cgi/src/etc/services .
+linebuf_size = 1200
+75
+# New ports will be added on request if they have been officially assigned
+linebuf_size = 1200
+72
+# by IANA and used in the real-world or are needed by a debian package.
+linebuf_size = 1200
+1139
+# If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.  # If you need a huge list of used numbers please install the nmap package.
+linebuf_size = 1200
+2
+#
+linebuf_size = 1200
+1
+
+linebuf_size = 1200
+288
+tcpmux		1/tcp				# TCP port service multiplexer tcpmux		1/tcp				# TCP port service multiplexer tcpmux		1/tcp				# TCP port service multiplexer tcpmux		1/tcp				# TCP port service multiplexer tcpmux		1/tcp				# TCP port service multiplexer tcpmux		1/tcp				# TCP port service multiplexer
+linebuf_size = 1200
+12
+echo		7/tcp

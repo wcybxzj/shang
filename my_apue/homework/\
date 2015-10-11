@@ -25,11 +25,9 @@ ssize_t mygetline(char **lineptr, size_t *n, FILE *stream)
 	while(1) {
 		ch = fgetc(stream);
 		if(ch == EOF){
-			printf("EOF\n");
 			return -30;
 		}
 		if(ch == '\n'){
-			printf("nnnn\n");
 			break;
 		}
 		cnt++;
