@@ -30,6 +30,7 @@ int main(int argc,char **argv)
 	dfd = open(argv[2],O_WRONLY|O_CREAT|O_TRUNC,0600);	
 	if(dfd < 0)
 	{
+		close(sfd);
 		perror("open()");
 		exit(1);
 	}
