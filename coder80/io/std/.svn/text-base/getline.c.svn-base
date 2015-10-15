@@ -21,7 +21,7 @@ int main(int argc,char **argv)
 	}
 
 	fp = fopen(argv[1],"r");
-	if(fp == NULL)
+	if(fp = NULL)
 	{
 		perror("fopen()");
 		exit(1);

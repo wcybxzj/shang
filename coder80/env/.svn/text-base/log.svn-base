@@ -25,7 +25,7 @@ int main()
 			break;
 		case 3:
 			break;
-		default:
+		default:	// abort();
 			_exit(1);	
 	}
 
