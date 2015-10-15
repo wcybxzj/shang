@@ -60,7 +60,6 @@ int64_t mydu(const char *path)
 
 int main(int argc,char **argv)
 {
-
 	if(argc < 2)
 	{
 		fprintf(stderr,"Usage...\n");
