@@ -5,20 +5,36 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <signal.h>
 
-#define BUFSIZE		1024
+#define CPS			10
+#define BUFSIZE		CPS
+#define BURST		1000
+
+static volatile int token = 0;
+
+static void alrm_handler(int s)
+{
+	alarm(1);
+	token++;
+	if(token > BURST)
+		token = BURST;
+}
 
 int main(int argc,char **argv)
 {
-	int sfd,dfd;
+	int sfd,dfd = 1;
 	char buf[BUFSIZE];	
 	int len,ret,pos;
 
-	if(argc < 3)
+	if(argc < 2)
 	{
 		fprintf(stderr,"Usage...\n");
 		exit(1);
 	}
+	
+	signal(SIGALRM,alrm_handler);
+	alarm(1);
 
 	do
 	{
@@ -33,24 +49,14 @@ int main(int argc,char **argv)
 		}
 	}while(sfd < 0);
 
-	do
-	{
-		dfd = open(argv[2],O_WRONLY|O_CREAT|O_TRUNC,0600);	
-		if(dfd < 0)
-		{
-			if(errno != EINTR)
-			{
-				close(sfd);
-				perror("open()");
-				exit(1);
-			}
-		}
-	}while(dfd < 0);
 
 	while(1)
 	{
-		len = read(sfd,buf,BUFSIZE);
-		if(len < 0)
+		while(token <= 0)
+			pause();
+		token--;	
+
+		while((len = read(sfd,buf,BUFSIZE)) < 0)
 		{
 			if(errno == EINTR)	
 				continue;
@@ -80,7 +86,6 @@ int main(int argc,char **argv)
 		}
 	}
 	
-	close(dfd);
 	close(sfd);
 
 	exit(0);

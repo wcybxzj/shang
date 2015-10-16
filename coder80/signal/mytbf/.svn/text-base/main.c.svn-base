@@ -5,18 +5,33 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <signal.h>
+#include <string.h>
 
-#define BUFSIZE		1024
+#include "mytbf.h"
+
+#define CPS			10
+#define BUFSIZE		1024	
+#define BURST		1000
 
 int main(int argc,char **argv)
 {
-	int sfd,dfd;
+	int sfd,dfd = 1;
 	char buf[BUFSIZE];	
 	int len,ret,pos;
+	mytbf_t *tbf;
+	int size;
 
-	if(argc < 3)
+	if(argc < 2)
 	{
 		fprintf(stderr,"Usage...\n");
+		exit(1);
+	}
+	
+	tbf = mytbf_init(CPS,BURST);
+	if(tbf == NULL)
+	{
+		fprintf(stderr,"mytbf_init() failed.\n");
 		exit(1);
 	}
 
@@ -33,24 +48,18 @@ int main(int argc,char **argv)
 		}
 	}while(sfd < 0);
 
-	do
-	{
-		dfd = open(argv[2],O_WRONLY|O_CREAT|O_TRUNC,0600);	
-		if(dfd < 0)
-		{
-			if(errno != EINTR)
-			{
-				close(sfd);
-				perror("open()");
-				exit(1);
-			}
-		}
-	}while(dfd < 0);
 
 	while(1)
 	{
-		len = read(sfd,buf,BUFSIZE);
-		if(len < 0)
+
+		size = mytbf_fetchtoken(tbf,BUFSIZE);
+		if(size < 0)
+		{
+			fprintf(stderr,"mytbf_fetchtoken():%s\n",strerror(-size));
+			exit(1);
+		}
+
+		while((len = read(sfd,buf,size)) < 0)
 		{
 			if(errno == EINTR)	
 				continue;
@@ -62,6 +71,8 @@ int main(int argc,char **argv)
 			break;
 		
 		//len > 0
+		if(size-len > 0)
+			mytbf_returntoken(tbf,size-len);
 
 		pos = 0;
 
@@ -80,8 +91,9 @@ int main(int argc,char **argv)
 		}
 	}
 	
-	close(dfd);
+
 	close(sfd);
+	mytbf_destroy(tbf);
 
 	exit(0);
 }
