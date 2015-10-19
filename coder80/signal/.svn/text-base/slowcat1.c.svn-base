@@ -11,7 +11,7 @@
 #define BUFSIZE		CPS
 #define BURST		1000
 
-static volatile int token = 0;
+static volatile sig_atomic_t token = 0;
 
 static void alrm_handler(int s)
 {

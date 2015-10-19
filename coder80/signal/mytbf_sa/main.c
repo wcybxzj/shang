@@ -6,25 +6,21 @@
 #include <unistd.h>
 #include <errno.h>
 #include <signal.h>
-#include <sys/time.h>
+#include <string.h>
+
+#include "mytbf.h"
 
 #define CPS			10
-#define BUFSIZE		CPS
-
-static volatile int loop = 0;
-
-static void alrm_handler(int s)
-{
-//	alarm(1);
-	loop = 1;
-}
+#define BUFSIZE		1024	
+#define BURST		1000
 
 int main(int argc,char **argv)
 {
 	int sfd,dfd = 1;
 	char buf[BUFSIZE];	
 	int len,ret,pos;
-	struct itimerval itv;
+	mytbf_t *tbf;
+	int size;
 
 	if(argc < 2)
 	{
@@ -32,16 +28,10 @@ int main(int argc,char **argv)
 		exit(1);
 	}
 	
-	signal(SIGALRM,alrm_handler);
-//	alarm(1);
-
-	itv.it_interval.tv_sec = 1;
-	itv.it_interval.tv_usec = 0;
-	itv.it_value.tv_sec = 1;
-	itv.it_value.tv_usec = 0;
-	if(setitimer(ITIMER_REAL,&itv,NULL) < 0)
+	tbf = mytbf_init(CPS,BURST);
+	if(tbf == NULL)
 	{
-		perror("setitimer()");
+		fprintf(stderr,"mytbf_init() failed.\n");
 		exit(1);
 	}
 
@@ -61,11 +51,15 @@ int main(int argc,char **argv)
 
 	while(1)
 	{
-		while(!loop)
-			pause();
-		loop = 0;	
 
-		while((len = read(sfd,buf,BUFSIZE)) < 0)
+		size = mytbf_fetchtoken(tbf,BUFSIZE);
+		if(size < 0)
+		{
+			fprintf(stderr,"mytbf_fetchtoken():%s\n",strerror(-size));
+			exit(1);
+		}
+
+		while((len = read(sfd,buf,size)) < 0)
 		{
 			if(errno == EINTR)	
 				continue;
@@ -77,6 +71,8 @@ int main(int argc,char **argv)
 			break;
 		
 		//len > 0
+		if(size-len > 0)
+			mytbf_returntoken(tbf,size-len);
 
 		pos = 0;
 
@@ -95,7 +91,9 @@ int main(int argc,char **argv)
 		}
 	}
 	
+
 	close(sfd);
+	mytbf_destroy(tbf);
 
 	exit(0);
 }

@@ -1,20 +1,34 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-
-
-//glob
-//stat
-
+#include <time.h>
+#include <unistd.h>
+#include <string.h>
 
 int main(int argc, const char *argv[])
 {
-	if (argc < 2) {
-		fprintf(stderr, "Usage...\n");
-		exit(1);
+	while (1) {
+		ch = getopt(argc, argv, "-lian");
+		if (ch < 0) {
+			break;
+		}
+
+		switch(ch){
+			case 'l':
+
+				break;
+			case 'l':
+				break;
+			case 'l':
+				break;
+			case 'l':
+				break;
+			default:
+				break;
+		}
+
+
 	}
 
-	mydu(argv[1]);
 
 	return 0;
 }

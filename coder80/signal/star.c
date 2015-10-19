@@ -11,9 +11,20 @@ void int_handler(int s)
 int main()
 {
 	int i;
+	struct sigaction sa;
 
 //	signal(SIGINT,SIG_IGN);
-	signal(SIGINT,int_handler);
+//	signal(SIGINT,int_handler);
+
+	sa.sa_handler = int_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	if(sigaction(SIGINT,&sa,NULL) < 0)
+	{
+		perror("sigaction()");
+		exit(1);
+	}
+
 
 	for(i = 0 ; i < 10 ; i++)
 	{
