@@ -2,13 +2,13 @@
 
 dir
 249
-svn://172.16.120.243/coder80/io
+svn://172.16.120.243/coder80/thread
 svn://172.16.120.243
 
 
 
-2015-10-15T07:19:36.212981Z
-229
+2015-10-21T07:25:27.546567Z
+249
 testsvn
 
 
@@ -26,9 +26,6 @@ testsvn
 
 004934dc-c04c-41c9-adba-9acac0dcbb5c
 
-std
-dir
-
-sys
+posix
 dir
 
