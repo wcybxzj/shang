@@ -7,8 +7,8 @@ typedef	void mytbf_t;
 
 
 mytbf_t *mytbf_init(int cps, int burst);
-mytbf_t *mytbf_init2();
 int mytbf_fetchtoken(mytbf_t *, int);
 int mytbf_returntokeb(mytbf_t *, int);
 int mytbf_destroy(mytbf_t *);
+
 #endif

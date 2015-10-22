@@ -7,7 +7,6 @@
 #include <errno.h>
 #include <signal.h>
 #include <string.h>
-#include <pthread.h>
 
 #include "mytbf.h"
 
@@ -26,21 +25,6 @@ int main(int argc, const char *argv[])
 		fprintf(stderr, "Usage...\n");
 		exit(1);
 	}
-
-	//tbf = mytbf_init(CPS, BURST);
-	//tbf = mytbf_init(CPS, BURST);
-	//exit(1);
-
-	//int i;
-	//pthread_t tid[2];
-	//for (i = 0; i < 2; i++) {
-	//	pthread_create(tid+i,NULL,mytbf_init2,NULL);
-	//}
-
-	//for (i = 0; i < 2; i++) {
-	//	pthread_join(tid[i],NULL);
-	//}
-	//exit(1);
 
 	tbf = mytbf_init(CPS, BURST);
 	if (NULL == tbf) {
