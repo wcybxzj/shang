@@ -2,23 +2,26 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+#include "mysem.h"
+
 #define LEFT		30000000
 #define RIGHT		30000200
 #define THRNUM		(RIGHT-LEFT+1)
 #define N			4
 
+static mysem_t *sem;
 static void *thr_primer(void *p);
 
 int main()
 {
 	int err,i;	
 	pthread_t tid[THRNUM];
-	mysem_t *sem;
 
 	sem = mysem_init(N);
-	if()
+	if(sem == NULL)
 	{
-
+		fprintf(stderr,"mysem_init():failed.\n");
+		exit(1);
 	}
 
 	for(i = LEFT ; i <= RIGHT; i++)
@@ -37,7 +40,7 @@ int main()
 	for(i = LEFT ; i <= RIGHT; i++)
 		pthread_join(tid[i-LEFT],NULL);
 
-	mysem_destroy(  );
+	mysem_destroy(sem);
 
 	exit(0);
 }
@@ -60,6 +63,8 @@ static void *thr_primer(void *p)
 	}
 	if(mark)
 		printf("%d is a primer.\n",i);
+
+	sleep(5);
 
 	mysem_add(sem,1);
 
