@@ -2,7 +2,7 @@
 
 dir
 253
-svn://172.16.120.243/coder80
+svn://172.16.120.243/coder80/io/adv
 svn://172.16.120.243
 
 
@@ -26,24 +26,6 @@ testsvn
 
 004934dc-c04c-41c9-adba-9acac0dcbb5c
 
-few
-dir
-
-io
-dir
-
-thread
-dir
-
-env
-dir
-
-fs
-dir
-
-signal
-dir
-
-sys
+nonblock
 dir
 
