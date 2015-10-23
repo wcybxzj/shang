@@ -10,5 +10,4 @@ mytbf_t *mytbf_init(int cps, int burst);
 int mytbf_fetchtoken(mytbf_t *, int);
 int mytbf_returntokeb(mytbf_t *, int);
 int mytbf_destroy(mytbf_t *);
-
 #endif
