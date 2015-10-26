@@ -68,9 +68,3 @@ void mysem_destroy(mysem_t *ptr)
 	
 	free(me);	
 }
-
-
-
-
-
-

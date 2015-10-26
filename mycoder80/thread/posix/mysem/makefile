@@ -1,10 +1,10 @@
 CFLAGS+=-pthread
 LDFLAGS+=-pthread
 
-all:mytbf
+all:mysem
 
-mytbf:mytbf.o main.o
+mysem:mysem.o main.o
 	gcc $^ -o $@  $(CFLAGS) $(LDFLAGS) -Wall
 
 clean:
-	rm *.o mytbf -rf
+	rm *.o mysem -rf
