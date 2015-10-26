@@ -5,17 +5,19 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <string.h>
 
+#include "relayer.h"
 
 #define	TTY1		"/dev/tty11"
 #define	TTY2		"/dev/tty12"
 #define	TTY3		"/dev/tty10"
 #define	TTY4		"/dev/tty9"
 
-
 int main()
 {
-	int fd1,fd2;
+	int fd1,fd2,fd3,fd4;
+	int job1,job2;
 
 	fd1 = open(TTY1,O_RDWR|O_NONBLOCK);
 	if(fd1 < 0)
@@ -34,9 +36,10 @@ int main()
 	write(fd2,"TTY2\n",5);
 
 	job1 = rel_addjob(fd1,fd2);
-	if()
+	if(job1 < 0)
 	{
-
+		fprintf(stderr,"rel_addjob():%s\n",strerror(-job1));
+		exit(1);
 	}
 
 	fd3 = open(TTY3,O_RDWR|O_NONBLOCK);
@@ -55,16 +58,23 @@ int main()
     }
     write(fd4,"TTY4\n",5);
 
-
 	job2 = rel_addjob(fd3,fd4);
-    if()
+	if(job2 < 0)
     {
-
+        fprintf(stderr,"rel_addjob():%s\n",strerror(-job2));
+        exit(1);
     }
-	
+    
+	struct rel_stat_st st;
 	while(1)	
-		pause();
-
+	{
+		rel_statjob(job1,&st);
+		printf("job1:1->2(%lld)\t2->1(%lld)\n",st.count12,st.count21);
+		rel_statjob(job2,&st);
+        printf("job2:1->2(%lld)\t2->1(%lld)\n",st.count12,st.count21);
+		printf("\n");
+		sleep(1);
+	}
 
 	close(fd1);
 	close(fd2);

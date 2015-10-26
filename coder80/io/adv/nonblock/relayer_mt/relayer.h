@@ -15,7 +15,7 @@ struct rel_stat_st
 	int fd1,fd2;
 	int state;
 	int64_t count12,count21;
-	struct timerval start,end;
+//	struct timerval start,end;
 };
 
 int rel_addjob(int fd1,int fd2);
