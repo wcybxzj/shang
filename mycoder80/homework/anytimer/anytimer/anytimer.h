@@ -6,11 +6,10 @@
 #define RUNNING 1
 #define CANCEL 2
 #define OVER 3
-struct item_st * job[JOB_MAX];
 
 typedef void at_jobfunc_t(void *);
 
-int at_addjob(int sec,at_jobfunc_t *jobp,void *arg);
+int at_addjob(int sec,at_jobfunc_t *jobp,void *arg, int is_repeat);
 /*
  *	return:	>= 0			成功，返回指定任务ID
  *			== -EINVAL		失败，参数非法
