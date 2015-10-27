@@ -17,6 +17,7 @@ struct mypipe_st
 
 mypipe_t *mypipe_init()
 {
+
 	struct mypipe_st *me;
 
 	me = malloc(sizeof(*me));

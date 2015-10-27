@@ -171,17 +171,12 @@ static void relay(int fd1,int fd2)
 		/*查看监视结果*/
 		if(ev.data.fd == fd1 && ev.events & EPOLLIN ||\
 			ev.data.fd == fd2 && ev.events & EPOLLOUT  ||\
-			fsm12.state > STATE_AUTO){
-			printf("111111111111111111111\n");
+			fsm12.state > STATE_AUTO)
 			fsm_driver(&fsm12);
-		}
 		if(ev.data.fd == fd2 && ev.events & EPOLLIN ||\
 			ev.data.fd == fd1 && ev.events & EPOLLOUT  ||\
-			fsm21.state > STATE_AUTO){
-			printf("222222222222222222222\n");
+			fsm21.state > STATE_AUTO)
 			fsm_driver(&fsm21);
-		}
-		sleep(100);
 	}
 
 	fcntl(fd1,F_SETFL,fd1_save);

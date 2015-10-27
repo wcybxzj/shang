@@ -28,9 +28,10 @@ int main()
 			fprintf(stderr,"pthread_create():%s\n",strerror(err));
 			break;
 		}
+		printf("%d\n",i);
 	}
 
-	printf("%d\n",i);
+//		printf("%d\n",i);
 
 	pthread_attr_destroy(&attr);
 
