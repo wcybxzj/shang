@@ -29,7 +29,6 @@ static pthread_once_t once_init = PTHREAD_ONCE_INIT;
 static void *thr_alrm(void *p)
 {
 	int i;
-
 	while(1)
 	{
 		pthread_mutex_lock(&mut_job);
