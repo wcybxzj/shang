@@ -1,50 +1,34 @@
 #include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <sys/types.h>
-#include <sys/stat.h>
-#include <errno.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
 #include <string.h>
-#include <pthread.h>
+#include <errno.h>
+#include "proto1.h"
 
-#include "relayer.h"
-
-#define BUFSIZE		1024
-
-enum
-{
-	STATE_R=1,
-	STATE_W,
-	STATE_Ex,
-	STATE_T
-};
-		
 struct rel_fsm_st
 {
 	int state;
-	int sfd;
-	int dfd;
-	char buf[BUFSIZE];
+	int msgid;
+	union msg_s2c_un;
 	int len;	
 	int pos;
-	int64_t count;
-	char *errstr;
+	//int64_t count;
+	//char *errstr;
 };
+
 struct rel_job_st
 {	
 	int job_state;
-	int fd1,fd2;
-	int fd1_save,fd2_save;
+	int msgid;
 //	pthread_mutex_t mut_job_state;
 //	pthread_cond_t cond_job_state;
-	struct rel_fsm_st fsm12,fsm21;
+	struct rel_fsm_st fsm;
 //	struct timerval start,end;
 };
 
-static struct rel_job_st *rel_job[REL_JOBMAX];
-static pthread_mutex_t mut_rel_job = PTHREAD_MUTEX_INITIALIZER;
-static pthread_once_t init_once = PTHREAD_ONCE_INIT;
 
 static void fsm_driver(struct rel_fsm_st *fsm)
 {
@@ -126,7 +110,8 @@ void *thr_relayer(void *p)
 				{
 					fsm_driver(&rel_job[i]->fsm12);			
 					fsm_driver(&rel_job[i]->fsm21);
-					if(rel_job[i]->fsm12.state == STATE_T && rel_job[i]->fsm21.state == STATE_T)
+					if(rel_job[i]->fsm12.state == STATE_T 
+						&& rel_job[i]->fsm21.state == STATE_T)
 						rel_job[i]->job_state = STATE_OVER;	
 				}
 			}
@@ -134,8 +119,6 @@ void *thr_relayer(void *p)
 		pthread_mutex_unlock(&mut_rel_job);
 	}
 }
-
-//module_unload()
 
 static void module_load(void)
 {
@@ -149,45 +132,30 @@ static void module_load(void)
 	}
 }
 
-static int get_free_pos_unlocked(void)
-{
-	int i;
-	for(i = 0 ; i < REL_JOBMAX; i++)
-	{
-		if(rel_job[i] == NULL)
-			return i;
-	}
-	return -1;
-}
-
-int rel_addjob(int fd1,int fd2)
+int rel_addjob(int msgid)
 {
 	struct rel_job_st *me;
 	int pos;
 
-	pthread_once(&init_once,module_load);
+	//pthread_once(&init_once,module_load);
 
-	if(fd1 < 0 || fd2 < 0)
+	if(msgid< 0)
 		return -EINVAL;
 
 	me = malloc(sizeof(*me));
 	if(me == NULL)
 		return -ENOMEM;
 	
-	me->fd1 = fd1;
-	me->fd2 = fd2;
+	me->msgid = msgid;
 	me->job_state = STATE_RUNNING;
 
-	me->fd1_save = fcntl(me->fd1,F_GETFL);
-    fcntl(me->fd1,F_SETFL,me->fd1_save|O_NONBLOCK);
-    me->fd2_save = fcntl(me->fd2,F_GETFL);
-    fcntl(me->fd2,F_SETFL,me->fd2_save|O_NONBLOCK);
+
+
+
 	
 	me->fsm12.sfd = me->fd1;
-	me->fsm12.dfd = me->fd2;
 	me->fsm12.count = 0;
 	me->fsm12.state = STATE_R;
-	me->fsm21.sfd = me->fd2;
 	me->fsm21.dfd = me->fd1;
 	me->fsm21.count = 0;
 	me->fsm21.state = STATE_R;
@@ -209,30 +177,31 @@ int rel_addjob(int fd1,int fd2)
 	return pos;
 }
 
-static void fetch_stat_unlocked(int id,struct rel_stat_st *st)
+int init_res()
 {
-	st->fd1 = rel_job[id]->fd1;
-	st->fd2 = rel_job[id]->fd2;
-	st->state = rel_job[id]->job_state;
-	st->count12 = rel_job[id]->fsm12.count;
-	st->count21 = rel_job[id]->fsm21.count;
+	key_t key;
+	int msgid;
+	key = ftok(KEYPATH,KEYPROJ);
+    if(key < 0)
+    {
+        perror("ftok()");
+		return -EBUSY;
+    }
+
+    msgid = msgget(key,IPC_CREAT|0600);
+	if(msgid < 0)
+    {
+        perror("msgget()");
+		return -EBUSY;
+    }
+	return msgid;
 }
 
-int rel_statjob(int id,struct rel_stat_st *st)
+int main(int argc, const char *argv[])
 {
-	pthread_mutex_lock(&mut_rel_job);
-	if(id < 0 || id >= REL_JOBMAX || rel_job[id] == NULL)
-	{
-		pthread_mutex_unlock(&mut_rel_job);
-		return -EINVAL;
-	}
-	
-	if(st != NULL)
-		fetch_stat_unlocked(id,st);	
-
-	pthread_mutex_unlock(&mut_rel_job);
+	int msgid;
+	msgid = init_res();
+	rel_addjob(msgid);
 
 	return 0;
 }
-
-
