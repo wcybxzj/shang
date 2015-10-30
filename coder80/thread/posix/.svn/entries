@@ -1,7 +1,7 @@
 10
 
 dir
-268
+272
 svn://172.16.120.243/coder80/thread/posix
 svn://172.16.120.243
 
@@ -25,9 +25,6 @@ testsvn
 
 
 004934dc-c04c-41c9-adba-9acac0dcbb5c
-
-mytbf_mt
-dir
 
 log
 file
@@ -62,6 +59,9 @@ testsvn
 
 
 455
+
+mytbf_mt
+dir
 
 create.c
 file
@@ -131,9 +131,6 @@ testsvn
 
 1592
 
-mysem
-dir
-
 primer0_pool_busy.c
 file
 
@@ -167,6 +164,9 @@ testsvn
 
 
 1523
+
+mysem
+dir
 
 primer0.c
 file
@@ -202,9 +202,6 @@ testsvn
 
 731
 
-mypipe
-dir
-
 primer0_e.c
 file
 
@@ -238,6 +235,9 @@ testsvn
 
 
 906
+
+mypipe
+dir
 
 create1.c
 file
