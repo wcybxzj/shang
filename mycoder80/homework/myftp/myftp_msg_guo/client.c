@@ -36,7 +36,8 @@ static void fsm_driver(struct fsm_st *fsm)
 						fsm->state = STATE_RCV;
 						break;
 					case MSG_ERR:
-						printf("%d\n", fsm->rbuf.errmsg.errno_);
+						//printf("%d\n", fsm->rbuf.errmsg.errno_);
+						errno = fsm->rbuf.errmsg.errno_;
 						fsm->errstr = "error";
 						fsm->state = STATE_Ex;
 						break;
@@ -89,7 +90,7 @@ int main(int argc, char **argv)
 		perror("ftok()");
 		exit(1);
 	}
-
+	
 	msgid = msgget(key, 0);
 	if(msgid < 0) {
 		perror("msgget()");
