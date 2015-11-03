@@ -98,6 +98,7 @@ static void fsm_driver(struct fsm_st *fsm){
 						fsm->errstr = "msgsnd";
 					}
 				}else{
+					fsm->sbuf.mtype = 0;
 					fsm->state = STATE_RECV;
 				}
 			}
