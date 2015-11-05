@@ -1,0 +1,52 @@
+10
+
+dir
+272
+svn://172.16.120.243/coder80
+svn://172.16.120.243
+
+
+
+2015-10-30T07:37:46.887152Z
+272
+testsvn
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+004934dc-c04c-41c9-adba-9acac0dcbb5c
+
+few
+dir
+
+io
+dir
+
+thread
+dir
+
+env
+dir
+
+fs
+dir
+
+ipc
+dir
+
+signal
+dir
+
+sys
+dir
+

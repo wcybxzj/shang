@@ -1,0 +1,41 @@
+
+int func()
+{
+	if()
+		return 1;
+	if()
+		return 2;
+	if()
+		return 3;
+}
+
+int main()
+{
+	int i;
+
+	i = func();
+
+	....
+
+	switch(i)
+	{
+		case 1:
+			break;
+		case 2:
+			break;
+		case 3:
+			break;
+		default:	// abort();
+			_exit(1);	
+	}
+
+}
+
+
+
+
+
+
+
+
+
