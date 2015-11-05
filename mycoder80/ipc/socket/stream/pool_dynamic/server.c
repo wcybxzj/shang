@@ -84,7 +84,7 @@ static void server_job(int pos)
 		sleep(5);   
 		close(newsd);
 	}
-	close(sd);
+	//close(sd);
 }
 
 static int add_1_server(void)
@@ -101,7 +101,6 @@ static int add_1_server(void)
 			break;
 	}
 
-	idle_count ++;
 	pid = fork();
 	if(pid < 0)
 	{
@@ -116,6 +115,7 @@ static int add_1_server(void)
 	}
 	else
 	{
+		//idle_count ++;
 		//serverpool[i].state = STATE_IDLE;
 		serverpool[i].pid = pid;
 	}
