@@ -2,8 +2,9 @@
 #define CLIENT_H__
 
 
-#define DEFAULT_PLAYERCMD "/usr/bin/mpg123"
-//#define DEFAULT_PLAYERCMD "/usr/bin/mpg123 > /dev/null"
+//- 是读取标准输入的内容
+#define DEFAULT_PLAYERCMD "/usr/bin/mpg123 -"
+//#define DEFAULT_PLAYERCMD "/usr/bin/mpg123 - > /dev/null"
 
 struct client_conf_st{
 	char *rcvport;

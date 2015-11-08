@@ -32,13 +32,13 @@ struct msg_channel_st{
 
 struct msg_listentry_st{
 	chnid_t chnid;
+	uint16_t len;
 	unit8_t desc[1];
 }__attribute__((packed));
 
 struct msg_list_st{
 	chnid_t chnid;//节目单号 LISTCHNID
-	struct msg_list_st entry[1];
-
+	struct msg_listentry_st entry[1];
 }__attribute__((packed));
 
 #endif
