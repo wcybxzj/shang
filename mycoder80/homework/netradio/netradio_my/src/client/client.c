@@ -5,9 +5,14 @@
 #include <netinet/ip.h> /* superset of previous */
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <errno.h>
+#include <unistd.h>
+#include <getopt.h>
+#include <arpa/inet.h>
+#include <net/if.h>
 
 #include <proto.h>
-#include <client.h>
+#include "client.h"
 
 /*
  * -M  --mgroup 指定多播组
@@ -23,9 +28,24 @@ struct client_conf_st client_conf = {
 	.player_cmd = DEFAULT_PLAYERCMD,
 	.eth = DEFAULT_EHT
 };
+
 //坚持向fd写len个字节
-static ssize_t writen(int fd, const void *buf, size_t len){
-	//TODO
+static ssize_t writen(int fd, const char *buf, size_t len){
+	int pos = 0;
+	int ret;
+	while (len > 0) {
+		ret = write(fd, buf + pos, len);
+		if (ret < 0) {
+			if (errno == EINTR) {
+				continue;
+			}
+			perror("write()");
+			return -1;
+		}
+		len -= ret;
+		pos += ret;
+	}
+	return pos;
 }
 
 static void printhelp(void)
@@ -37,8 +57,11 @@ static void printhelp(void)
 			-H --help\n");
 }
 
-int main(int argc, const char *argv[])
+int main(int argc, char *argv[])
 {
+	int pid;
+	int ret;
+	int len;
 	int chosenid;//选择的频道id
 	int pd[2];
 	int val =1;
@@ -95,16 +118,16 @@ int main(int argc, const char *argv[])
 	}
 
 	//man 7 ip
-	inet_pton(AF_INET, clinet_conf.mgroup, &mreq.imr_multiaddr);//组播地址
-	inet_pton(AF_INET,"0.0.0.0", &mreq.imr_address);//本地地址
+	inet_pton(AF_INET, client_conf.mgroup, &mreq.imr_multiaddr);
+	inet_pton(AF_INET,"0.0.0.0", &mreq.imr_address);
 	mreq.imr_ifindex = if_nametoindex(client_conf.eth);
-	if (setsockopt(sd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq))　< 0 ){
+	if (setsockopt(sd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0){
 		perror("setsockopt()");
 		exit(1);
 	}
 
 	//无所谓的参数
-	if (setsockopt(sd, IPPROTO_IP, IP_MULTICAST_LOOP, &val, sizeof(val))　< 0 ){
+	if (setsockopt(sd, IPPROTO_IP, IP_MULTICAST_LOOP, &val, sizeof(val)) < 0){
 		perror("setsockopt()");
 		exit(1);
 	}
@@ -119,7 +142,7 @@ int main(int argc, const char *argv[])
 
 	if (pipe(pd) < 0){
 		perror("pipe()");
-		exit
+		exit(1);
 	}
 
 	pid = fork();
@@ -182,28 +205,32 @@ int main(int argc, const char *argv[])
 	};
 
 	//收频道包 并且发送给子进程
-	struct msg_channel_st *msg_chanel;
+	struct msg_channel_st *msg_channel;
 	msg_channel = malloc(MSG_CHANNEL_MAX);
-	if (NULL == msg_chanel) {
+	if (NULL == msg_channel) {
 		perror("malloc()");
 		exit(1);
 	}
 
 	while (1) {
-		len = recvfrom(sd, msg_chanel, MSG_CHANNEL_MAX, 0, (void *)&raddr, &raddr_len);
+		len = recvfrom(sd, msg_channel, MSG_CHANNEL_MAX, 0, (void *)&raddr, &raddr_len);
 		if (raddr.sin_addr.s_addr != serveraddr.sin_addr.s_addr || \
 				raddr.sin_port != serveraddr.sin_port) {
 			fprintf(stderr, "接受节目包和频道包的ip或者port 不匹配\n");
 			continue;
 		}
+
 		if (len < sizeof(struct msg_channel_st)) {
 			fprintf(stderr, "channel message is too small\n");
 			continue;
 		}
 
-		if (msg_chanel->chnid == chosenid) {
+		if (msg_channel->chnid == chosenid) {
 			fprintf(stdout, "accepted msg:%d recieved.\n", msg_channel->chnid);
-			writen(pd[1],msg_channel->data, len - sizeof(chnid_t));
+			if (writen(pd[1],msg_channel->data, len - sizeof(chnid_t)) < 0) {
+				exit(1);
+			}
+			
 		}
 	}
 
