@@ -18,7 +18,7 @@
  * -M  --mgroup 指定多播组
  * -P  --port 指定端口
  * -p --player 指定播放器
- * -e --eth  设置网卡
+ * -I --ifname 设置网卡
  * -H --help
  */
 
@@ -26,7 +26,7 @@ struct client_conf_st client_conf = {
 	.rcvport = DEFAULT_RCVPORT,
 	.mgroup = DEFAULT_MGROUP,
 	.player_cmd = DEFAULT_PLAYERCMD,
-	.eth = DEFAULT_EHT
+	.ifname = DEFAULT_IF
 };
 
 //坚持向fd写len个字节
@@ -53,7 +53,7 @@ static void printhelp(void)
 	printf("-M  --mgroup 指定多播组 \n\
 			-P  --port 指定端口 \n\
 			-p --player 指定播放器\n\
-			-e --eth指定网卡\n\
+			-I --ifname指定网卡\n\
 			-H --help\n");
 }
 
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 		{"port", 1, NULL, 'P'},
 		{"mgroup", 1, NULL, 'M'},
 		{"player", 1, NULL, 'p'},
-		{"eth", 1, NULL, 'e'},
+		{"ifname", 1, NULL, 'I'},
 		{"help", 1, NULL, 'H'},
 		{NULL, 0, NULL, 0}
 	};//最后一项必须为空
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 				client_conf.player_cmd = optarg;
 				break;
 			case 'e':
-				client_conf.eth = optarg;
+				client_conf.ifname= optarg;
 				break;
 			case 'H':
 				printhelp();
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 	//man 7 ip
 	inet_pton(AF_INET, client_conf.mgroup, &mreq.imr_multiaddr);
 	inet_pton(AF_INET,"0.0.0.0", &mreq.imr_address);
-	mreq.imr_ifindex = if_nametoindex(client_conf.eth);
+	mreq.imr_ifindex = if_nametoindex(client_conf.ifname);
 	if (setsockopt(sd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0){
 		perror("setsockopt()");
 		exit(1);

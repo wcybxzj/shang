@@ -6,7 +6,7 @@
 //可变
 #define DEFAULT_MGROUP "224.2.2.2"
 #define DEFAULT_RCVPORT "1989"
-#define DEFAULT_EHT "eth0"
+#define DEFAULT_IF "eth0"
 
 // 频道数
 #define CHNNR 100

@@ -10,7 +10,7 @@ struct client_conf_st{
 	char *rcvport;
 	char  *mgroup;
 	char  *player_cmd;
-	char  *eth;
+	char  *ifname;
 };
 
 extern struct client_conf_st client_conf;
