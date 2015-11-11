@@ -1,7 +1,7 @@
 #ifndef SERVER_CONF_H__
 #define SERVER_CONF_H__
 
-#define DEFAULT_MEDIADIR "~/media/"
+#define DEFAULT_MEDIADIR "/home/ybx/media/"
 
 enum{
 	RUN_DAEMON = 1,

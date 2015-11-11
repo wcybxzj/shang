@@ -166,20 +166,28 @@ int main(int argc, char *argv[])
 
 
 	/*获取频道列表信息（从medialib中）*/
-	err = mlib_getchnlist(&listptr,&listsize);
-	if(err)
-	{
-		syslog();
+	struct mlib_listentry_st *list;
+	int list_size;
+	int err;
+	err = mlib_getchnlist(&list, &list_size);
+	if () {
+
 	}
+
 	/*创建thr_list*/
-	err = thr_list_create();
-	if()
-	{
-	}
+	thr_list_create(list, list_size);
+	/**if error*/
+
+
 	/*创建thr_channel*/
 	/*1:200  100:200  4:200  200:200*/
-	for(i = 0 ; i < listsize; i++)
-		thr_channel_create();
+	int i;
+	for (i = 0; i < list_size; i++) {
+		thr_channel_create(list+i);
+		/*if error*/
+	}
+
+	syslog(LOG_DEBUG, "%d channel threads created." ,i);
 
 	while(1)
 		pause();
