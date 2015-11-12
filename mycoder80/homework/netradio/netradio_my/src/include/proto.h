@@ -15,8 +15,8 @@
 #define LISTCHNID 0
 // 最小频道号
 #define MINCHNID  1
-// 最大频道号 
-#define MAXCHNID (MINCHNID + CHNNR-1)
+// 最大频道号 100
+#define MAXCHNID (MINCHNID + CHNNR-1) 
 
 //udp推荐512字节可以到65536字节, ip头部20-60字节
 #define MSG_CHANNEL_MAX (65536-20-8) 

@@ -3,7 +3,7 @@
 
 #include <proto.h>
 
-#define DEFAULT_PATH		"/root/Desktop/coder80/proj/list"
+#define DEFAULT_PATH		"/home/ybx/media"
 #define PATHSIZE	1024
 #define BUFSIZE		1024
 #define CPS			(16*1024)

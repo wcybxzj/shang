@@ -90,11 +90,11 @@ int main(int argc, char **argv)
 	}
 
 	openlog("server", LOG_PID, LOG_DAEMON);
-	if(daemonize()) {
-		syslog(LOG_ERR, "daemonize() is failed");
-		exit(1);
-	}else
-		syslog(LOG_INFO, "daemonize() is successed");
+	//if(daemonize()) {
+	//	syslog(LOG_ERR, "daemonize() is failed");
+	//	exit(1);
+	//}else
+	//	syslog(LOG_INFO, "daemonize() is successed");
 
 	/*socket init*/
 	sd = socket(AF_INET, SOCK_DGRAM, 0);
