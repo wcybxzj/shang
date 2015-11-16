@@ -1,0 +1,102 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+CHNNR	src/include/proto.h	12;"	d
+CLIENT_H__	src/client/client.h	2;"	d
+DEFAULT_IF	src/include/proto.h	9;"	d
+DEFAULT_MEDIADIR	src/server/server_conf.h	4;"	d
+DEFAULT_MGROUP	src/include/proto.h	7;"	d
+DEFAULT_PLAYERCMD	src/client/client.h	6;"	d
+DEFAULT_RCVPORT	src/include/proto.h	8;"	d
+LISTCHNID	src/include/proto.h	15;"	d
+MAXCHNID	src/include/proto.h	19;"	d
+MAX_DATA	src/include/proto.h	23;"	d
+MAX_ENTRY	src/include/proto.h	26;"	d
+MEDIALIB_H__	src/server/medialib.h	2;"	d
+MINCHNID	src/include/proto.h	17;"	d
+MSG_CHANNEL_MAX	src/include/proto.h	22;"	d
+MSG_LIST_MAX	src/include/proto.h	25;"	d
+MYTBF_MAX	src/server/mytbf.h	2;"	d
+PATHSIZE	src/server/medialib.c	5;"	d	file:
+PRORO_H__	src/include/proto.h	2;"	d
+RUN_DAEMON	src/server/server_conf.h	/^	RUN_DAEMON = 1,$/;"	e	enum:__anon1
+RUN_FOREGROUND	src/server/server_conf.h	/^	RUN_FOREGROUND$/;"	e	enum:__anon1
+SERVER_CONF_H__	src/server/server_conf.h	2;"	d
+SITETYPE_H__	src/include/site_type.h	2;"	d
+THR_CHANNEL_H__	src/server/thr_channel.h	2;"	d
+THR_LIST_H__	src/server/thr_list.h	2;"	d
+burst	src/server/mytbf.c	/^	int burst;$/;"	m	struct:mytbf_st	file:
+channel	src/server/medialib.c	/^static struct chanel_cotext_st channel[MAXCHNID+1];\/\/0 给节目单　1-100给channel$/;"	v	typeref:struct:chanel_cotext_st	file:
+channel_context_st	src/server/medialib.c	/^struct channel_context_st{$/;"	s	file:
+chnid	src/include/proto.h	/^	chnid_t chnid;$/;"	m	struct:msg_listentry_st
+chnid	src/include/proto.h	/^	chnid_t chnid;\/\/节目单号 LISTCHNID$/;"	m	struct:msg_list_st
+chnid	src/include/proto.h	/^	chnid_t chnid;\/\/频道号 between [MINCHNID, MAXCHNID]$/;"	m	struct:msg_channel_st
+chnid	src/server/medialib.c	/^	chnid_t chnid;$/;"	m	struct:channel_context_st	file:
+chnid	src/server/medialib.h	/^	chnid_t chnid;$/;"	m	struct:mlib_listentry_st
+chnid_t	src/include/site_type.h	/^typedef uint8_t chnid_t;$/;"	t
+client_conf	src/client/client.c	/^struct client_conf_st client_conf = {$/;"	v	typeref:struct:client_conf_st
+client_conf_st	src/client/client.h	/^struct client_conf_st{$/;"	s
+cond	src/server/mytbf.c	/^	pthread_cond_t cond;$/;"	m	struct:mytbf_st	file:
+cps	src/server/mytbf.c	/^	int cps;$/;"	m	struct:mytbf_st	file:
+daemon_exit	src/server/server.c	/^static void daemon_exit(int s)$/;"	f	struct:server_conf
+daemonize	src/server/server.c	/^static int  daemonize(){$/;"	f	struct:server_conf
+data	src/include/proto.h	/^	uint8_t data[1];\/\/无符号8位整形数,以字节为单位$/;"	m	struct:msg_channel_st
+desc	src/include/proto.h	/^	uint8_t desc[1];$/;"	m	struct:msg_listentry_st
+desc	src/server/medialib.c	/^	char *desc;$/;"	m	struct:channel_context_st	file:
+desc	src/server/medialib.h	/^	char *desc;$/;"	m	struct:mlib_listentry_st
+entry	src/include/proto.h	/^	struct msg_listentry_st entry[1];$/;"	m	struct:msg_list_st	typeref:struct:msg_list_st::msg_listentry_st
+err	src/server/server.c	/^	err = mlib_getchnlist(&list, &list_size);$/;"	m	struct:server_conf	file:
+err	src/server/server.c	/^	int err;$/;"	m	struct:server_conf	file:
+fd	src/server/medialib.c	/^	int fd;\/\/mp3的fd$/;"	m	struct:channel_context_st	file:
+get_free_pos_unlocked	src/server/mytbf.c	/^static int get_free_pos_unlocked(void)$/;"	f	file:
+i	src/server/server.c	/^	int i;$/;"	m	struct:server_conf	file:
+ifname	src/client/client.h	/^	char  *ifname;$/;"	m	struct:client_conf_st
+ifname	src/server/server_conf.h	/^	char *ifname;$/;"	m	struct:server_conf_st
+init_once	src/server/mytbf.c	/^static pthread_once_t init_once = PTHREAD_ONCE_INIT;$/;"	v	file:
+job	src/server/mytbf.c	/^static struct mytbf_st *job[MYTBF_MAX];$/;"	v	typeref:struct:mytbf_st	file:
+len	src/include/proto.h	/^	uint16_t len;$/;"	m	struct:msg_listentry_st
+list	src/server/server.c	/^	struct mlib_listentry_st *list;$/;"	m	struct:server_conf	typeref:struct:server_conf::mlib_listentry_st	file:
+list_size	src/server/server.c	/^	int list_size;$/;"	m	struct:server_conf	file:
+main	src/client/client.c	/^int main(int argc, char *argv[])$/;"	f
+main	src/server/server.c	/^int main(int argc, char *argv[])$/;"	f	struct:server_conf
+media_dir	src/server/server_conf.h	/^	char *media_dir;$/;"	m	struct:server_conf_st
+mgroup	src/client/client.h	/^	char  *mgroup;$/;"	m	struct:client_conf_st
+mgroup	src/server/server_conf.h	/^	char *mgroup;$/;"	m	struct:server_conf_st
+mlib_freechnlist	src/server/medialib.c	/^int mlib_freechnlist(struct mlib_listentry_st *){$/;"	f
+mlib_getchnlist	src/server/medialib.c	/^int mlib_getchnlist(struct mlib_listentry_st **result, int *resnum){$/;"	f
+mlib_listentry_st	src/server/medialib.h	/^struct mlib_listentry_st{$/;"	s
+mlib_readchn	src/server/medialib.c	/^ssize_t mlib_readchn(chnid_t, void *, size_t){$/;"	f
+module_load	src/server/mytbf.c	/^static void module_load(void)$/;"	f	file:
+module_unload	src/server/mytbf.c	/^static void module_unload(void)$/;"	f	file:
+mp3glob	src/server/medialib.c	/^	glob_t mp3glob;$/;"	m	struct:channel_context_st	file:
+msg_channel_st	src/include/proto.h	/^struct msg_channel_st{$/;"	s
+msg_list_st	src/include/proto.h	/^struct msg_list_st{$/;"	s
+msg_listentry_st	src/include/proto.h	/^struct msg_listentry_st{$/;"	s
+mut	src/server/mytbf.c	/^	pthread_mutex_t mut;$/;"	m	struct:mytbf_st	file:
+mut_job	src/server/mytbf.c	/^static pthread_mutex_t mut_job = PTHREAD_MUTEX_INITIALIZER;$/;"	v	file:
+mytbf_destory	src/server/mytbf.c	/^int mytbf_destory(mytbf_t *ptr){$/;"	f
+mytbf_fetchtoken	src/server/mytbf.c	/^int mytbf_fetchtoken(mytbf_t *ptr, int size){$/;"	f
+mytbf_init	src/server/mytbf.c	/^mytbf_t *mytbf_init(int cps, int burst){$/;"	f
+mytbf_returntoken	src/server/mytbf.c	/^int mytbf_returntoken(mytbf_t *ptr, int size){$/;"	f
+mytbf_st	src/server/mytbf.c	/^struct mytbf_st{$/;"	s	file:
+mytbf_t	src/server/mytbf.h	/^typedef void mytbf_t;$/;"	t
+offset	src/server/medialib.c	/^	off_t offset;\/\/播放的位置$/;"	m	struct:channel_context_st	file:
+player_cmd	src/client/client.h	/^	char  *player_cmd;$/;"	m	struct:client_conf_st
+pos	src/server/medialib.c	/^	int pos;\/\/当前播放的下标$/;"	m	struct:channel_context_st	file:
+pos	src/server/mytbf.c	/^	int pos;\/\/在job中的index$/;"	m	struct:mytbf_st	file:
+print_help	src/server/server.c	/^static void print_help(void){$/;"	f	struct:server_conf
+printhelp	src/client/client.c	/^static void printhelp(void)$/;"	f	file:
+rcvport	src/client/client.h	/^	char *rcvport;$/;"	m	struct:client_conf_st
+rcvport	src/server/server_conf.h	/^	char *rcvport;$/;"	m	struct:server_conf_st
+run_mode	src/server/server_conf.h	/^	char run_mode;$/;"	m	struct:server_conf_st
+server_conf	src/server/server.c	/^struct server_conf_st server_conf{$/;"	s	file:
+server_conf_st	src/server/server_conf.h	/^struct server_conf_st{$/;"	s
+socket_init	src/server/server.c	/^static void socket_init(void)$/;"	f	struct:server_conf
+tbf	src/server/medialib.c	/^	mytbf_t *tbf;$/;"	m	struct:channel_context_st	file:
+thr_alarm	src/server/mytbf.c	/^static void *thr_alarm(void *p)$/;"	f	file:
+tid	src/server/mytbf.c	/^static pthread_t tid;$/;"	v	file:
+token	src/server/mytbf.c	/^	int token;$/;"	m	struct:mytbf_st	file:
+writen	src/client/client.c	/^static ssize_t writen(int fd, const char *buf, size_t len){$/;"	f	file:
