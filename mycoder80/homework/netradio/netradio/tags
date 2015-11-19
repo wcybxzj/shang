@@ -1,0 +1,85 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+CHNID_LIST	src/include/proto.h	9;"	d
+CLIENT_H__	src/client/client.h	2;"	d
+DEFAULT_MGROUP	src/include/proto.h	4;"	d
+DEFAULT_PATH	src/server/medialib.h	6;"	d
+DEFAULT_PLAYER	src/client/client.h	4;"	d
+DEFAULT_RCVPORT	src/include/proto.h	5;"	d
+MAXCHNID	src/include/proto.h	11;"	d
+MAXDATA	src/include/proto.h	16;"	d
+MAXENTRY	src/include/proto.h	17;"	d
+MAXMSG	src/include/proto.h	15;"	d
+MEDIALIB_H__	src/server/medialib.h	2;"	d
+MINCHNID	src/include/proto.h	10;"	d
+MYTBF_H__	src/server/mytbf.h	2;"	d
+NR_CHN	src/include/proto.h	8;"	d
+PROTO_H__	src/include/proto.h	2;"	d
+SERVER_H__	src/server/server.h	2;"	d
+THR_CHANNEL_H__	src/server/thr_channle.h	2;"	d
+THR_LIST_H__	src/server/thr_list.h	2;"	d
+burst	src/server/mytbf.c	/^	int burst;$/;"	m	struct:mytbf_st	file:
+chnid	src/include/proto.h	/^	chnid_t chnid;			\/* [MINCHNID,MAXCHNID] *\/$/;"	m	struct:msg_chnnal_st
+chnid	src/include/proto.h	/^	chnid_t chnid;          \/* CHNID_LIST *\/$/;"	m	struct:msg_list_st
+chnid	src/include/proto.h	/^	chnid_t chnid;          \/* [MINCHNID,MAXCHNID] *\/$/;"	m	struct:list_entry_st
+chnid	src/server/medialib.c	/^	chnid_t chnid;$/;"	m	struct:mlib_chn_context_st	file:
+chnid	src/server/medialib.h	/^	chnid_t chnid;$/;"	m	struct:mlib_chn_st
+chnid_t	src/include/proto.h	/^typedef uint8_t 	chnid_t;$/;"	t
+client_conf	src/client/client.c	/^struct client_conf_st client_conf={\\$/;"	v	typeref:struct:client_conf_st
+client_conf_st	src/client/client.h	/^struct client_conf_st$/;"	s
+cond	src/server/mytbf.c	/^	pthread_cond_t cond;$/;"	m	struct:mytbf_st	file:
+cps	src/server/mytbf.c	/^	int cps;$/;"	m	struct:mytbf_st	file:
+cur	src/server/medialib.c	/^	int cur;$/;"	m	struct:mlib_chn_context_st	file:
+daemonize	src/server/server.c	/^static int daemonize(void){$/;"	f	file:
+data	src/include/proto.h	/^	uint8_t data[1];$/;"	m	struct:msg_chnnal_st
+desc	src/include/proto.h	/^	uint8_t desc[1];$/;"	m	struct:list_entry_st
+desc	src/server/medialib.c	/^    char *desc;$/;"	m	struct:mlib_chn_context_st	file:
+desc	src/server/medialib.h	/^	char *desc;$/;"	m	struct:mlib_chn_st
+entry	src/include/proto.h	/^	struct list_entry_st entry[1];$/;"	m	struct:msg_list_st	typeref:struct:msg_list_st::list_entry_st
+fd	src/server/medialib.c	/^	int fd;$/;"	m	struct:mlib_chn_context_st	file:
+get_free_pos_unlocked	src/server/mytbf.c	/^static int get_free_pos_unlocked(void)$/;"	f	file:
+globres	src/server/medialib.c	/^	glob_t globres;$/;"	m	struct:mlib_chn_context_st	file:
+job	src/server/mytbf.c	/^static struct mytbf_st *job[NR_CHN];$/;"	v	typeref:struct:mytbf_st	file:
+list_entry_st	src/include/proto.h	/^struct list_entry_st$/;"	s
+main	src/client/client.c	/^int main(int argc,char **argv)$/;"	f
+main	src/server/server.c	/^int main(int argc, const char *argv[])$/;"	f
+medpath	src/server/server.h	/^	char *medpath;$/;"	m	struct:server_conf_st
+mgroup	src/client/client.h	/^	char *mgroup;$/;"	m	struct:client_conf_st
+mgroup	src/server/server.h	/^	char *mgroup;$/;"	m	struct:server_conf_st
+min	src/server/mytbf.c	/^static int min(int a,int b)$/;"	f	file:
+mlib_chn_context_st	src/server/medialib.c	/^struct mlib_chn_context_st$/;"	s	file:
+mlib_chn_st	src/server/medialib.h	/^struct mlib_chn_st$/;"	s
+module_load	src/server/mytbf.c	/^static void module_load(void)$/;"	f	file:
+module_unload	src/server/mytbf.c	/^static void module_unload(void)$/;"	f	file:
+msg_chnnal_st	src/include/proto.h	/^struct msg_chnnal_st$/;"	s
+msg_list_st	src/include/proto.h	/^struct msg_list_st$/;"	s
+mut	src/server/mytbf.c	/^	pthread_mutex_t mut;$/;"	m	struct:mytbf_st	file:
+mut_job	src/server/mytbf.c	/^static pthread_mutex_t mut_job = PTHREAD_MUTEX_INITIALIZER;$/;"	v	file:
+mytbf_destroy	src/server/mytbf.c	/^int mytbf_destroy(mytbf_t *ptr)$/;"	f
+mytbf_fetchtoken	src/server/mytbf.c	/^int mytbf_fetchtoken(mytbf_t *ptr,int size)$/;"	f
+mytbf_init	src/server/mytbf.c	/^mytbf_t *mytbf_init(int cps,int burst)$/;"	f
+mytbf_returntoken	src/server/mytbf.c	/^int mytbf_returntoken(mytbf_t *ptr,int size)$/;"	f
+mytbf_st	src/server/mytbf.c	/^struct mytbf_st$/;"	s	file:
+mytbf_t	src/server/mytbf.h	/^typedef void mytbf_t;$/;"	t
+offset	src/server/medialib.c	/^	off_t offset;$/;"	m	struct:mlib_chn_context_st	file:
+once_init	src/server/mytbf.c	/^static pthread_once_t once_init = PTHREAD_ONCE_INIT;$/;"	v	file:
+player	src/client/client.h	/^	char *player;$/;"	m	struct:client_conf_st
+pos	src/server/mytbf.c	/^	int pos;$/;"	m	struct:mytbf_st	file:
+raddr	src/server/server.c	/^struct sockaddr_in raddr;$/;"	v	typeref:struct:sockaddr_in
+raddr	src/server/server.h	/^struct sockaddr_in raddr;$/;"	v	typeref:struct:sockaddr_in
+rcvport	src/client/client.h	/^	char *rcvport;$/;"	m	struct:client_conf_st
+rcvport	src/server/server.h	/^	char *rcvport;$/;"	m	struct:server_conf_st
+sd	src/server/server.c	/^int sd;$/;"	v
+server_conf	src/server/server.c	/^struct server_conf_st server_conf = {\\$/;"	v	typeref:struct:server_conf_st
+server_conf	src/server/server.h	/^struct server_conf_st server_conf;$/;"	v	typeref:struct:server_conf_st
+server_conf_st	src/server/server.h	/^struct server_conf_st{$/;"	s
+tbf	src/server/medialib.c	/^	mytbf *tbf;$/;"	m	struct:mlib_chn_context_st	file:
+thr_alrm	src/server/mytbf.c	/^static void *thr_alrm(void *p)$/;"	f	file:
+tid	src/server/mytbf.c	/^static pthread_t tid;$/;"	v	file:
+tid	src/server/server.c	/^pthread_t tid[NR_CHN+1];$/;"	v
+tid	src/server/server.h	/^pthread_t tid[NR_CHN+1];$/;"	v
+token	src/server/mytbf.c	/^	int token;$/;"	m	struct:mytbf_st	file:
