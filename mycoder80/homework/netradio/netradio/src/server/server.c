@@ -12,7 +12,7 @@
 
 #include "medialib.h"
 #include "server.h"
-
+#include "thr_list.h"
 /*
  *  -M      指定多播组
  *  -P      指定收接端口
@@ -25,7 +25,7 @@ struct sockaddr_in raddr;
 pthread_t tid[NR_CHN+1];
 
 struct server_conf_st server_conf = {\
-	.ngroup = DEFAULT_MGROUP,\
+	.mgroup = DEFAULT_MGROUP,\
 	.rcvport = DEFAULT_RCVPORT,\
 	.medpath = DEFAULT_PATH\
 };
@@ -57,11 +57,11 @@ static int daemonize(void){
 	return 0;
 }
 
-int main(int argc, const char *argv[])
+int main(int argc, char *argv[])
 {
 	struct mlib_chn_st *listptr;
-	int listsize, i, err;
-	int ch;
+	int listsize, err;
+	int ch, i;
 	struct ip_mreqn req;
 
 	/*conf处理*/
@@ -84,12 +84,10 @@ int main(int argc, const char *argv[])
 	}
 
 	openlog("server", LOG_PID, LOG_DAEMON);
-	if (daemonize()) {
-		syslog(LOG_ERR, "daemonize failed");
-		exit(1);
-	}else{
-		syslog("server", LOG_PID, LOG_DAEMON);
-	}
+	//if (daemonize()) {
+	//	syslog(LOG_ERR, "daemonize failed");
+	//	exit(1);
+	//}
 
 	/*socket init*/
 	sd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -98,7 +96,7 @@ int main(int argc, const char *argv[])
 		exit(1);
 	}
 
-	inet_pton(AF_INET, server_conf.mgroup, &req.imt_multiaddr);
+	inet_pton(AF_INET, server_conf.mgroup, &req.imr_multiaddr);
 	inet_pton(AF_INET, "0.0.0.0", &req.imr_address);
 	req.imr_ifindex = if_nametoindex("eth0");
 	if (setsockopt(sd, IPPROTO_IP, IP_MULTICAST_IF, &req, sizeof(req)) < 0) {
@@ -112,9 +110,14 @@ int main(int argc, const char *argv[])
 
 	/*获取频道列表信息（从medialib中）*/
 	err = mlib_getchnlist(&listptr,&listsize);		
+	if (err) {
+		perror("mlib_getchnlist()");
+		exit(2);
+	}
+
 	for (i = 0; i < listsize; i++) {
-		printf("%d: ",listptr[i].chnid);
-		puts(listptr[i].desc);
+		printf("%d\n",listptr[i].chnid);
+		printf("%s\n",listptr[i].desc);
 	}
 
 	/*创建thr_list*/
@@ -127,13 +130,14 @@ int main(int argc, const char *argv[])
 
 	/*创建thr_channel*/
 	/*1:200  100:200  4:200  200:200*/
-	for(i = 0 ; i < listsize; i++){
-		thr_channel_create(tid+i, (chnid_t)i);
+	for(i = 1 ; i <= listsize; i++){
+		err = thr_channel_create(tid+i, (chnid_t)i);
 	}
-
 
 	while(1)
 		pause();
+
+	printf("pause is done exit\n");
 
 	exit(0);
 }

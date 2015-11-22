@@ -191,6 +191,7 @@ int mytbf_destroy(mytbf_t *ptr)
 	pthread_mutex_destroy(&me->mut);
 	pthread_cond_destroy(&me->cond);
 	free(ptr);
+	return 0;
 }
 
 

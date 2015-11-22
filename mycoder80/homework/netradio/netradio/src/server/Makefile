@@ -1,5 +1,5 @@
-CLFAGS+=-I../include
-CFLAGS+=-phread
+CFLAGS+=-I../include
+CFLAGS+=-pthread
 LDFLAGS+=-pthread
 
 all:server

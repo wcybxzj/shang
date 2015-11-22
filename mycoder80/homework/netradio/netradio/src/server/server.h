@@ -10,8 +10,8 @@ struct server_conf_st{
 
 //server要和thr_list thr_channel共享的资源
 extern int sd;
-struct sockaddr_in raddr;
-pthread_t tid[NR_CHN+1];
-struct server_conf_st server_conf;
+extern struct sockaddr_in raddr;
+extern pthread_t tid[NR_CHN+1];
+extern struct server_conf_st server_conf;
 
 #endif

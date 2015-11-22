@@ -64,8 +64,10 @@ int main(int argc,char **argv)
 	}else if(!pid) {
 		close(pd[1]);
 		dup2(pd[0], 0);
-		if(pd[0] > 0)
+		if(pd[0] > 0){
+			printf("always work\n");
 			close(pd[0]);
+		}
 		execl(client_conf.player, "mpg123", "-", NULL);
 		perror("execl()");
 		exit(1);

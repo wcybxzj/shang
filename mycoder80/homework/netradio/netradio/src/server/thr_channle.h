@@ -2,9 +2,9 @@
 #define THR_CHANNEL_H__
 
 
-  thr_channel_create(   );
-  thr_channel_destroy(   );
-  thr_channel_destroyall(   );
+int thr_channel_create(pthread_t *tid,chnid_t cid);
+thr_channel_destroy(   );
+thr_channel_destroyall(   );
 
 #endif
 
