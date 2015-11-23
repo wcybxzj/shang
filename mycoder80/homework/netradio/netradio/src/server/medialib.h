@@ -17,7 +17,7 @@ struct mlib_chn_st
 };
 
 int mlib_getchnlist(struct mlib_chn_st **,int *);
-int mlib_freechnlist(struct mlib_chn_st *);
+int mlib_freechnlist(struct mlib_chn_st **,int);
 int mlib_getchndata(chnid_t, char *,int);
 
 #endif

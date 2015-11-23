@@ -8,7 +8,11 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <signal.h>
+
 #include <proto.h>
+
+
 
 #include "medialib.h"
 #include "server.h"
@@ -20,15 +24,27 @@
  *  -F		前台调试运行
  *  -H      显示帮助
  * */
+
 int sd;
 struct sockaddr_in raddr;
 pthread_t tid[NR_CHN+1];
+static int listsize;
+static struct mlib_chn_st *listptr;
 
 struct server_conf_st server_conf = {\
 	.mgroup = DEFAULT_MGROUP,\
 	.rcvport = DEFAULT_RCVPORT,\
 	.medpath = DEFAULT_PATH\
 };
+
+static void daemon_exit(int s)
+{
+	thr_list_destroy();
+	thr_channel_destroyall(listsize);
+	mlib_freechnlist(&listptr, listsize);
+	closelog();
+	exit(0);
+}
 
 static int daemonize(void){
 	int fd;
@@ -59,10 +75,21 @@ static int daemonize(void){
 
 int main(int argc, char *argv[])
 {
-	struct mlib_chn_st *listptr;
-	int listsize, err;
+	int err;
 	int ch, i;
 	struct ip_mreqn req;
+
+	struct sigaction sa;
+	sa.sa_handler = daemon_exit;
+	sigemptyset(&sa.sa_mask);
+	sigaddset(&sa.sa_mask, SIGQUIT);
+	sigaddset(&sa.sa_mask, SIGTERM);
+	sigaddset(&sa.sa_mask, SIGINT);
+	sa.sa_flags = 0;
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
+	sigaction(SIGTERM, &sa, NULL);
+
 
 	/*conf处理*/
 	while (1) {
@@ -84,10 +111,10 @@ int main(int argc, char *argv[])
 	}
 
 	openlog("server", LOG_PID, LOG_DAEMON);
-	//if (daemonize()) {
-	//	syslog(LOG_ERR, "daemonize failed");
-	//	exit(1);
-	//}
+	if (daemonize()) {
+		syslog(LOG_ERR, "daemonize failed");
+		exit(1);
+	}
 
 	/*socket init*/
 	sd = socket(AF_INET, SOCK_DGRAM, 0);

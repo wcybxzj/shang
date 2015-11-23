@@ -101,8 +101,11 @@ int mlib_getchnlist(struct mlib_chn_st **list, int *listsize){
 		if (getchncontent(list_res.gl_pathv[i], &ptr, i+1, chnid)) {
 			return -3;
 		}
-		list_ptr[i].chnid = ptr[i].chnid;
-		list_ptr[i].desc= strdup(ptr[i].desc);
+		//list_ptr[i].chnid = ptr[i].chnid;
+		//list_ptr[i].desc= strdup(ptr[i].desc);
+
+		(list_ptr+i)->chnid = ptr[i].chnid;
+		(list_ptr+i)->desc = strdup(ptr[i].desc);
 		chnid++;
 	}
 
@@ -145,3 +148,15 @@ int mlib_getchndata(chnid_t cid, char *buf,int size){
 	return len;
 }
 
+int mlib_freechnlist(struct mlib_chn_st **list, int listsize){
+	int i;
+	for (i = 0; i < listsize; i++) {
+		free((*list+i)->desc);
+		free(cont_ptr[i].desc);
+		mytbf_destroy(cont_ptr[i].tbf);
+	}
+	free(*list);
+	*list = NULL;
+	free(cont_ptr);
+	cont_ptr = NULL;
+}

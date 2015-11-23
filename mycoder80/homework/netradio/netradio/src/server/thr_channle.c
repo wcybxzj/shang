@@ -44,3 +44,16 @@ int thr_channel_create(pthread_t* tid, chnid_t cid){
 	return 0;
 }
 
+int thr_channel_destroy(chnid_t chnid){
+	pthread_cancel(tid[chnid]);
+	pthread_join(tid[chnid] ,NULL);
+	return 0;
+}
+
+int thr_channel_destroyall(int listsize){
+	int i;
+	for (i = 1; i <=listsize; i++) {
+		thr_channel_destroy(i);
+	}
+	return 0;
+}

@@ -60,3 +60,10 @@ int thr_list_create(struct mlib_chn_st *listptr, int listsize){
 	}
 	return 0;
 }
+
+void thr_list_destroy(void){
+	pthread_cancel(*tid);
+	pthread_join(*tid, NULL);
+	free(sbuf);
+	return;
+}
