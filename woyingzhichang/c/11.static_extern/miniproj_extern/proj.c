@@ -1,6 +1,6 @@
 #include <stdio.h>
+#include "proj.h"
 
-extern int i;
 void func()
 {
 	i=234;

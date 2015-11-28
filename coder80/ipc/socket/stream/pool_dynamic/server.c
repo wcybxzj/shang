@@ -71,9 +71,10 @@ static void server_job(int pos)
 		}
 		serverpool[pos].state = STATE_BUSY;
 		kill(ppid,SIG_NOTIFY);
-	
-//		inet_ntop(AF_INET,&raddr.sin_addr,ipstr,STRSIZE);
-//		printf("Client:%s:%d\n",ipstr,ntohs(raddr.sin_port));
+		if (0) {
+			inet_ntop(AF_INET,&raddr.sin_addr,ipstr,STRSIZE);
+			printf("Client:%s:%d\n",ipstr,ntohs(raddr.sin_port));
+		}
 		len = sprintf(buf,FMT_STAMP,(long long)time(NULL));
 		if(send(newsd,buf,len,0) < 0)
 		{
@@ -160,14 +161,14 @@ static void scan_pool(void)
 		if(serverpool[i].state == STATE_IDLE)
 			idle++;
 		else if(serverpool[i].state == STATE_BUSY)
-				busy++;
-			else
-			{
-				fprintf(stderr,"Unknown state of server.\n");
-				abort();	//_exit(1);
-			}	
+			busy++;
+		else
+		{
+			fprintf(stderr,"Unknown state of server.\n");
+			abort();	//_exit(1);
+		}	
 	}
-	
+
 	idle_count = idle;
 	busy_count = busy;
 
@@ -188,27 +189,25 @@ int main()
 	sa.sa_flags = 0;
 	sigaction(SIG_NOTIFY,&sa,&osa1);
 	/*if error*/
-	
+
 	sa.sa_handler = SIG_IGN;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_NOCLDWAIT;
 	sigaction(SIGCHLD,&sa,&osa2);
 	/*if error*/
-	
+
 	sigemptyset(&set);
 	sigaddset(&set,SIG_NOTIFY);
 	sigprocmask(SIG_BLOCK,&set,&oset);
 
-
 	/* init */
-
 	serverpool = mmap(NULL,sizeof(struct server_st)*MAXCLIENT,PROT_READ|PROT_WRITE,MAP_SHARED|MAP_ANONYMOUS,-1,0);
 	if(serverpool == MAP_FAILED)
 	{
 		perror("mmap()");
 		exit(1);
 	}
-	
+
 	for(i = 0 ; i < MAXCLIENT; i++)
 		serverpool[i].pid = -1;
 
@@ -253,19 +252,19 @@ int main()
 		sigsuspend(&oset);
 
 		scan_pool();
-		
+
 		if(idle_count > MAXSPARESERVER)
 		{
 			for(i = 0 ; i < idle_count-MAXSPARESERVER; i++)
 				del_1_server();
 		}
 		else if(idle_count < MINSPARESERVER)
-			{
-				for(i = 0 ; i < MINSPARESERVER-idle_count; i++)
-					add_1_server();
-			}
-					
-		
+		{
+			for(i = 0 ; i < MINSPARESERVER-idle_count; i++)
+				add_1_server();
+		}
+
+
 		for(i = 0 ; i < MAXCLIENT; i++)
 		{
 			if(serverpool[i].pid == -1)
@@ -281,7 +280,7 @@ int main()
 		printf("\n");
 	}
 
-	
+
 	/*free  destroy*/
 
 	exit(0);
