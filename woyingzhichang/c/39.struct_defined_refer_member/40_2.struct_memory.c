@@ -39,24 +39,26 @@ struct my_struct{
 	char c;//1
 }test4;//20 20
 
-//struct my_struct{
-//	char a;//1+3
-//	double b;
-//	char c;
-//} test4;
-//
-//
-//struct my_test{
-//	int a;
-//	char b;
-//};//8
-//
-//struct my_struct{
-//	struct my_test a;//8
-//	double b;//8
-//	int c;//4
-//	char d;//1
-//}st5_var;//24
+//example5:
+struct my_test{
+	int a;
+	char b;
+};//8
+
+struct my_struct5{
+	struct my_test a;//8
+	double b;//8
+	int c;//4
+	char d;//1
+}test5;//24 24
+
+
+struct my_struct6{
+	struct my_test a;//8
+	long double b;//12 16
+	int c;//4
+	char d;//1
+}test6;//28 32
 
 int main(int argc, const char *argv[])
 {
@@ -64,4 +66,6 @@ int main(int argc, const char *argv[])
 	printf("%d\n", sizeof(test2));
 	printf("%d\n", sizeof(test3));
 	printf("%d\n", sizeof(test4));
+	printf("%d\n", sizeof(test5));
+	printf("%d\n", sizeof(test6));
 }
