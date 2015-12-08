@@ -11,7 +11,6 @@ Linux-64	长度	1		2		4	 8		4		8		8			16
 			模数	1		2		4	 8		4		8		8			16
 */
 
-
 //example1:
 struct my_struct1{
 	char a;//1+3  1+15
@@ -32,6 +31,13 @@ struct my_struct3{
 	double b;//8 8
 	char c;//1
 }test3;//16 24
+
+//example4:
+struct my_struct{
+	char a[11];//11+1
+	int b;//4
+	char c;//1
+}test4;//20 20
 
 //struct my_struct{
 //	char a;//1+3
@@ -57,4 +63,5 @@ int main(int argc, const char *argv[])
 	printf("%d\n", sizeof(test1));
 	printf("%d\n", sizeof(test2));
 	printf("%d\n", sizeof(test3));
+	printf("%d\n", sizeof(test4));
 }
