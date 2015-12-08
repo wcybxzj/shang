@@ -15,7 +15,7 @@ Linux-64	长度	1		2		4	 8		4		8		8			16
 struct my_struct1{
 	char a;//1+3  1+15
 	long double b;//12 16
-}test1;// 32bit:16 64bit:32
+}test1;// 32bit:16 64bit:32 下面都是两种的平台的
 
 //example2:
 #pragma pack(2)
@@ -52,13 +52,12 @@ struct my_struct5{
 	char d;//1
 }test5;//24 24
 
-
 struct my_struct6{
-	struct my_test a;//8
+	struct my_test a;//8 8+8
 	long double b;//12 16
 	int c;//4
-	char d;//1
-}test6;//28 32
+	char d;//1+3 1+7
+}test7;//28 44+4
 
 int main(int argc, const char *argv[])
 {
