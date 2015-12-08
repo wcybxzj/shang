@@ -11,9 +11,9 @@ int main(int argc, const char *argv[])
 	//printf("%s\n", str);
 
 	//2.输入 输出
-
 	//2.1
 	//gets(str);
+	//fgets(str, NUM, stdin);
 	//puts(str);
 
 	//2.2
