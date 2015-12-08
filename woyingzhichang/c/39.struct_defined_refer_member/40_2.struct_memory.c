@@ -11,23 +11,27 @@ Linux-64	长度	1		2		4	 8		4		8		8			16
 			模数	1		2		4	 8		4		8		8			16
 */
 
+
+//example1:
 struct my_struct1{
-	char a;//1+3
-	long double b;//12
+	char a;//1+3  1+15
+	long double b;//12 16
 }test1;// 32bit:16 64bit:32
 
-
-////////////////////////////////////////////
-
+//example2:
 #pragma pack(2)
 struct my_struct2{
 	char a;//1+1
-	long double b;//12
-}test2;//14
+	long double b;//12 16
+}test2;//14 18
 #pragma pack()
 
-
-////////////////////////////////////////////
+//example3:
+struct my_struct3{
+	char a;//1+3 1+7
+	double b;//8 8
+	char c;//1
+}test3;//16 24
 
 //struct my_struct{
 //	char a;//1+3
@@ -52,4 +56,5 @@ int main(int argc, const char *argv[])
 {
 	printf("%d\n", sizeof(test1));
 	printf("%d\n", sizeof(test2));
+	printf("%d\n", sizeof(test3));
 }
