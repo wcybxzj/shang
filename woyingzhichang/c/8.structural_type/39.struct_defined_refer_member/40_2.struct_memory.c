@@ -1,4 +1,7 @@
 #include <stdio.h>
+
+//http://www.cnblogs.com/motadou/archive/2009/01/17/1558438.html
+
 /*
 					char	short	int	 long	float	double	long long	long double
 Win-32	    长度	1		2		4	 4		4		8		8			8
