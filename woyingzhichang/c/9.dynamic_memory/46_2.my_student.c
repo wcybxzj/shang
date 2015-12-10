@@ -3,7 +3,7 @@
 #include <string.h>
 #include <errno.h>
 
-#define NAMESIZE 32
+#define NAMESIZE 1024
 
 struct list_st{
 	int num;
@@ -12,21 +12,14 @@ struct list_st{
 
 struct student_st{
 	int id;
-	char name[NAMESIZE];
+	char *name;
 };
-
-void stu_set(struct student_st *p, const struct student_st *q )
-{
-	*p = *q;
-}
 
 void stu_show(struct list_st* list_p)
 {
 	int i;
 	for (i = 0; i < list_p->num; i++) {
-		printf("%d %s\n",
-				list_p->p[i].id,
-				list_p->p[i].name);
+		printf("%d %s\n", list_p->p[i].id, list_p->p[i].name);
 	}
 }
 
@@ -46,14 +39,18 @@ void delete(struct list_st *list, int choice_id)
 		if ((list->p+i)->id == choice_id) {
 			list->num--;
 			if (list->num==0) {
+				free(list->p->name);
 				free(list->p);
 				list->p = NULL;
 			}else if (i == 0) {
+				free(list->p->name);
 				memmove(list->p, list->p+1, sizeof(struct student_st)*(list->num));
 				list->p= realloc(list->p, (list->num)* sizeof(struct student_st));
-			}else if(i == list->num){
+			}else if(i == list->num) {
+				free(list->p[i].name);
 				list->p = realloc(list->p, (list->num)* sizeof(struct student_st));
 			}else{
+				free(list->p[i].name);
 				memmove(list->p+i, list->p+i+1, 
 						(list->num-i)*sizeof(struct student_st));
 				list->p= realloc(list->p, (list->num)* sizeof(struct student_st));
@@ -64,10 +61,15 @@ void delete(struct list_st *list, int choice_id)
 }
 
 void edit(struct list_st *list, int choice_id){
+	char newname[NAMESIZE];
 	int i;
 	for (i = 0; i < list->num; i++) {
 		if ((list->p+i)->id == choice_id) {
-			scanf("%s", (list->p+i)->name );
+			free(list->p[i].name);
+			scanf("%s", newname);
+			list->p[i].name = malloc(strlen(newname)+1);
+			strcpy(list->p[i].name, newname);
+			//scanf("%s", (list->p+i)->name );
 			break;
 		}
 	}
@@ -76,13 +78,14 @@ void edit(struct list_st *list, int choice_id){
 int main(int argc, const char *argv[])
 {
 	struct list_st list;
-	struct student_st tmp;
 	int choice, choice_id;
-	char newname[NAMESIZE];
+	char *newname;
 	int ret;
 
 	list.num = 0;
 	list.p = NULL;
+
+	newname = malloc(NAMESIZE);
 
 	while (1) {
 		menu();
@@ -95,7 +98,10 @@ int main(int argc, const char *argv[])
 				list.num++;
 				list.p = realloc(list.p, list.num* sizeof(struct student_st));
 				printf("plz enter for [id name]:\n");
-				scanf("%d%s", &((list.p+list.num-1)->id), (list.p+list.num-1)->name);
+				//scanf("%d%s", &((list.p+list.num-1)->id), (list.p+list.num-1)->name);
+				scanf("%d%s", &((list.p+list.num-1)->id), newname);
+				(list.p+list.num-1)->name = malloc(strlen(newname)+1);
+				strcpy((list.p+list.num-1)->name, newname);
 				break;
 
 			case 2://delete
