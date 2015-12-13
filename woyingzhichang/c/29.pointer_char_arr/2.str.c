@@ -16,7 +16,7 @@ void normal_use()
 	
 	char name1[20];
 	//name是数组名是个常量,除非初始化否则不能出现在等号左边
-	//name = "abcdef";
+	//name = "abcdef";//error
 	strcpy(name, "abc");
 	printf("%s\n", name);
 }
@@ -44,7 +44,7 @@ void func_strcpy()
 	strcpy(str3, "aabbcc");
 	printf("%s\n", str3);
 
-	char str4[20]= "this is not change";
+	char str4[20] = "still change";
 	strcpy(str4, "can");
 	printf("%s\n", str4);
 }

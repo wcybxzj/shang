@@ -5,16 +5,15 @@
 
 #define NAMESIZE 1024
 
-typedef struct student_st{
-	int id;
-	char *name;
-} STU;
-
 typedef struct list_st{
 	int num;
 	STU *p;
 }LIST;
 
+typedef struct student_st{
+	int id;
+	char *name;
+} STU;
 
 void stu_show(LIST * list_p)
 {
@@ -45,16 +44,16 @@ void delete(LIST *list, int choice_id)
 				list->p = NULL;
 			}else if (i == 0) {
 				free(list->p->name);
-				memmove(list->p, list->p+1, sizeof(STU)*(list->num));
-				list->p= realloc(list->p, (list->num)* sizeof(STU));
+				memmove(list->p, list->p+1, sizeof(struct student_st)*(list->num));
+				list->p= realloc(list->p, (list->num)* sizeof(struct student_st));
 			}else if(i == list->num) {
 				free(list->p[i].name);
-				list->p = realloc(list->p, (list->num)* sizeof(STU));
+				list->p = realloc(list->p, (list->num)* sizeof(struct student_st));
 			}else{
 				free(list->p[i].name);
 				memmove(list->p+i, list->p+i+1, 
-						(list->num-i)*sizeof(STU));
-				list->p= realloc(list->p, (list->num)* sizeof(STU));
+						(list->num-i)*sizeof(struct student_st));
+				list->p= realloc(list->p, (list->num)* sizeof(struct student_st));
 			}
 			break;
 		}
