@@ -37,7 +37,7 @@ enum{
 
 struct job_st{
 	int id;
-	int state;
+	enum day state;
 };
 
 void normal_use()
@@ -73,7 +73,6 @@ void habit_use()
 		default:
 			//abort();
 		break;
-
 	}
 }
 
