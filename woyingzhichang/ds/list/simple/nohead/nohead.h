@@ -15,10 +15,10 @@ typedef struct node_st{
 	struct node_st *next;
 }NODE;
 
-NODE *list_insert(NODE *ptr, STU *data);
+int list_insert(NODE **ptr, STU *data);
 void list_show(NODE *ptr);
-int list_delete(NODE *ptr);
-NODE *list_find(NODE *ptr, NODE *data);
-
+int list_delete(NODE **ptr);
+int list_find(NODE *ptr, int id, STU *ret_ptr);
+int list_destroy(NODE **ptr);
 #endif
 
