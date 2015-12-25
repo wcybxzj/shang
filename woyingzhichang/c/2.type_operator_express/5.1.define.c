@@ -19,9 +19,18 @@ int main(int argc, const char *argv[])
 	printf("-------------宏中的变量也要使用括号包裹-----\n");
 	int a = 1,b = 2;
 	ret = MAX(a, b+2);
+	printf("ret %d\n", ret);
+
+	a = 1,b = 2;
 	ret = MAX_BETTER(a, b+2);
+	printf("ret %d\n", ret);
 
 	printf("------------ 宏中参数有++ ----------------\n");
+	a = 5,b = 3;
+	ret = MAX(a++, b++);
+	printf("ret %d\n", ret);
+	printf("a %d, b %d\n", a ,b );
+
 	a = 5,b = 3;
 	ret = MAX_BETTER(a++, b++);
 	printf("ret %d\n", ret);
