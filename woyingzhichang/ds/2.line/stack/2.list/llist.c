@@ -3,7 +3,7 @@
 #include <string.h>
 #include "llist.h"
 
-LLIST *llist_creat(int size){
+LLIST *llist_create(int size){
 	LLIST *me;
 	me = malloc(sizeof(*me));
 	if (NULL ==me) {
@@ -12,7 +12,6 @@ LLIST *llist_creat(int size){
 	me->size = size;
 	me->head.prev = &me->head;
 	me->head.next = &me->head;
-
 	return me;
 }
 
@@ -68,11 +67,11 @@ int llist_delete(LLIST *ptr, const void *key, cmp_t *func){
 	return 0;
 }
 
-int llist_fetch(LLIST *ptr, const void *key, cmp_t *func, void *re){
+int llist_fetch(LLIST *ptr, const void *key, cmp_t *func, void *data){
 	NODE_ST *cur;
 	cur = find_(ptr, key, func);
 	if (cur) {
-		memcpy(re, cur->data, ptr->size);
+		memcpy(data, cur->data, ptr->size);
 		cur->prev->next = cur->next;
 		cur->next->prev = cur->prev;
 		free(cur);

@@ -6,10 +6,10 @@ typedef LLIST STACK;
 
 STACK * stack_create(int);
 
-stack_push();
+int stack_push(STACK *ptr, void *data);
 
-stack_pop();
+int stack_pop(STACK *ptr, void *data);
 
-stack_destroy();
+void stack_destroy(STACK *ptr);
 
 #endif

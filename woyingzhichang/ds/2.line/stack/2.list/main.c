@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "llist.h"
+#include "stack.h"
 
 #define NAMESIZE 32
 typedef struct _SCORE {
@@ -35,55 +35,35 @@ int cmp_name(const void *key, const void *data){
 int main(int argc, const char *argv[])
 {
 	int i, ret;
-	LLIST *handler;
-	SCORE_ST tmp, *tmp_p;
-	handler = llist_creat(sizeof(SCORE_ST));
+	STACK *me;
+	SCORE_ST tmp;
+	me = stack_create(sizeof(SCORE_ST));
+	if (NULL == me) {
+		exit(1);
+	}
 
 	for (i = 0; i < 7; i++) {
 		tmp.id = i;
 		snprintf(tmp.name, NAMESIZE, "stu%d", i);
-		tmp.math = rand() %100;
-		tmp.chinese = rand() %100;
-		//myprint(&tmp);
-		llist_insert(handler, &tmp, LLIST_FORWARD);
-	}
-
-	llist_travel(handler, myprint);
-
-	printf("-----------------------------------\n");
-
-	char *name = "stu3";
-	tmp_p = llist_find(handler, name, cmp_name);
-	myprint(tmp_p);
-
-	printf("-----------------------------------\n");
-	int id = 2;
-	ret = llist_fetch(handler, &id, cmp_id, &tmp);
-	if (ret) {
-		printf("fetch ");
-		myprint(&tmp);
-	}
-
-	printf("-----------------------------------\n");
-	name ="stu0";
-	ret = llist_delete(handler, name, cmp_name);
-	if (ret) {
-		printf("delete %s\n", name);
-	}
-	printf("-----------------------------------\n");
-	llist_travel(handler, myprint);
-	printf("-----------------------------------\n");
-
-	name = malloc(NAMESIZE);
-	for (i = 1; i < 7; i++) {
-		snprintf(name, NAMESIZE, "stu%d", i);
-		ret = llist_delete(handler, name, cmp_name);
-		if (ret) {
-			printf("delete %s\n", name);
+		tmp.math = rand() % 100;
+		tmp.chinese = rand() % 100;
+		if (stack_push(me, &tmp) == 0){
+			printf("push ok\n");
+		}else{
+			printf("push failed\n");
+			break;
 		}
 	}
-	llist_travel(handler, myprint);
 
-	llist_destroy(handler);
-	return 0;
+	while (1) {
+		if (stack_pop(me, &tmp)){
+			myprint(&tmp);
+		}else{
+			printf("pop failed\n");
+			break;
+		}
+	}
+
+	stack_destroy(me);
+	exit(0);
 }
