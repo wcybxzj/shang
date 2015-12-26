@@ -12,6 +12,7 @@ LLIST *llist_create(int size){
 	me->size = size;
 	me->head.prev = &me->head;
 	me->head.next = &me->head;
+
 	return me;
 }
 
@@ -67,11 +68,11 @@ int llist_delete(LLIST *ptr, const void *key, cmp_t *func){
 	return 0;
 }
 
-int llist_fetch(LLIST *ptr, const void *key, cmp_t *func, void *data){
+int llist_fetch(LLIST *ptr, const void *key, cmp_t *func, void *re){
 	NODE_ST *cur;
 	cur = find_(ptr, key, func);
 	if (cur) {
-		memcpy(data, cur->data, ptr->size);
+		memcpy(re, cur->data, ptr->size);
 		cur->prev->next = cur->next;
 		cur->next->prev = cur->prev;
 		free(cur);

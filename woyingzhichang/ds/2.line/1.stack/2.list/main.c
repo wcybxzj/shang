@@ -42,21 +42,25 @@ int main(int argc, const char *argv[])
 		exit(1);
 	}
 
-	for (i = 0; i < 7; i++) {
+	for (i = 0; i < 10; i++) {
 		tmp.id = i;
 		snprintf(tmp.name, NAMESIZE, "stu%d", i);
 		tmp.math = rand() % 100;
 		tmp.chinese = rand() % 100;
 		if (stack_push(me, &tmp) == 0){
 			printf("push ok\n");
+			myprint(&tmp);
 		}else{
 			printf("push failed\n");
 			break;
 		}
 	}
 
+	printf("-------------\n");
+
 	while (1) {
 		if (stack_pop(me, &tmp)){
+			printf("pop ok\n");
 			myprint(&tmp);
 		}else{
 			printf("pop failed\n");
