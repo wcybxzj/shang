@@ -13,12 +13,12 @@ typedef struct _SC {
 	int chinese;
 } SC;
 
-typedef struct _NODE {
+typedef struct _BT_NODE {
 	SC data;
-	struct _NODE *left, *right;
-} NODE;
+	struct _BT_NODE *left, *right;
+} BT_NODE;
 
-static NODE *tree = NULL;
+static BT_NODE *tree = NULL;
 
 void myprint(SC *score)
 {
@@ -26,7 +26,7 @@ void myprint(SC *score)
 			score->id, score->name, score->math, score->chinese);
 }
 
-void draw_(NODE *root , int level)
+void draw_(BT_NODE *root , int level)
 {
 	int i;
 	if (NULL == root) {
@@ -41,12 +41,12 @@ void draw_(NODE *root , int level)
 	draw_(root->left, level+1);
 }
 
-void draw(NODE *root)
+void draw(BT_NODE *root)
 {
 	draw_(root, 0);
 }
 
-void draw_debug(NODE *root)
+void draw_debug(BT_NODE *root)
 {
 
 	printf("\n\n plz enter something !\n");
@@ -54,9 +54,9 @@ void draw_debug(NODE *root)
 	draw_(root, 0);
 }
 
-int insert(NODE **root, SC *data)
+int insert(BT_NODE **root, SC *data)
 {
-	NODE *node = NULL;
+	BT_NODE *node = NULL;
 	if (NULL == *root) {
 		node = malloc(sizeof(*node));
 		if (NULL == node) {
@@ -76,7 +76,7 @@ int insert(NODE **root, SC *data)
 	return 0;
 }
 
-NODE *find(NODE *root, int id)
+BT_NODE *find(BT_NODE *root, int id)
 {
 	if (root == NULL) {
 		return NULL;
@@ -91,7 +91,7 @@ NODE *find(NODE *root, int id)
 	}
 }
 
-static int get_num(NODE *root)
+static int get_num(BT_NODE *root)
 {
 	int ret = 0;
 	if (NULL == root) {
@@ -104,49 +104,49 @@ static int get_num(NODE *root)
 }
 
 //递归版
-static NODE *find_min(NODE *root){
+static BT_NODE *find_min(BT_NODE *root){
 	if (root->left == NULL) {
 		return root;
 	}
-	find_min(root->left);
+	return find_min(root->left);
 }
 
-//static NODE *find_min(NODE *root){
+//static BT_NODE *find_min(BT_NODE *root){
 //	while (root->left) {
 //		root = root->left;
 //	}
 //	return root;
 //}
 
-static NODE *find_max(NODE *root){
+static BT_NODE *find_max(BT_NODE *root){
 	while (root->right) {
 		root = root->right;
 	}
 	return root;
 }
 
-static void turn_left(NODE **root)
+static void turn_left(BT_NODE **root)
 {
-	NODE *tmp_root = *root;
+	BT_NODE *tmp_root = *root;
 	*root = (*root)->right;
 	tmp_root->right = NULL;
 	find_min(*root)->left = tmp_root;
 	//draw_debug(tree);
 }
 
-static void turn_right(NODE **root)
+static void turn_right(BT_NODE **root)
 {
-	NODE *tmp_root = *root;
+	BT_NODE *tmp_root = *root;
 	*root = (*root)->left;
 	tmp_root->left= NULL;
 	find_max(*root)->right= tmp_root;
 	//draw_debug(tree);
 }
 
-void balance(NODE **root)
+void balance(BT_NODE **root)
 {
-  	int sub;
- 	if (NULL == *root) {
+	int sub;
+	if (NULL == *root) {
 		return;
 	}
 	while (1) {
@@ -165,8 +165,8 @@ void balance(NODE **root)
 }
 
 //极端情况会删除总的根节点所以需要2级指针
-void delete(NODE **root, int id){
-	NODE **node = root, *cur = NULL;
+void delete(BT_NODE **root, int id){
+	BT_NODE **node = root, *cur = NULL;
 	while (*node != NULL && (*node)->data.id != id) {
 		if ((*node)->data.id > id  ) {
 			node = &(*node)->left;
@@ -191,7 +191,7 @@ void delete(NODE **root, int id){
 }
 
 //先
-void travel_xian(NODE *root)
+void travel_xian(BT_NODE *root)
 {
 	if (root == NULL) {
 		return;
@@ -202,7 +202,7 @@ void travel_xian(NODE *root)
 }
 
 //中
-void travel_zhong(NODE *root)
+void travel_zhong(BT_NODE *root)
 {
 	if (root == NULL) {
 		return;
@@ -213,7 +213,7 @@ void travel_zhong(NODE *root)
 }
 
 //后
-void travel_hou(NODE *root)
+void travel_hou(BT_NODE *root)
 {
 	if (root == NULL) {
 		return;
@@ -224,34 +224,39 @@ void travel_hou(NODE *root)
 }
 
 //层式遍历
-void travel_level(NODE *root)
+void travel_level(BT_NODE *root)
 {
+	int ret;
+	BT_NODE *cur = NULL;
 	Q* me = NULL;
-	me = q_create(sizeof(NODE *));
+	me = q_create(sizeof(BT_NODE *));
 	if (NULL == me) {
 		return;
 	}
-
 	q_enqueue(me, &root);
-	while (root) {
-		if (q_dequeue(me, root)){
-			myprint(&root->data);
-			q_enqueue(me, root->left);
-			q_enqueue(me, root->right);
-		}else{
+	while (1) {
+		ret = q_dequeue(me, &cur);
+		if (ret == 0) {
 			break;
 		}
-	}
+		myprint(&cur->data);
+		if (cur->left) {
+			q_enqueue(me, &(cur->left));
+		}
 
+		if (cur->right) {
+			q_enqueue(me, &(cur->right));
+		}
+	}
 	q_destroy(me);
 }
 
 int main(int argc, const char *argv[])
 {
 	int arr[] = {1,2,3,7,6,5,9,8,4};
-	int i, ret;
+	int i;
 	SC tmp;
-	NODE *tmp_node;
+	BT_NODE *tmp_node;
 
 	for (i = 0; i < sizeof(arr)/sizeof(*arr); i++) {
 		tmp.id = arr[i];
@@ -298,5 +303,8 @@ int main(int argc, const char *argv[])
 	travel_zhong(tree);
 	printf("=============hou===================\n");
 	travel_hou(tree);
+	printf("=============level===================\n");
+	travel_level(tree);
+
 	return 0;
 }
