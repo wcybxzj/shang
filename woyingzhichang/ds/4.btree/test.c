@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <queue.h>
+#include "queue.h"
 
 #define NAMESIZE 32
 typedef struct _SCORE {

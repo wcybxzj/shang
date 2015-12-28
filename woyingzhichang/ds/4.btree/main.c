@@ -48,7 +48,7 @@ void draw(NODE *root)
 
 void draw_debug(NODE *root)
 {
-	
+
 	printf("\n\n plz enter something !\n");
 	getchar();
 	draw_(root, 0);
@@ -160,7 +160,7 @@ void balance(NODE **root)
 			turn_right(root);
 		}
 	}
-	
+
 	balance(&(*root)->right);
 }
 
@@ -190,7 +190,7 @@ void delete(NODE **root, int id){
 	free(cur);
 }
 
-
+//先
 void travel_xian(NODE *root)
 {
 	if (root == NULL) {
@@ -201,6 +201,7 @@ void travel_xian(NODE *root)
 	travel_xian(root->right);
 }
 
+//中
 void travel_zhong(NODE *root)
 {
 	if (root == NULL) {
@@ -211,6 +212,7 @@ void travel_zhong(NODE *root)
 	travel_zhong(root->right);
 }
 
+//后
 void travel_hou(NODE *root)
 {
 	if (root == NULL) {
@@ -221,8 +223,28 @@ void travel_hou(NODE *root)
 	myprint(&root->data);
 }
 
+//层式遍历
+void travel_level(NODE *root)
+{
+	Q* me = NULL;
+	me = q_create(sizeof(NODE *));
+	if (NULL == me) {
+		return;
+	}
 
+	q_enqueue(me, &root);
+	while (root) {
+		if (q_dequeue(me, root)){
+			myprint(&root->data);
+			q_enqueue(me, root->left);
+			q_enqueue(me, root->right);
+		}else{
+			break;
+		}
+	}
 
+	q_destroy(me);
+}
 
 int main(int argc, const char *argv[])
 {

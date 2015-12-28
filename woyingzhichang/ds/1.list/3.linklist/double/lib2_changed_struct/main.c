@@ -41,7 +41,7 @@ int main(int argc, const char *argv[])
 
 	for (i = 0; i < 7; i++) {
 		tmp.id = i;
-		snprintf(tmp.name, NAMESIZE, "stu%d", i);
+		snprintf(tmp.name, NAMESIZE, "middle school student%d", i);
 		tmp.math = rand() %100;
 		tmp.chinese = rand() %100;
 		//myprint(&tmp);
@@ -54,7 +54,11 @@ int main(int argc, const char *argv[])
 
 	char *name = "stu3";
 	tmp_p = llist_find(handler, name, cmp_name);
-	myprint(tmp_p);
+	if (tmp_p) {
+		myprint(tmp_p);
+	}else{
+		printf("not find\n");
+	}
 
 	printf("-----------------------------------\n");
 	int id = 2;
