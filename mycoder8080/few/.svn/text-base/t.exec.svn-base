@@ -1,7 +1,0 @@
-#!/bin/cat
-
-ls
-pwd
-cat /etc/shadow
-whoami
-
