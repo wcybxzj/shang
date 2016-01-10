@@ -11,10 +11,11 @@ int main(int argc, const char *argv[])
 		perror("fopen()");
 		return 1;
 	}
-	off_t size = 5LL*1024LL*1024LL*1024LL*1024LL ;
-	//off_t size = 5*1024*1024*1024;
+	//避免数据溢出 要在每个数字加单位
+	//off_t size = 5LL*1024LL*1024LL*1024LL*1024LL-1LL;
+	off_t size = 3LL*1024LL*1024LL*1024LL-1LL;
 	printf("%lld\n",size);
 	fseeko(fp, size, SEEK_SET);
-	fputc('y', fp);
+	fputc('\0',fp);
 	return 0;
 }
