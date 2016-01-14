@@ -3,17 +3,67 @@
 大作业:myls
 
 一.目录和文件
-	1.获取文件属性:stat/fstat/lstat
-	2.文件访问权限
-	3.unask
+	1.获取文件属性:
+		stat:
+		fstat:
+		lstat:
+
+	2.文件访问权限:
+		st_mode 16位的位图,用于表示文件类型，文件权限，及特殊权限位
+
+	3.unask:
+		0666 & ~usmak
+		防止产生权限过松的文件
+
 	4.文件权限的更改/管理
-	5.站住位
+		chmod
+		fchmod
+
+	5.粘住位
+		t位
+
 	6.文件系统:FAT,UFS
-	7.硬链接,符号链接(不要说软连接)
+		文件和数据的存储或管理
+		不同的文件系统就有不同的存储和管理方式
+
+	7.硬链接,符号链接
+		硬链接是目录项的同义词,
+		硬链接不能夸分区:一个目录项不能执行另外一个文件系统的inode节点
+		不能给目录建立:怕出现循环的情况
+
+		软连接可以夸分区建立,可以给目录建立
+
+		link
+		unlink
+		remove
+		rename
+
 	8.utime
+		更改文件时间 读和写时间,修改access time和modify time
+
 	9.目录的创建和修改
+		mkdir
+		rmdir(必须是空目录)
+
 	10.更改当前工作路径
+		chdir-->cd
+		fchdir
+		getcwd-->pwd
+
 	11.分析目录/读取目录信息
+		方式1:
+			glob()
+
+		方式2:
+			DIR *opendir();//返回指针指向堆,因为有close函数
+			closedir()
+			struct dirent *readdir(DIR*);//返回指针指向静态区
+			readdir()
+			rewinddir()
+			seekdir()
+			telldir()
+
+			DIR 流, 指针指向堆
 
 二.系统数据文件和信息:
 	passwd
