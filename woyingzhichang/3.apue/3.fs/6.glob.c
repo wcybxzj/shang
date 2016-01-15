@@ -13,7 +13,6 @@ static int errfunc_(const char *epath, int err){
 	return 0;
 }
 
-
 int main(int argc, const char *argv[])
 {
 	int i, err;
