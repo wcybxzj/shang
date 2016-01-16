@@ -66,12 +66,62 @@
 			DIR 流, 指针指向堆
 
 二.系统数据文件和信息:
-	passwd
-	shadow
-	group
-	权限
-	时间
+	1./etr/passwd
+	getpwuid
+	getpwnam
+
+	2./etr/group
+	getgrgid
+	getgrgrnam
+
+	3./etr/shadow
+	getspnam
+	crypt
+	getpass
+
+	4.时间戳
+		time_t
+		struct_tm
+
+		time();
+		gmtime();
+		localtime();
+		mktime();
+		strftime();
+
+	5.命令行分析:
+		getopt/getopt_long
+
+	6.时间
 
 三.进程环境:
-	进程虚拟空间
-	环境变量
+	1.main函数
+	
+	2.进程的终止
+		正常终止:
+			从main 返回
+			调用exit
+			调用_exit 或者_Exit
+			最后一个线程从其启动例程返回
+			最后一个线程调用pthread_exit
+
+		异常终止:
+			abort:杀掉当前进程得到一个core dump文件,错误现场进行分析用
+			接到一个信号并终止
+			最后一个线程对其取消请求做出响应
+
+		atexit:
+
+	3.命令行参数的分析
+
+	4.环境变量
+		export 导出当前环境变量
+		格式:KEY=VALUE
+
+	5.C程序的存储空间布局
+
+	6.库
+
+	7.函数跳转
+
+	8资源的获取以及控制
