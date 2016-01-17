@@ -110,9 +110,8 @@
 			接到一个信号并终止
 			最后一个线程对其取消请求做出响应
 
-		atexit:
-
 	3.命令行参数的分析
+		getopt/getopt_long
 
 	4.环境变量
 		export 导出当前环境变量
@@ -121,7 +120,15 @@
 	5.C程序的存储空间布局
 
 	6.库
+		静态库
+		动态库
+		手动装载库
+		dlopen
+		dlclose
+		dlsym
+
 
 	7.函数跳转
+		setjmp/longjmp
 
 	8资源的获取以及控制

@@ -24,6 +24,9 @@ gcc main.c -o main -L/usr/local/lib  -lqueue -lllist
 动态库: libxx.so
 /home/ybx/c_www/shangguan/woyingzhichang/ds/3.make_lib/2.llist_queue
 
+sudo cp llist.h /usr/include/
+sudo cp queue.h /usr/include/
+
 -shared:共享库
 -fPIC:表示与位置无关
 gcc -shared -fpic llist.c -o libllist.so
@@ -38,24 +41,39 @@ vim /etc/ld.so.conf:
 重读配置文件
 ldconfig /etc/ld.so.conf
 
--l:跟库名字
+-l:跟库名字, 注意顺序越底层的越放在后边, queue依赖llist
 -L:库路径
 动态和静态重名的时候优先链接动态库
 gcc main.c -o main -I/usr/local/inclue  -L/usr/local/lib   -lqueue -lllist
 
+ldd 查看执行文件的加载的动态库
+ldd 
 ldd main
 	linux-gate.so.1 =>  (0xb770f000)
 		libqueue.so => /usr/local/lib/libqueue.so (0xb76ee000)
 		libllist.so => /usr/local/lib/libllist.so (0xb76eb000)
-		libc.so.6 => /lib/i386-linux-gnu/libc.so.6 (0xb752f000)
+		libc.so.6 => /lib/i386-linux-gnu/libc.so.6 (0xb752f000) 这里的.6是版本6
 		/lib/ld-linux.so.2 (0x8000f000)
 
-
 补充1:
-另外两种设置lib的方式:
-<1>非root用户,临时修改环境变量
-export LD_LIBRARY_PATH=.
-<2>或者拷到通用的位置 
-64位:/lib64
-32位/lib/lib/i386-linux-gnu/ 
+	另外两种设置lib的方式:
+	<1>非root用户,临时修改环境变量
+		cp *.so ~/lib
+		export LD_LIBRARY_PATH=~/lib
+	<2>或者拷到通用的位置 
+		64位:/lib64
+		32位/lib/lib/i386-linux-gnu/ 
+
+补充2:　
+静态库:在编译的时候把库装载到最后的可执行文件,执行时候不需要加载,占用的是编译时间.
+	文件比较大,执行速度快
+动态库:在执行初期加载库，在函数调用时取加载，占用的是执行时间.
+	文件较小,执行速度相对慢
+
+动态库比较常用,静态库不常用
+因为动态链接生成的最后可执行文件更小
+
+
+
+
 

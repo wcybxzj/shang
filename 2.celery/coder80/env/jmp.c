@@ -6,32 +6,29 @@ static jmp_buf save;
 
 void d(void)
 {
-    printf("%s():Begin\n",__FUNCTION__);
-	
+	printf("%s():Begin\n",__FUNCTION__);
 	printf("%s():Jump now.\n",__FUNCTION__);
 	longjmp(save,0);
-
-    printf("%s():End\n",__FUNCTION__);
+	printf("%s():End\n",__FUNCTION__);
 }
 
 void c(void)
 {
-    printf("%s():Begin\n",__FUNCTION__);
-    printf("%s():Call d()\n",__FUNCTION__);
-    d();
-    printf("%s():d() returned.\n",__FUNCTION__);
-    printf("%s():End\n",__FUNCTION__);
+	printf("%s():Begin\n",__FUNCTION__);
+	printf("%s():Call d()\n",__FUNCTION__);
+	d();
+	printf("%s():d() returned.\n",__FUNCTION__);
+	printf("%s():End\n",__FUNCTION__);
 }
 
 void b(void)
 {
-    printf("%s():Begin\n",__FUNCTION__);
-    printf("%s():Call c()\n",__FUNCTION__);
-    c();
-    printf("%s():c() returned.\n",__FUNCTION__);
-    printf("%s():End\n",__FUNCTION__);
+	printf("%s():Begin\n",__FUNCTION__);
+	printf("%s():Call c()\n",__FUNCTION__);
+	c();
+	printf("%s():c() returned.\n",__FUNCTION__);
+	printf("%s():End\n",__FUNCTION__);
 }
-
 
 void a(void)
 {
@@ -48,7 +45,7 @@ void a(void)
 	else 	// jmp 
 		printf("%s():Jumped back here with code %d\n",__FUNCTION__,ret);		
 
-    printf("%s():End\n",__FUNCTION__);
+	printf("%s():End\n",__FUNCTION__);
 }
 
 int main()
@@ -58,7 +55,7 @@ int main()
 	a();
 	printf("%s():a() returned.\n",__FUNCTION__);
 	printf("%s():End\n",__FUNCTION__);
-	
+
 	exit(0);
 }
 
