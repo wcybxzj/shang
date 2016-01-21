@@ -80,14 +80,14 @@
 	getpass
 
 	4.时间戳
-		time_t
-		struct_tm
+	time_t
+	struct_tm
 
-		time();
-		gmtime();
-		localtime();
-		mktime();
-		strftime();
+	time();
+	gmtime();
+	localtime();
+	mktime();
+	strftime();
 
 	5.命令行分析:
 		getopt/getopt_long
