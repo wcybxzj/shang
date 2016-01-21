@@ -49,7 +49,6 @@ ssize_t ybx_getline(char **lineptr, size_t *n, FILE *stream){
 	}
 
 	return ret;
-
 }
 
 void test_getline()

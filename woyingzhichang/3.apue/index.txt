@@ -127,8 +127,11 @@
 		dlclose
 		dlsym
 
-
 	7.函数跳转
+		goto
 		setjmp/longjmp
 
-	8资源的获取以及控制
+	8.资源的获取以及控制
+	getrlimit();
+	setrlimit();
+	和ulimit 功能一样

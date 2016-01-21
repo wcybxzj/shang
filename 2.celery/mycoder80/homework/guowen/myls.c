@@ -130,7 +130,6 @@ int main(int argc, char **argv)
 	struct group *gr;
 	glob_t globbuf;
 	char nextpath[BUFMAX] = {};
-	
 
 	while(1) {
 		ch = getopt(argc, argv, "-lain");

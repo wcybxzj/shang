@@ -47,7 +47,7 @@ static int64_t mydu(const char *pathname)
 	glob(pattern, GLOB_APPEND, NULL, &res);
 
 	//for (i = 0; res.gl_pathv[i]!=NULL; i++) {//will cause segment fault
-	for (i w 0; i < res.gl_pathc; i++) {
+	for (i= 0; i < res.gl_pathc; i++) {
 		if (not_dot(res.gl_pathv[i])) {
 			printf("%s\n", res.gl_pathv[i]);
 			blocks += mydu(res.gl_pathv[i]);
