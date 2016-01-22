@@ -11,7 +11,8 @@ fork();
 vfrok();
 
 3.进程的消亡和释放资源
-
+	wait()/waitpid()
+	waitid()/wait3()/wait4()
 4.exec函数族
 
 5.用户权限及组权限
