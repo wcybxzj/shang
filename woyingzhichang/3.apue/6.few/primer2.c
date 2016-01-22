@@ -27,10 +27,13 @@ int main(int argc, const char *argv[])
 			if (mark) {
 				printf("%d is primer\n", i);
 			}
-			//sleep(1000);
 			exit(0);
 		}
+		//wait(NULL);//等于没并发
 	}
-	sleep(1000);
+
+	for (i = LEFT; i <= RIGHT ; i++) {
+		wait(NULL);
+	}
 	return 0;
 }
