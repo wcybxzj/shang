@@ -14,7 +14,7 @@ typedef int MYFILE;
 //}
 
 //指针指向局部静态区问题是
-//但如果函数打开2次就会改变指针指向的内容
+//如果函数打开2次就会改变指针指向的内容
 MYFILE *static_fopen(){
 	static MYFILE a; 
 	a = rand()%1000;

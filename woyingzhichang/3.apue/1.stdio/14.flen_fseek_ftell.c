@@ -3,7 +3,8 @@ int main(int argc, const char *argv[])
 {
 	int file_size = 0;
 	FILE *fp;
-	fp = fopen("/etc/services", "r");
+	//fp = fopen("/etc/services", "r");
+	fp = fopen("/tmp/out", "r");
 	if (NULL == fp) {
 		perror("fopen():");
 	}
