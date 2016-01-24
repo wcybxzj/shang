@@ -3,12 +3,12 @@
 
 /*
 	4.exec函数族
-	//定参,调用其他函数
+	//定参,调用函数
 	execl();
 	execlp();
 	execle();
 
-	//变参,调用其他函数
+	//变参,调用函数
 	execv();
 	execvp();
 	execvpe();
