@@ -13,7 +13,17 @@ vfrok();
 3.进程的消亡和释放资源
 	wait()/waitpid()
 	waitid()/wait3()/wait4()
+
 4.exec函数族
+//定参,调用其他函数
+execl();
+execlp();
+execle();
+
+//变参,调用其他函数
+execv();
+execvp();
+execvpe();
 
 5.用户权限及组权限
 

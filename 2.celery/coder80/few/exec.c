@@ -11,6 +11,7 @@ int main()
 	fflush(NULL);/*!!!*/
 
 	execl("/bin/date","date","+%s",NULL);
+	printf("never see it\n");
 	perror("execl()");
 	exit(1);
 	
