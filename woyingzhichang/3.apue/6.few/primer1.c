@@ -10,7 +10,6 @@ int main(int argc, const char *argv[])
 	pid_t pid;
 	int i, j, mark;
 	for (i = LEFT; i <= RIGHT ; i++) {
-
 		pid = fork();
 		if (pid < 0) {
 			perror("fork()");

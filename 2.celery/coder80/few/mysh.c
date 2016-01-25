@@ -33,7 +33,6 @@ static void parse(char *line,struct cmd_st *res)
 		/*if error*/
 		i = 1;
 	}
-
 }
 
 int main()
