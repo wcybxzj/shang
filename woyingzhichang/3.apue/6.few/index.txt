@@ -25,7 +25,27 @@ execv();
 execvp();
 execvpe();
 
-5.用户权限及组权限
+5.用户权限及组权限 
+	(解释　u+s/g+s如何实现的)
+
+	getuid();//返回当前进程real uid
+	geteuid();//返回当前进程effective uid
+
+	getgid();//返回当前进程real gid
+	getegid();//返回当前进程effective gid
+
+	setuid();//设置effective uid
+	setgid();//设置effective gid
+
+	seteuid();
+	setegid();
+
+	//原子性的互换,要么成功交换,要么没换
+	setreuid(ruid, euid);//互换real uid and  effective uid
+	setregid(rgid, egid);//互换read gid and  effective gid
+
+
+
 
 6.观摩课:解释器文件
 

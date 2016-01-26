@@ -15,7 +15,7 @@ int main(int argc, const char *argv[])
 	struct tm *mytm;
 	char str[SIZE];
 	char tmp[SIZE];
-	//int count =0;
+	int count =0;
 
 	fp = fopen(FNAME, "a+");
 
@@ -25,16 +25,16 @@ int main(int argc, const char *argv[])
 	}
 
 	while (1) {
-		//count++;
-		//if (count >10) {
-		//	break;
-		//}
+		count++;
+		if (count >10) {
+			break;
+		}
 		mytime = time(NULL);
 		//printf("%ld\n", mytime);
 		mytm = localtime(&mytime);
 		strftime(str, SIZE, "%Y-%m-%d %H-%M-%S", mytm);
 		fprintf(fp, "%d %s\n", num, str);
-		fflush(fp);
+		//fflush(fp);
 		num++;
 		//printf("%s\n", str);
 		sleep(1);
