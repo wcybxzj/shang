@@ -15,15 +15,15 @@ vfrok();
 	waitid()/wait3()/wait4()
 
 4.exec函数族
-//定参,调用其他函数
-execl();
-execlp();
-execle();
+	//定参,调用其他函数
+	execl();
+	execlp();
+	execle();
 
-//变参,调用其他函数
-execv();
-execvp();
-execvpe();
+	//变参,调用其他函数
+	execv();
+	execvp();
+	execvpe();
 
 5.用户权限及组权限 
 	(解释　u+s/g+s如何实现的)
@@ -44,19 +44,22 @@ execvpe();
 	setreuid(ruid, euid);//互换real uid and  effective uid
 	setregid(rgid, egid);//互换read gid and  effective gid
 
+6.观摩课:解释器文件,脚本文件
+	unix讲机制而非策略
 
-
-
-6.观摩课:解释器文件
-
-7.system(): 相当于2+3+4的封装
+7.system():
+	fork+exec+wait
 
 8.进程会计
+	actt 方言
+	man 5 actt
 
 9.进程时间
+	times()
 
 10.守护进程
-
+	会话
+	终端
 11.系统日志
 
 
