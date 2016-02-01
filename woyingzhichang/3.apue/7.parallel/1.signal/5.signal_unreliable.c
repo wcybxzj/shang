@@ -1,0 +1,27 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+
+void int_handler(int s){
+	int i;
+	for (i = 0; i < 5; i++) {
+		printf("%d", i);
+		fflush(NULL);
+		write(1, i,1);
+		sleep(1);
+	}
+}
+
+int main(int argc, const char *argv[])
+{
+	int i;
+	//signal(SIGINT, SIG_IGN);//忽略此信号
+	signal(SIGINT, int_handler);
+	signal(SIGQUIT, int_handler);
+
+	for (i = 0; i < 3; i++) {
+		write(1, "*", 1);
+		sleep(1);
+	}
+	return 0;
+}
