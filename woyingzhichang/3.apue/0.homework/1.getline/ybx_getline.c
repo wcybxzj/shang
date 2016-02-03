@@ -76,7 +76,7 @@ void test_getline()
 void test_ybx_getline()
 {
 	FILE *fp;
-	char *str;
+	char *str = NULL;
 	int num;
 	int read;
 
