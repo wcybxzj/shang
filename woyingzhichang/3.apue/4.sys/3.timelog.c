@@ -6,7 +6,6 @@
 #define FNAME "log"
 #define SIZE 128
 
-
 int main(int argc, const char *argv[])
 {
 	FILE *fp;
@@ -18,7 +17,6 @@ int main(int argc, const char *argv[])
 	int count =0;
 
 	fp = fopen(FNAME, "a+");
-
 
 	while (fgets(tmp, SIZE, fp)) {
 		num++;

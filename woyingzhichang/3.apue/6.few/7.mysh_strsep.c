@@ -43,6 +43,7 @@ int main(int argc, const char *argv[])
 	char *str = NULL;
 	int size = 0;
 	cmd_st cmd;
+	int status;
 
 	while (1) {
 		prompt();
@@ -66,7 +67,11 @@ int main(int argc, const char *argv[])
 			if (pid == 0) {
 				execvp(cmd.res.gl_pathv[0], cmd.res.gl_pathv);
 			}
-			wait(NULL);
+			wait(&status);
+			if (WIFEXITED(status)) {
+				printf("status:%d\n", WEXITSTATUS(status));
+			}
+
 		}
 	}
 
