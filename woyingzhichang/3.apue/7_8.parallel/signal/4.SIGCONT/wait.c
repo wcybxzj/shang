@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 /*
+　 后台运行 
    终端1: ./wait &
 
    终端2:
@@ -28,6 +29,7 @@
 
 //前台运行 
 //停止和启动子进程:(kill -TSTP 子进程id/ kill -CONT 子进程id)
+
 //后台运行 
 //停止和启动子进程:(kill -STOP 子进程id/ kill -CONT 子进程id)
 int main(int argc, const char *argv[])
@@ -43,16 +45,23 @@ int main(int argc, const char *argv[])
 			sleep(1);
 		}
 		exit(1);
+	}else{
+		printf("父:%d 子:%d\n", getpid(), pid);
+		printf("before wait() !!!\n");
+		wait(status);
+		printf("after wait()  !!!\n");
+		if (WIFEXITED(status)) {
+			printf("子进程 退出状态:%d\n", WEXITSTATUS(status));
+		}
+		if (WIFSIGNALED(status)) {
+			printf("子进程被信号杀死的信号是:%d\n",WTERMSIG(status));
+		}
+		if (WIFSTOPPED(status)) {
+			printf("子进程 引起停止的信号:%d\n", WSTOPSIG(status));
+		}
+		if (WIFCONTINUED(status)) {
+			printf("子进程重新运行\n");
+		}
+		return 0;
 	}
-
-	printf("父:%d 子:%d\n", getpid(), pid);
-	wait(status);
-	printf("父进程wait status:%d\n", status);
-	if (WIFCONTINUED(status)) {
-		printf("子进程 CONTINUE\n");
-	}
-	if (WIFSTOPPED(status)) {
-		printf("子进程 CONTINUE\n");
-	}
-	return 0;
 }
