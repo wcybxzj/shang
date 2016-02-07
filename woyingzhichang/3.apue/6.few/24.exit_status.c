@@ -22,7 +22,10 @@ int main(int argc, const char *argv[])
 	tmp_pid = wait(&status);
 	printf("wait pid is:%d \n", (int)tmp_pid);
 	if (WIFEXITED(status)) {
+		printf("进程正常终止\n");
 		printf("子进程 退出状态:%d\n", WEXITSTATUS(status));
+	}else {
+		printf("进程异常终止\n");
 	}
 	if (WIFSIGNALED(status)) {
 		printf("子进程 被信号杀死,信号是:%d\n",WTERMSIG(status));
