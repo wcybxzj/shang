@@ -16,16 +16,16 @@ void int_handler(int s){
 
 int main(int argc, const char *argv[])
 {
-	int i, ret, num = 3;
+	int i, ret, num = 1;
 	//signal(SIGINT, SIG_IGN);//忽略此信号
 	signal(SIGINT, int_handler);
 
 	for (i = 0; i < 10; i++) {
 		ret = write(1, "*", 1);
-		printf("write  返回值来确定是否被中断%d\n", ret);
+		//printf("write  返回值来确定是否被中断%d\n", ret);
 
 		while ( (ret = sleep(num)) > 0 ) {
-			printf("i is %d,sleep was interrupted elapsed %d\n",i , ret);
+			//printf("i is %d,sleep was interrupted elapsed %d\n",i , ret);
 			sleep(ret);
 		}
 	}
