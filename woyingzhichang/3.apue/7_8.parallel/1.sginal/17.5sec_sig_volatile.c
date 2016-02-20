@@ -15,7 +15,8 @@ real	0m5.002s
 user	0m5.004s
 sys	0m0.000s
 */
-static volatile int loop=1;
+//static volatile int loop=1;
+static volatile sig_atomic_t loop=1;
 void alarm_handler(int s){
 	loop=0;
 }

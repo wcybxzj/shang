@@ -6,16 +6,24 @@
 #include <errno.h>
 #include <signal.h>
 
-//CPS: character per seconds
+//CPS: character per seconds 每秒允许的字节数
 #define CPS 10
 #define SIZE CPS
-static loop = 0;
+
+//令牌上限
+#define BURST 100
+
+//static volatile int token = 0;
+static volatile sig_atomic_t token = 0;
+
 void alrm_handler(int s)
 {
-	loop = 1;
 	alarm(1);
+	token++;
+	if (token > BURST) {
+		token = BURST;
+	}
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -42,14 +50,14 @@ int main(int argc, char *argv[])
 
 	while (1) {
 		//忙等待
-		//while (!loop);
+		//while (!token);
 
 		//不需要忙等待
-		while (!loop)
+		while (!token)
 			pause();
 
-		loop=0;
-		count ++;
+		token--;
+		count++;
 		while ((num = read(fd1, str, SIZE)) < 0) {
 			if (errno == EINTR) {
 				continue;
@@ -74,7 +82,6 @@ int main(int argc, char *argv[])
 			num -= ret;
 			pos += ret;
 		}
-		sleep(1);
 	}
 	printf("循环次数 %d\n", count);
 	close(fd1);

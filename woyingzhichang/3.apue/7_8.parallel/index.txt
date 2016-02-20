@@ -29,6 +29,8 @@
 	kill();
 	raise();
 	alarm();
+	例:使用单一计时器setitimer或alarm,构造一组函数,实现任意数量的计时器
+
 	pause();
 	system();
 	sleep();

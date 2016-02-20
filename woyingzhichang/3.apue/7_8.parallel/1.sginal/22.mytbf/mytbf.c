@@ -10,12 +10,16 @@
 typedef struct _mytbf_st {
 	int cps;
 	int burst;
-	int token;
+	//int token;
+	volatile sig_atomic_t token;
 	int pos;
 } mytbf_st;
 
 static mytbf_st *job[MYTBF_MAX];
 static inited = 0;
+typedef void (*sighandler_t)(int);
+static sighandler_t alrm_handler_save;
+
 static int get_free_pos(void)
 {
 	int i;
@@ -27,9 +31,36 @@ static int get_free_pos(void)
 	return -1;
 }
 
+static void alrm_handler(int s)
+{
+	int i;
+	alarm(1);
+	for (i = 0; i < MYTBF_MAX; i++) {
+		if (job[i]!=NULL) {
+			job[i]->token += job[i]->cps;
+			if (job[i]->token > job[i]->burst) {
+				job[i]->token = job[i]->burst;
+			}
+		}
+	}
+}
+
+static void module_unload(void)
+{
+	int i;
+	signal(SIGALRM, alrm_handler_save);
+	alarm(0);
+	for (i = 0; i < MYTBF_MAX; i++) {
+		free(job[i]);
+		job[i] = NULL;
+	}
+}
+
 static void module_load(void)
 {
-	//TODO
+	alrm_handler_save = signal(SIGALRM, alrm_handler);
+	alarm(1);
+	atexit(module_unload);
 }
 
 mytbf_t *mytbf_init(int cps, int burst){
@@ -41,9 +72,6 @@ mytbf_t *mytbf_init(int cps, int burst){
 		module_load();
 		inited = 1;
 	}
-	signal(SIGALRM, alrm_handler);
-	alarm(1);
-
 	pos = get_free_pos();
 	if (pos < 0) {
 		return NULL;
@@ -59,10 +87,12 @@ mytbf_t *mytbf_init(int cps, int burst){
 	job[pos] = me;
 	return me;
 }
+
 static int min(int a, int b)
 {
 	return (a<b)?a:b;
 }
+
 int mytbf_fetchtoken(mytbf_t *ptr, int size){
 	int n;
 	mytbf_st *me = ptr;
@@ -70,7 +100,7 @@ int mytbf_fetchtoken(mytbf_t *ptr, int size){
 		return -EINVAL;//参数非法
 	}
 
-	//用if是因为来信号不一定token>0
+	//不用if,而用while是因为来信号不一定token>0
 	//相当于一种阻塞的实现,保证token大于0才向下执行
 	while (me->token <= 0) {
 		pause();

@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <signal.h>
 #include "mytbf.h"
+#include <string.h>
 
 //CPS: character per seconds 每秒允许的字节数
 #define CPS 10
@@ -17,7 +18,6 @@
 int main(int argc, char *argv[])
 {
 	int size;
-	int count = 0;
 	int num, ret, pos;
 	int fd1, fd2=1;
 	char str[BUFSIZE];
@@ -49,8 +49,6 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "mytbf_fetchtoken failed! %s\n", strerror(-size));
 			exit(1);
 		}
-		token--;
-		count++;
 		while ((num = read(fd1, str, size)) < 0) {
 			if (errno == EINTR) {
 				continue;
@@ -63,8 +61,8 @@ int main(int argc, char *argv[])
 		}
 
 		//如果获取token 10个,但是实际只read到3个字符,归还多余的7个
-		if (size>len) {
-			mytbf_returntoken(tbf, size-len);
+		if (size>num) {
+			mytbf_returntoken(tbf, size-num);
 		}
 
 
@@ -82,9 +80,7 @@ int main(int argc, char *argv[])
 			num -= ret;
 			pos += ret;
 		}
-		sleep(1);
 	}
-	printf("循环次数 %d\n", count);
 	close(fd1);
 	mytbf_destroy(tbf);
 	return 0;
