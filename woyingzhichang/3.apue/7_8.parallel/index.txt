@@ -33,7 +33,12 @@
 
 	pause();
 	system();
+
 	sleep();
+	nanosleep();
+	usleep();
+	select(-1,NULL, NULL, NULL, 定时时间);
+
 
 7.信号集
 8.信号屏蔽字的处理/pending集的处理
