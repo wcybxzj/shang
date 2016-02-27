@@ -18,12 +18,11 @@
 	思考:1.如何忽略掉一个信号
 			我们不能阻止信号的到来,但可以把信号mask设置成0,不对特定信号进行响应
 			例如signal(SIGINT, SIG_IGN);//实际就是把SIGINT的mask位设置成0,来达到忽略这个信号的目的
-
 		 2.标准信号为什么会丢失
-
 		 3.标准信号的响应没有严格的顺序,但有基本顺序.
 			例:来了一个引起段错误的信号和一个引起进程停止的程序,段错误那个就会优先响应
 			例:收到SIGINT SITTERM SIGQUIT 这种平级的信号,就没有特定的响应顺序
+		 4.不能从信号处理函数中随意(setjmp,longjmp)
 
 6.常用函数
 	kill();
@@ -41,7 +40,17 @@
 
 
 7.信号集
+	信号集类型(位图):sigset_t
+	sigempty()
+	sigfillset()
+	sigaddset()
+	sigdelset()
+	sigismember()
+
 8.信号屏蔽字的处理/pending集的处理
+	sigprocmask()
+	sigpending()
+
 9.扩展
 	sigsuspend();
 	sigaction();替换signal();

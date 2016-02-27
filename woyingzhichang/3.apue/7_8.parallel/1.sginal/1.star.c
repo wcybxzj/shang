@@ -12,8 +12,8 @@ int main(int argc, const char *argv[])
 	signal(SIGINT, int_handler);
 
 	for (i = 0; i < 10; i++) {
-		ret = write(1, "*", 1);
-		ret = sleep(3);
+		write(1, "*", 1);
+		sleep(1);
 	}
 	return 0;
 }

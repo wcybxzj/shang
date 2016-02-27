@@ -15,7 +15,6 @@ int main()
 
 	sigemptyset(&set);
 	sigaddset(&set,SIGINT);
-
 	signal(SIGINT,int_handler);
 
 	sigprocmask(SIG_UNBLOCK,&set,&saveset);
