@@ -58,6 +58,7 @@ int main(int argc, const char *argv[])
 	int i, ret;
 	char str[SIZE];
 	openlog("YBX_DAEMON", LOG_PID|LOG_PERROR, LOG_DAEMON);
+
 	ret = daemonize();//避免和daemon名字冲突
 
 	if (ret) {
@@ -82,6 +83,7 @@ int main(int argc, const char *argv[])
 		syslog(LOG_DEBUG, "%d is printed!", i);
 		sleep(1);
 	}
+
 	//永远执行不了这两句，守护进程脱离控制住终端, kill -9 进程号,信号来了异常被终止
 	closelog();
 	fclose(fp);
