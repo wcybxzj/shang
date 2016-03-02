@@ -7,6 +7,7 @@
 #include <signal.h>
 #include "mytbf.h"
 #include <string.h>
+#include <unistd.h>
 
 //CPS: character per seconds 每秒允许的字节数
 #define CPS 10
@@ -22,6 +23,8 @@ int main(int argc, char *argv[])
 	int fd1, fd2=1;
 	char str[BUFSIZE];
 	mytbf_t *tbf;
+
+	printf("current pid is: %d\n",getpid());
 
 	if (argc < 2) {
 		fprintf(stderr, "lack of argv\n");

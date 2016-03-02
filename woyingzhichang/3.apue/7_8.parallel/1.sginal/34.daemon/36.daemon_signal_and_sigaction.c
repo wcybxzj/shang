@@ -13,7 +13,7 @@
 
 #define SIZE 1024
 FILE *fp;
-//命令行:kill -2 pid 后有时间kill -3 pid　
+//用法:kill -2 pid 后有时间kill -3 pid　
 //signal_deal();存在重入问题无法释放资源,让进程正常结束
 //sigaction_deal();让不同信号对同以函数的处理串行解决函数重入中的问题
 //tail -f /var/log/syslog 观察
@@ -22,7 +22,7 @@ static void daemon_exit(int s)
 {
 	syslog(LOG_INFO, "daemon_exit signal is %d", s);
 	fclose(fp);//不允许执行两次 35.double_fclose.c
-	sleep(10);
+	sleep(5);
 	syslog(LOG_INFO, "process normal exit!");
 	closelog();
 	exit(0);
@@ -108,7 +108,7 @@ void sigaction_deal()
 	写法2:更精简的写法:
 	SIGINT为例:
 	与标准写法比处理SIGINT函数中多BLOCK了一次SIGINT
-	因为就在处理信号时候本身就要mask 从1设置成0,所以多设置一次没关系
+	因为就在处理信号时候本身就要mask从1设置成0,所以多再设置一次mask 0也没事
 	*/
 	sa.sa_handler = daemon_exit;
 	sigemptyset(&sa.sa_mask);
@@ -127,7 +127,7 @@ int main(int argc, const char *argv[])
 	char str[SIZE];
 	openlog("YBX_DAEMON", LOG_PID|LOG_PERROR, LOG_DAEMON);
 
-	//二选一
+	//二选一signal和sigaction
 	//signal_deal();
 	sigaction_deal();
 
