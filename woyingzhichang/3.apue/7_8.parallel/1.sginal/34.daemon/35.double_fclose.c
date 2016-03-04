@@ -7,7 +7,7 @@
 FILE *fp;
 
 /*
-连续发送Ctrl+c和ctrl+ \ 就报错fclose相当于free,不能对一段空间free2次
+发送Ctrl+c和ctrl+ \ 报错fclose相当于free,不能对一段空间free2次
 ./a.out 
 ^C^\*** Error in `./a.out': double free or corruption (top): 0x0867f008 ***
 已放弃 (核心已转储)

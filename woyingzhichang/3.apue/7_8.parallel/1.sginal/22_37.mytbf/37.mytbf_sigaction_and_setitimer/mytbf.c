@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <signal.h>
+#include <sys/time.h>
 #include "mytbf.h"
 
 typedef struct _mytbf_st {
@@ -18,7 +19,7 @@ typedef struct _mytbf_st {
 static mytbf_st *job[MYTBF_MAX];
 static inited = 0;
 typedef void (*sighandler_t)(int);
-static sighandler_t alrm_handler_save;
+static struct sigaction osa;
 
 static int get_free_pos(void)
 {
@@ -31,10 +32,14 @@ static int get_free_pos(void)
 	return -1;
 }
 
-static void alrm_handler(int s)
+static void alrm_handler(int s, siginfo_t *info, void*ucp)
 {
 	int i;
-	alarm(1);
+
+	if (info->si_code!=SI_KERNEL) {
+		return;
+	}
+
 	for (i = 0; i < MYTBF_MAX; i++) {
 		if (job[i]!=NULL) {
 			job[i]->token += job[i]->cps;
@@ -48,8 +53,22 @@ static void alrm_handler(int s)
 static void module_unload(void)
 {
 	int i;
-	signal(SIGALRM, alrm_handler_save);
-	alarm(0);
+	struct itimerval itv;
+
+	if (sigaction(SIGALRM, &osa, NULL)<0) {
+		perror("sigaction():");
+		exit(1);
+	}
+
+	itv.it_interval.tv_sec = 0;
+	itv.it_interval.tv_usec = 0;
+	itv.it_value.tv_sec = 0;
+	itv.it_value.tv_usec = 0;
+	if (setitimer(ITIMER_REAL, &itv, NULL)<0) {
+		perror("setitimer():");
+		exit(2);
+	}
+
 	for (i = 0; i < MYTBF_MAX; i++) {
 		free(job[i]);
 		job[i] = NULL;
@@ -58,8 +77,26 @@ static void module_unload(void)
 
 static void module_load(void)
 {
-	alrm_handler_save = signal(SIGALRM, alrm_handler);
-	alarm(1);
+	struct sigaction sa;
+	struct itimerval itv;
+
+	sa.sa_sigaction = alrm_handler;
+	sa.sa_flags = SA_SIGINFO;
+	sigemptyset(&sa.sa_mask);
+	if ( sigaction(SIGALRM, &sa, &osa) < 0) {
+		perror("sigaction():");
+		exit(1);
+	}
+
+	itv.it_interval.tv_sec = 1;
+	itv.it_interval.tv_usec = 0;
+	itv.it_value.tv_sec = 1;
+	itv.it_value.tv_usec = 0;
+	if (setitimer(ITIMER_REAL, &itv, NULL)<0) {
+		perror("setitimer():");
+		exit(2);
+	}
+
 	atexit(module_unload);
 }
 
