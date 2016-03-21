@@ -69,8 +69,15 @@
   pthread_create();
   线程的调度取决于cpu的调度策略和cpu核数
 
-  线程的终止
+  线程的终止3种方式:
+	1)线程从启动例程返回,返回值就是线程的退出码
+	2)线程被同一进程的其他线程取消
+	3)线程调用pthread_exit(); main线程在调用pthread_join-->wait()
+
   栈的清理
+	pthread_cleanup_push
+	pthread_cleanup_pop
+
   线程的取消选项
 
 3.线程同步
