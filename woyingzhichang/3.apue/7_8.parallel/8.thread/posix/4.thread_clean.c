@@ -20,9 +20,11 @@ static void * func(void *p)
 
 	pthread_cleanup_pop(1);
 	pthread_cleanup_pop(0);
-	pthread_cleanup_pop(0);
 
+	printf("pthread_exit\n");
 	pthread_exit(NULL);
+	//return NULL;
+	pthread_cleanup_pop(0);
 }
 
 int main(int argc, const char *argv[])

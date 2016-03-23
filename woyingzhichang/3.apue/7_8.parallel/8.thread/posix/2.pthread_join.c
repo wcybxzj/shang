@@ -10,8 +10,8 @@ threadFunc(void *arg)
 
     //printf("%s", s);
 
-    //return (void *) strlen(s);
-	pthread_exit((void *) strlen(s));
+    return (void *) strlen(s);
+	//pthread_exit((void *) strlen(s));
 }
 
 int
