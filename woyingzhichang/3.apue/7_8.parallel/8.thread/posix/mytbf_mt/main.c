@@ -5,22 +5,38 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <signal.h>
+#include "mytbf.h"
+#include <string.h>
+#include <unistd.h>
 
-//无流控 普通mycat
-#define SIZE 1024
+//CPS: character per seconds 每秒允许的字节数
+#define CPS 10
+#define BUFSIZE 1024
+
+//令牌上限
+#define BURST 100
 
 int main(int argc, char *argv[])
 {
-	int count = 0;
+	int size;
 	int num, ret, pos;
 	int fd1, fd2=1;
-	char str[SIZE];
+	char str[BUFSIZE];
+	mytbf_t *tbf;
+
+	printf("current pid is: %d\n",getpid());
 
 	if (argc < 2) {
 		fprintf(stderr, "lack of argv\n");
 		exit(1);
 	}
 
+	tbf = mytbf_init(CPS, BURST);
+
+	if (NULL == tbf) {
+		fprintf(stderr, "mytbf_init failed\n");
+		exit(1);
+	}
 	while ((fd1 = open(argv[1], O_RDONLY)) < 0) {
 		if (errno == EINTR) {
 			continue;
@@ -30,18 +46,29 @@ int main(int argc, char *argv[])
 	}
 
 	while (1) {
-		count ++;
-		num = read(fd1, str, SIZE);
-		if (num < 0) {
+		//按照BUFSIZE取token, 返回获取实际取到的token
+		size = mytbf_fetchtoken(tbf, BUFSIZE);
+		if (size < 0) {
+			fprintf(stderr, "mytbf_fetchtoken failed! %s\n", strerror(-size));
+			exit(1);
+		}
+		while ((num = read(fd1, str, size)) < 0) {
 			if (errno == EINTR) {
 				continue;
 			}
 			perror("read():");
-			break;
+			return -3;
 		}
 		if (num == 0) {
 			break;
 		}
+
+		//如果获取token 10个,但是实际只read到3个字符,归还多余的7个
+		if (size>num) {
+			mytbf_returntoken(tbf, size-num);
+		}
+
+
 		//坚持写够num个字节，因为信号会打断阻塞的系统调用
 		pos = 0;
 		while (num > 0) {
@@ -56,9 +83,8 @@ int main(int argc, char *argv[])
 			num -= ret;
 			pos += ret;
 		}
-
 	}
-	printf("循环次数 %d\n", count);
 	close(fd1);
+	mytbf_destroy(tbf);
 	return 0;
 }

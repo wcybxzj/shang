@@ -24,7 +24,6 @@ int main()
 			fprintf(stderr,"pthread_create():%s\n",strerror(err));
 			exit(1);
 		}
-		
 	}
 
 	for(i = LEFT ; i <= RIGHT; i++)
