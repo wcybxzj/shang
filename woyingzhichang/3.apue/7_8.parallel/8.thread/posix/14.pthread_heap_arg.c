@@ -11,19 +11,30 @@
 static int *ptr;
 
 static void* func(void *p){
-	printf("pthread  p:%d\n", *ptr);
-	*ptr=222;
+	int i;
+	for (i = 0; i < 10; i++) {
+		(*ptr)++;
+		(*ptr)++;
+		printf("pthread  p:%d\n", *ptr);
+		sleep(1);
+	}
 }
 
 int main(void){
 	int * p;
+	int i;
 	pthread_t tid;
 	p = malloc(sizeof(int));
 	*p=111;
 	ptr=p;
-	printf("before thread func p:%d\n", *p);
 	pthread_create(&tid, NULL, func, NULL);
+
+	for (i = 0; i < 10; i++) {
+		(*p)--;
+		printf("main p:%d\n", *p);
+		sleep(2);
+	}
+
 	pthread_join(tid, NULL);
-	printf("after thread func p:%d\n", *p);
 	exit(0);
 }
