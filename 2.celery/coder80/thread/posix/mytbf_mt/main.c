@@ -10,7 +10,7 @@
 
 #include "mytbf.h"
 
-#define CPS			10
+#define CPS			1
 #define BUFSIZE		1024	
 #define BURST		1000
 
@@ -66,7 +66,6 @@ int main(int argc,char **argv)
 			perror("read()");
 			break;
 		}
-		
 		if(len == 0)
 			break;
 		
