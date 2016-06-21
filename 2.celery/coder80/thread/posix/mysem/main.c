@@ -63,9 +63,7 @@ static void *thr_primer(void *p)
 	}
 	if(mark)
 		printf("%d is a primer.\n",i);
-
-	sleep(5);
-
+	//sleep(5);//为了方便查看只能并发4个线程 watch -n1 'ps ax -L |grep mysem'
 	mysem_add(sem,1);
 
 	pthread_exit(NULL);
