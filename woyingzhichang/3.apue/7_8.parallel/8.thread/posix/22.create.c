@@ -19,7 +19,6 @@ int main(int argc, const char *argv[])
 {
 	int i,err;
 	int size= 1024*10240;
-
 	size_t stacksize;
 
 	//pthread_attr_t attr;
