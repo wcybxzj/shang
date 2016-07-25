@@ -62,9 +62,9 @@ void module_unload()
 	int i;
 	struct itimerval itv;
 	itv.it_interval.tv_sec = 0;
-    itv.it_interval.tv_usec = 0;
-    itv.it_value.tv_sec = 0;
-    itv.it_value.tv_usec = 0;
+	itv.it_interval.tv_usec = 0;
+	itv.it_value.tv_sec = 0;
+	itv.it_value.tv_usec = 0;
 	if(setitimer(ITIMER_REAL,&itv,NULL) < 0)
 	{
 		perror("setitimer");
@@ -142,6 +142,7 @@ int at_addjob(int sec,at_jobfunc_t *jobp,void *arg, int is_repeat){
 	me->arg = arg;
 	me->repeat = is_repeat;
 	job[pos] = me;
+	return pos;
 }
 
 int at_addjob_repeat(int sec,at_jobfunc_t *jobp,void *arg){
@@ -165,6 +166,16 @@ int at_canceljob(int id){
 	return 0;
 }
 
+int change_to_norepeat(int id){
+	if (id < 0 || id >= JOB_MAX || job[id] ==NULL) {
+		return -EINVAL;
+	}
+	if (job[id]->repeat == REPEAT) {
+	  job[id]->repeat = NO_REPEAT;
+	}
+}
+
+
 int at_waitjob(int id){
 	if (id < 0 || id >= JOB_MAX || job[id] == NULL) {
 		return -EINVAL;
@@ -175,13 +186,13 @@ int at_waitjob(int id){
 	}
 
 	while(job[id]->job_state==STATE_RUNNING) {
-		write(1, ".", 1);
+		write(1, "*", 1);
 		//printf("waitjob pause id %d\n", id);
 		pause();
 	}
 
 	if (job[id]->job_state == STATE_CANCEL || job[id]->job_state == STATE_OVER) {
-		//printf("waitjob free id %d \n", id);
+		printf("waitjob free id %d \n", id);
 		free(job[id]);
 		job[id]=NULL;
 	}

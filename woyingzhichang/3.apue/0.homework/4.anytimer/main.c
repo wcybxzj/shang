@@ -68,6 +68,37 @@ void v2_test()
 	}
 }
 
+/*
+结果:
+Begin!
+End!
+stop 3 seconds
+***resume success
+**aaa
+bbb
+**bbb
+ccc
+waitjob free id 2 
+waitjob free id 0 
+job2 is cron can not waitjob
+**bbb
+waitjob free id 1 
+*/
+/*
+ 分析1:
+ 停止job2,3秒后resume
+ 2秒后
+ job1:aaa
+ job2:bbb
+ 2秒
+ job2:bbb
+ job3:ccc
+ 2秒
+ job2:bbb
+
+ 分析2:
+ 那个job先wait先回收那个job和时间无关
+ */
 void v3_test()
 {
 	int job1,job2,job3;
@@ -93,20 +124,22 @@ void v3_test()
 	}
 	at_resumejob(job2);
 	printf("resume success\n");
+	
 
 	//part3收尸 
-	at_waitjob(job3);//
-	at_waitjob(job1);//
+	ret = at_waitjob(job3);//
+	ret = at_waitjob(job1);//
 	//周期性任务无法直接，要先cancel
 	ret = at_waitjob(job2);
 	if (ret < 0) {
 		fprintf(stderr, "job2 is cron can not waitjob\n");
 	}
 	//这样就可以回收了
+	change_to_norepeat(job2);
 	ret = at_canceljob(job2);
 	ret = at_waitjob(job2);
 	if (ret < 0) {
-		fprintf(stderr, "job2 is cron can not waitjob\n");
+		fprintf(stderr, "job2 is cron can not waitjob %s\n", strerror(-ret));
 	}
 }
 

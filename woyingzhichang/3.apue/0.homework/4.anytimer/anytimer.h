@@ -46,7 +46,7 @@ int at_stopjob(int id);
 
 int at_resumejob(int id);
 
-
+int change_to_norepeat(int id);
 #endif
 
 
