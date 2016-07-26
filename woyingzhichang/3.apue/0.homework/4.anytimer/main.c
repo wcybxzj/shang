@@ -5,12 +5,17 @@
 #include "anytimer.h"
 void f1(void *p)
 {
-	//sleep(10);
 	puts(p);
 }
+
 void f2(void *p)
 {
-    puts(p);
+	int i;
+	for(i=0;i<10;i++){
+		write(1, ".", 1);
+		sleep(1);
+	}
+	puts(p);
 }
 
 void v1_test()
@@ -29,7 +34,7 @@ void v1_test()
 	//如果不sleep就是忙等
 	//方便看效果
 	while (1) {
-		write(1, ".", 1);
+		write(1, "*", 1);
 		sleep(1);
 	}
 
@@ -143,11 +148,31 @@ void v3_test()
 	}
 }
 
+//主要是说明信号版本的anytimer在遇到执行函数执行时间长时候的问题
+void v4_test()
+{
+	int job1,job2,job3;
+	int ret, i;
+
+	puts("Begin!");
+	job1 = at_addjob(5, f2, "aaa", NO_REPEAT);
+	job2 = at_addjob(2, f2, "bbb", NO_REPEAT);
+	job3 = at_addjob(7, f2, "ccc", NO_REPEAT);
+	puts("End!");
+
+	while (1) {
+		write(1, "*", 1);
+		sleep(1);
+	}
+
+}
+
 //如果子任务执行时间过长 整个程序执行就会卡在那不动，子进程比较麻烦,觉得用脱离状态的线程
 int main()
 {
 	//v1_test();
 	//v2_test();
-	v3_test();
+	//v3_test();
+	v4_test();
 	exit(0);
 }

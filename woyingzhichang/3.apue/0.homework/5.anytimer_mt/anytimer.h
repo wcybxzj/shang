@@ -3,11 +3,14 @@
 
 #define JOB_MAX		1024
 
-#define RUNNING 1
-#define CANCEL 2
-#define OVER 3
+//#define RUNNING 1
+//#define CANCEL 2
+//#define OVER 3
 
-typedef void at_jobfunc_t(void *);
+#define REPEAT 1
+#define NOREPEAT 0
+
+typedef void* at_jobfunc_t(void *);
 
 int at_addjob(int sec,at_jobfunc_t *jobp,void *arg, int is_repeat);
 /*

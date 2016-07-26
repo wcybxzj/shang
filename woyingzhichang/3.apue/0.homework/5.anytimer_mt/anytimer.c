@@ -38,6 +38,10 @@ static pthread_mutex_t mut_job = PTHREAD_MUTEX_INITIALIZER;
 static void* init_action(void *p)
 {
 	int i;
+	pthread_t tid1;
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 	while (1) {
 		pthread_mutex_lock(&mut_job);
 		for(i = 0 ; i < JOB_MAX; i++)
@@ -48,8 +52,9 @@ static void* init_action(void *p)
 				if (job[i]->job_state==STATE_RUNNING) {
 					job[i]->time_remain--;
 					if (job[i]->time_remain == 0) {
-						job[i]->jobp(job[i]->arg);
-						if (job[i]->repeat == 1) {
+						pthread_create(&tid1, &attr, job[i]->jobp, job[i]->arg);
+						//job[i]->jobp(job[i]->arg);//todo
+						if (job[i]->repeat == REPEAT) {
 							job[i]->time_remain = job[i]->sec;
 						}else{
 							job[i]->job_state = STATE_OVER;
@@ -62,6 +67,8 @@ static void* init_action(void *p)
 		}
 		pthread_mutex_unlock(&mut_job);
 		sleep(1);
+		write(1, "$", 1);
+
 	}
 }
 
@@ -154,7 +161,7 @@ int at_canceljob(int id){
 
 	job[id]->job_state = STATE_CANCEL;
 	//强制把repeat 变成0，要不周期性的job wait无法收尸
-	job[id]->repeat = 0;
+	job[id]->repeat = NOREPEAT;
 	pthread_mutex_unlock(&job[id]->mut);
 	pthread_mutex_unlock(&mut_job);
 	return 0;
@@ -170,7 +177,7 @@ int at_waitjob(int id){
 	pthread_mutex_unlock(&mut_job);
 
 	pthread_mutex_lock(&job[id]->mut);
-	if (job[id]->repeat==1) {
+	if (job[id]->repeat==REPEAT) {
 		pthread_mutex_unlock(&job[id]->mut);
 		return -EBUSY;
 	}
@@ -181,15 +188,15 @@ int at_waitjob(int id){
 	}
 	pthread_mutex_unlock(&job[id]->mut);
 
+	pthread_mutex_lock(&mut_job);
 	if (job[id]->job_state == STATE_CANCEL || job[id]->job_state == STATE_OVER) {
 		printf("waitjob id %d  释放资源\n", id);
 		pthread_mutex_destroy(&job[id]->mut);
 		pthread_cond_destroy(&job[id]->cond);
 		free(job[id]);
-		pthread_mutex_lock(&mut_job);
 		job[id]=NULL;
-		pthread_mutex_unlock(&mut_job);
 	}
+	pthread_mutex_unlock(&mut_job);
 	return 0;
 }
 
