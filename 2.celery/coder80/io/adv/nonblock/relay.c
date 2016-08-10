@@ -7,8 +7,20 @@
 #include <errno.h>
 
 
+// >/tmp/1.txt
+// >/tmp/2.txt
+// echo 111 >> 1.txt
+// echo 222 >> 1.txt
+// echo 333 >> 2.txt
+// echo 444 >> 2.txt
+//#define	TTY1 "/tmp/1.txt"
+//#define	TTY2 "/tmp/2.txt"
+
+
 #define	TTY1		"/dev/tty11"
 #define	TTY2		"/dev/tty12"
+
+
 #define BUFSIZE		1024
 
 enum
@@ -18,7 +30,7 @@ enum
 	STATE_Ex,
 	STATE_T
 };
-		
+
 struct fsm_st
 {
 	int state;
@@ -33,7 +45,7 @@ struct fsm_st
 static void fsm_driver(struct fsm_st *fsm)
 {
 	int ret;
-	
+
 	switch(fsm->state)
 	{
 		case STATE_R:
@@ -41,20 +53,20 @@ static void fsm_driver(struct fsm_st *fsm)
 			if(fsm->len == 0)
 				fsm->state = STATE_T;
 			else if(fsm->len < 0)
+			{
+				if(errno == EAGAIN)
+					fsm->state = STATE_R;
+				else
 				{
-					if(errno == EAGAIN)
-						fsm->state = STATE_R;
-					else
-					{
-						fsm->errstr = "read()";
-						fsm->state = STATE_Ex;
-					}
+					fsm->errstr = "read()";
+					fsm->state = STATE_Ex;
 				}
+			}
 			else // len > 0
 			{
-					fsm->pos = 0;
-					fsm->state = STATE_W;
-				}
+				fsm->pos = 0;
+				fsm->state = STATE_W;
+			}
 			break;
 
 		case STATE_W:
@@ -103,8 +115,8 @@ static void relay(int fd1,int fd2)
 	fd1_save = fcntl(fd1,F_GETFL);
 	fcntl(fd1,F_SETFL,fd1_save|O_NONBLOCK);
 	fd2_save = fcntl(fd2,F_GETFL);
-    fcntl(fd2,F_SETFL,fd2_save|O_NONBLOCK);
-	
+	fcntl(fd2,F_SETFL,fd2_save|O_NONBLOCK);
+
 	fsm12.state = STATE_R;
 	fsm12.sfd = fd1;
 	fsm12.dfd = fd2;
@@ -118,10 +130,9 @@ static void relay(int fd1,int fd2)
 		fsm_driver(&fsm12);
 		fsm_driver(&fsm21);
 	}
-
+	printf("the line will never print!");
 	fcntl(fd1,F_SETFL,fd1_save);
 	fcntl(fd2,F_SETFL,fd2_save);
-
 }
 
 int main()
@@ -137,11 +148,11 @@ int main()
 	write(fd1,"TTY1\n",5);
 
 	fd2 = open(TTY2,O_RDWR);
-    if(fd2 < 0)
-    {
-        perror("open()");
-        exit(1);
-    }
+	if(fd2 < 0)
+	{
+		perror("open()");
+		exit(1);
+	}
 	write(fd2,"TTY2\n",5);
 
 	relay(fd1,fd2);
@@ -151,5 +162,3 @@ int main()
 
 	exit(0);
 }
-
-
