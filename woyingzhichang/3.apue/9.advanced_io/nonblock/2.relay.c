@@ -100,6 +100,7 @@ static void relay(int fd1, int fd2){
 	fs21.dfd = fd1;
 
 	while(fs12.state!=STATE_T || fs21.state!=STATE_T){
+		//sleep(1);
 		fsm_driver(&fs12);
 		fsm_driver(&fs21);
 	}
