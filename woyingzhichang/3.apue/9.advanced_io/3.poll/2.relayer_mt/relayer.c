@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <pthread.h>
-#include <sys/select.h>
+#include <poll.h>
 
 #include "relayer.h"
 
@@ -120,38 +120,45 @@ int max(int fd1, int fd2){
 
 void *thr_relayer(void *p)
 {
-	int i;
+	int i, num;
+	int zero, one;
 	fd_set rset,wset;
 	int maxfd=0;
+	struct pollfd pfd[REL_JOBMAX_FD];
 
 	while(1)
 	{
 		//布置监视任务
 		printf("布置监视任务\n");
-		FD_ZERO(&rset);
-		FD_ZERO(&wset);
-		for(i = 0 ; i < REL_JOBMAX ; i++)
+		for(i = 0 ; i < REL_JOBMAX; i++)
 		{
 			if(rel_job[i] != NULL)
 			{
-				maxfd = (maxfd, max(rel_job[i]->fd1, rel_job[i]->fd2));
+				zero = i*2;
+				one = i*2+1;
+				printf("zero:%d\n",zero);
+				printf("one:%d\n",one);
+				pfd[zero].fd = rel_job[i]->fd1;
+				pfd[one].fd = rel_job[i]->fd2;
 				if(rel_job[i]->job_state == STATE_RUNNING)
 				{
+					pfd[zero].events = 0;
 					if(rel_job[i]->fsm12.state == STATE_R){
 						printf("i:%d,fsm12 state_r\n",i);
-						FD_SET(rel_job[i]->fsm12.sfd,&rset);
-					}   
-					if(rel_job[i]->fsm12.state == STATE_W){
-						printf("i:%d,fsm12 state_w\n",i);
-						FD_SET(rel_job[i]->fsm12.dfd,&wset);
-					}   
-					if(rel_job[i]->fsm21.state == STATE_R){
-						printf("i:%d,fsm21 state_r\n",i);
-						FD_SET(rel_job[i]->fsm21.sfd,&rset);
+						pfd[zero].events |= POLLIN;
 					}   
 					if(rel_job[i]->fsm21.state == STATE_W){
 						printf("i%d,fsm21 state_w\n",i);
-						FD_SET(rel_job[i]->fsm21.dfd,&wset);                
+						pfd[zero].events |= POLLOUT;
+					}   
+					pfd[one].events = 0;
+					if(rel_job[i]->fsm12.state == STATE_W){
+						printf("i:%d,fsm12 state_w\n",i);
+						pfd[one].events |= POLLOUT;
+					}   
+					if(rel_job[i]->fsm21.state == STATE_R){
+						printf("i:%d,fsm21 state_r\n",i);
+						pfd[one].events |= POLLIN;
 					}   
 					//为了处理无条件Ex->T
 					if(rel_job[i]->fsm12.state > STATE_AUTO){
@@ -165,30 +172,31 @@ void *thr_relayer(void *p)
 		}
 
 		//监视
-		printf("block max fd %d\n", maxfd);
-		if(select(maxfd+1,&rset,&wset,NULL,NULL)<0)                      
+		while( (num = poll(pfd, 4, -1))<0 )                      
 		{   
 			if(errno == EINTR)
 				continue;
-			perror("select()");
+			perror("poll()");
 			exit(1);
 		}   
 
 		/*查看监视结果*/                                                            
-		printf("unblock\n");
+		printf("========unblock num:%d=======\n",num);
 		pthread_mutex_lock(&mut_rel_job);
 		for(i = 0 ; i < REL_JOBMAX ; i++)
 		{
 			if(rel_job[i] != NULL)
 			{
+				zero = i*2;
+				one = i*2+1;
 				if(rel_job[i]->job_state == STATE_RUNNING)
 				{
-					if(FD_ISSET(rel_job[i]->fd1,&rset) || FD_ISSET(rel_job[i]->fd2,&wset)){
-						printf("fsm12\n");
-						fsm_driver(&rel_job[i]->fsm12);        
+					if ( pfd[zero].revents & POLLIN ||\
+						pfd[one].revents & POLLOUT ) {
+						fsm_driver(&rel_job[i]->fsm12);
 					}
-					if(FD_ISSET(rel_job[i]->fd2,&rset) || FD_ISSET(rel_job[i]->fd1,&wset)){
-						printf("fsm21\n");
+					if ( pfd[zero].revents & POLLOUT ||\
+						pfd[one].revents & POLLIN ) {
 						fsm_driver(&rel_job[i]->fsm21);
 					}
 				}

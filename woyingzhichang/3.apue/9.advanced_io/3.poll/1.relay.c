@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
-#include <sys/select.h>
+#include <poll.h>
 
 #define	TTY1		"/dev/tty11"
 #define	TTY2		"/dev/tty12"
@@ -108,10 +108,11 @@ static void relay(int fd1,int fd2)
 	int num;
 	int fd1_save,fd2_save;
 	struct fsm_st fsm12,fsm21;
-	fd_set rset,wset;
+	struct pollfd pfd[2];
 
 	//使用阻塞IO完全没问题2个状态机不会影响
-	//因为select获取到文件描述符事件后,FD_ISET可以准确获取那个fd的什么事件从而确定运行那个状态机
+	//因为select获取到文件描述符事件后,
+	//FD_ISET可以准确获取那个fd的什么事件从而确定运行那个状态机
 	fd1_save = fcntl(fd1,F_GETFL);
 	//fcntl(fd1,F_SETFL,fd1_save|O_NONBLOCK);
 	fd2_save = fcntl(fd2,F_GETFL);
@@ -125,38 +126,36 @@ static void relay(int fd1,int fd2)
 	fsm21.sfd = fd2;
 	fsm21.dfd = fd1;
 
+	pfd[0].fd = fd1;
+	pfd[1].fd = fd2;
+
 	while(fsm12.state != STATE_T || fsm21.state != STATE_T)
 	{
 		/*布置监视任务*/
 		printf("布置监视任务\n");
-		FD_ZERO(&rset);
-		FD_ZERO(&wset);
+		pfd[0].events = 0;
 		if(fsm12.state == STATE_R){
 			printf("fsm12 state_r\n");
-			FD_SET(fsm12.sfd,&rset);
-		}
-		if(fsm12.state == STATE_W){
-			printf("fsm12 state_w\n");
-			FD_SET(fsm12.dfd,&wset);
-		}
-		if(fsm21.state == STATE_R){
-			printf("fsm21 state_r\n");
-			FD_SET(fsm21.sfd,&rset);
+			pfd[0].events |= POLLIN;
 		}
 		if(fsm21.state == STATE_W){
 			printf("fsm21 state_w\n");
-			FD_SET(fsm21.dfd,&wset);			
+			pfd[0].events |= POLLOUT;
 		}
-
-		//struct timeval tv;
-		//tv.tv_sec = 0;
-		//tv.tv_usec = 0;
+		pfd[1].events = 0;
+		if(fsm12.state == STATE_W){
+			printf("fsm12 state_w\n");
+			pfd[1].events |= POLLOUT;
+		}
+		if(fsm21.state == STATE_R){
+			printf("fsm21 state_r\n");
+			pfd[1].events |= POLLIN;
+		}
 
 		/*监视*/
 		if(fsm12.state < STATE_AUTO || fsm21.state < STATE_AUTO)
 		{
-			if( (num = select(max(fd1,fd2)+1,&rset,&wset,NULL,NULL)) <0 )
-			//if( (num = select(max(fd1,fd2)+1,&rset,&wset,NULL, &tv)) <0 )
+			while( (num = poll(pfd, 2, -1))< 0)
 			{
 				if(errno == EINTR){
 					continue;
@@ -168,18 +167,16 @@ static void relay(int fd1,int fd2)
 
 		printf("============= unblock num is %d=============\n", num);
 		/*查看监视结果*/
-		if(FD_ISSET(fd1,&rset) || FD_ISSET(fd2,&wset) || fsm12.state > STATE_AUTO){
-			printf("fsm12 %d\n",FD_ISSET(fd1,&rset));
-			printf("fsm12 %d\n",FD_ISSET(fd2,&wset));
-			printf("fsm12 %d\n",fsm12.state > STATE_AUTO);
+		if(pfd[0].revents & POLLIN || pfd[1].revents & POLLOUT||\
+				fsm12.state > STATE_AUTO){
 			fsm_driver(&fsm12);
 		}
-		if(FD_ISSET(fd2,&rset) || FD_ISSET(fd1,&wset) || fsm21.state > STATE_AUTO){
-			printf("fsm21 %d\n",FD_ISSET(fd2,&rset));
-			printf("fsm21 %d\n",FD_ISSET(fd1,&wset));
-			printf("fsm21 %d\n",fsm21.state > STATE_AUTO);
+
+		if(pfd[1].revents & POLLIN || pfd[0].revents & POLLOUT||\
+				fsm21.state > STATE_AUTO){
 			fsm_driver(&fsm21);
 		}
+
 	}
 
 	fcntl(fd1,F_SETFL,fd1_save);

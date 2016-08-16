@@ -155,8 +155,8 @@ static void relay(int fd1,int fd2)
 		/*监视*/
 		if(fsm12.state < STATE_AUTO || fsm21.state < STATE_AUTO)
 		{
-			if( (num = select(max(fd1,fd2)+1,&rset,&wset,NULL,NULL)) <0 )
-			//if( (num = select(max(fd1,fd2)+1,&rset,&wset,NULL, &tv)) <0 )
+			//if( (num = select(max(fd1,fd2)+1,&rset,&wset,NULL,NULL)) <0 )
+			if( (num = select(max(fd1,fd2)+1,&rset,&wset,NULL, &tv)) <0 )
 			{
 				if(errno == EINTR){
 					continue;

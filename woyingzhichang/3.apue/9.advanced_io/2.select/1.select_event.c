@@ -21,8 +21,8 @@
 int main(int argc, const char *argv[])
 {
 	int fd1;
-	fd1 = open("/dev/tty11",O_CREAT|O_RDWR);
-	//fd1 = open("/tmp/select.txt", O_CREAT|O_RDWR);
+	//fd1 = open("/dev/tty11",O_CREAT|O_RDWR);
+	fd1 = open("/tmp/select.txt", O_CREAT|O_RDWR);
 	if (fd1<0) {
 		perror("open():");
 		exit(1);
@@ -33,8 +33,8 @@ int main(int argc, const char *argv[])
 	FD_SET(fd1, &set);
 	//3种事件
 	//if (select(fd1+1, &set, NULL, NULL, NULL)<0) {
-	if (select(fd1+1, NULL, &set, NULL, NULL)<0) {
-	//if (select(fd1+1, NULL, NULL, &set, NULL)<0) {
+	//if (select(fd1+1, NULL, &set, NULL, NULL)<0) {
+	if (select(fd1+1, NULL, NULL, &set, NULL)<0) {
 		perror("select");
 		exit(2);
 	}

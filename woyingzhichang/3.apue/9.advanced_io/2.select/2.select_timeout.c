@@ -24,12 +24,13 @@ int main(int argc, const char *argv[])
 	FD_SET(fd1, &set);
 	tv.tv_sec = 3;
 	tv.tv_usec = 0;
-	if ( (num=select(fd1+1, &set, NULL, NULL, &tv))<0 ) {
+	if ((num = select(fd1+1, &set, NULL, NULL, &tv))<0 ) {
 		perror("select:");
 		exit(2);
 	}
 	printf("num is %d\n", num);
-	printf("select is ok\n");
+	printf("FD_ISSET:%d\n", FD_ISSET(fd1, &set));
+	printf("select is unblock\n");
 
 	return 0;
 }
