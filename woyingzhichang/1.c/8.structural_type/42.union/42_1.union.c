@@ -21,7 +21,7 @@ int main(int argc, const char *argv[])
 
 	printf("----------------------------------\n");
 
-	printf("%d\n", p->i);
+	printf("%d\n", p->i);//123
 
 	return 0;
 }
