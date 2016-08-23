@@ -50,14 +50,13 @@ int main(void){
 	sprintf(str_num, "%d", count);
 	len = strlen(str_num);
 	ftruncate(fd2, len);//知识点
-	str2 = mmap(0, len, PROT_WRITE|PROT_READ, MAP_PRIVATE, fd2, 0);
+	str2 = mmap(0, len, PROT_WRITE|PROT_READ, MAP_SHARED, fd2, 0);
 	if(str2 == MAP_FAILED){
 		perror("mmap():");
 		exit(1);
 	}
 	close(fd2);
 	strcpy(str2, str_num);
-	printf("%d", count);
 	munmap(str2, len);
 	exit(0);
 }

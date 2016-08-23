@@ -10,6 +10,7 @@ void normal_test()
 {
 	int fd, back_fd;
 	back_fd = dup(1);//backup stdout
+	printf("backfd is :%d\n", back_fd);//back_fd is 3
 	close(1);
 	fd = open(FNAME, O_WRONLY|O_CREAT|O_TRUNC, 0600);
 	/**************************************/

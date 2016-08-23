@@ -11,7 +11,6 @@
 
 #define SIZE 1024
 
-
 //进程带亲缘关系的进程间通讯
 int main(void){
 	char *str;

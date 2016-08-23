@@ -10,26 +10,27 @@
 #define FNAME "./mmap.data"
 
 #define SIZE 1024
-#define WORD "hello"
 
 int main(void){
+	char *word ="go";
+	int len = strlen(word);
 	char *str;
-	int fd, len;
+	int fd;
 	fd = open(FNAME, O_RDWR|O_RDONLY|O_CREAT);
 	if(fd < 0){
 		perror("open():");
 		exit(0);
 	}
-	ftruncate(fd, SIZE);
+	ftruncate(fd, len);
 
-	str = mmap(0, SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	str = mmap(0, len, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 	if(str == MAP_FAILED){
 		perror("mmap():");
 		exit(1);
 	}
 	close(fd);
-	strcpy(str, WORD);
+	strcpy(str, word);
 	printf ("%s\n", str);
-	munmap(str, SIZE);
+	munmap(str, len);
 	exit(0);
 }
