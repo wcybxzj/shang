@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
+#include <sys/syscall.h>   
 
 #define LEFT  30000000
 #define RIGHT 30000200
@@ -92,7 +93,7 @@ void cal(int i, void* p)
 		}
 	}
 	if(mark)
-		printf("[%d]%d is a primer.\n",(int)p,i);
+		printf("[%d][%d]%d is a primer.\n",(int)p,syscall(SYS_gettid),i);
 }
 
 

@@ -6,7 +6,7 @@
 #define LEFT  30000000
 #define RIGHT 30000200
 
-#define THRNUM 1
+#define THRNUM 4
 static int num = 0;//任务池
 static pthread_mutex_t mut_num = PTHREAD_MUTEX_INITIALIZER;
 struct arg{
