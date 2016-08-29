@@ -153,7 +153,7 @@ int main(int argc, const char *argv[])
 	//writer(ptr, ALL_IN_TWO);
 	writer(ptr, ALL_IN_N);
 
-	sleep(1);
+	sleep(1);//让reader有时间注册成功
 	un_writer(ptr);
 
 	for(i=0; i<THRNUM; i++){
