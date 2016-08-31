@@ -2,23 +2,21 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include "proto3.h"
-typedef struct fsm_st{
-	int state;
-	int msgid;
-	int fd;
-	char *errstr;
-	msg_path_t rbuf;
-	msg_s2c_t sbuf;
-} FSM_ST;
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+
+#include "myftp.h"
 
 static void fsm_driver(FSM_ST *fsm){
 	int len;
 	switch(fsm->state){
 		case STATE_RCV:
-			len = msgrcv(fsm->msgid, &fsm->rbuf.path, \
-					sizeof(path_t)- sizeof(long) , \
-					0 ,0);
+			len = msgrcv(fsm->msgid, &fsm->path_buf, \
+					sizeof(fsm->path_buf)- sizeof(long) , \
+					MSG_PATH ,0);
 			if (len < 0) {
 				if(errno == EINTR){
 					fsm->state = STATE_RCV;
@@ -27,11 +25,11 @@ static void fsm_driver(FSM_ST *fsm){
 					fsm->state = STATE_EX;
 				}
 			}else{
-				fsm->fd = open(fsm->fd, O_RDWR);
+				fsm->fd = open(fsm->path_buf.path, O_RDWR);
 				if(fsm->fd < 0){
 					fsm->state = STATE_SEND;
-					fsm->sbuf.s2c.mtype = MSG_ERR;
-					fsm->sbuf.s2c.errmsg._errno_= errno;
+					fsm->data_buf.mtype = MSG_ERR;
+					fsm->data_buf.data.errmsg._errno_= errno;
 				}else{
 					fsm->state = STATE_READ;
 				}
@@ -40,36 +38,38 @@ static void fsm_driver(FSM_ST *fsm){
 
 		case STATE_READ:
 			len = read(fsm->fd, \
-					&fsm->sbuf.s2c.datamsg.data, DATASIZE);
+					&fsm->data_buf.data.datamsg.data, DATASIZE);
 			if(len < 0){
 				if (errno == EINTR) {
 					fsm->state = STATE_READ;
 				}else{
-					fsm->errstr = "open():";
-					fsm->state = STATE_EX;
+					fsm->state = STATE_SEND;
+					fsm->data_buf.mtype = MSG_ERR;
+					fsm->data_buf.data.errmsg._errno_= errno;
 				}
 			}else if(len==0){
 				fsm->state = STATE_SEND;
-				fsm->sbuf.s2c.mtype = MSG_EOT;
+				fsm->data_buf.mtype = MSG_EOT;
 			}else{
 				fsm->state = STATE_SEND;
-				fsm->sbuf.s2c.datamsg.datalen = len;
+				fsm->data_buf.mtype = MSG_DATA;
+				fsm->data_buf.data.datamsg.datalen = len;
 			}
 			break;
 
 		case STATE_SEND:
-			len = msgsnd(msgid, &fsm->sbuf, \
-					sizeof(fsm->sbuf) - sizeof(long), 0);
+			len = msgsnd(fsm->msgid, &fsm->data_buf, \
+					sizeof(fsm->data_buf) - sizeof(long), 0);
 			if (len < 0) {
 				if(errno == EINTR){
 					fsm->state = STATE_SEND;
 				}
 				else{
-					fsm->state = STATE_Ex;
+					fsm->state = STATE_EX;
 					fsm->errstr = "msgsnd():";
 				}
 			}else{
-				switch (fsm->state){
+				switch (fsm->data_buf.mtype){
 					case MSG_DATA:
 						fsm->state = STATE_READ;
 					break;
@@ -86,7 +86,7 @@ static void fsm_driver(FSM_ST *fsm){
 			break;
 
 		case STATE_EX:
-			peror(fsm->errstr);
+			perror(fsm->errstr);
 			fsm->state = STATE_RCV;
 			break;
 

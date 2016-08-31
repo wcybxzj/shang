@@ -7,21 +7,13 @@
 #define PATHSIZE	1024
 #define DATASIZE	1024
 
-enum{
-	STATE_RCV=1,
-	STATE_SEND,
-	STATE_READ,
-	STATE_OUT,
-	STATE_EX,
-	STATE_T
-};
 
 enum
 {
-	MSG_PATH=1,
-	MSG_DATA,
+	MSG_DATA=1,
+	MSG_EOT,
 	MSG_ERR,
-	MSG_EOT
+	MSG_PATH
 };
 
 typedef struct msg_path_st
@@ -53,7 +45,7 @@ typedef struct msg_s2c_st
 		msg_data_t datamsg;
 		msg_err_t errmsg;
 		msg_eot_t eotmsg;
-	}s2c;
+	}data;
 }msg_s2c_t;
 
 #endif
