@@ -1,24 +1,34 @@
+/* count_time.c */
 #include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include <time.h>
 
 /*
-time ./15.5sec_time 
-1430945750
-real	0m10.041s
-user	0m10.040s
-sys	0m0.008s
+[root@web11 7.sginal]# time ./15.5sec_time
+152278090
+
+real	0m4.768s
+user	0m4.745s
+sys	0m0.015s
+[root@web11 7.sginal]# time ./16.5sec_alarm
+2320051597
+
+real	0m5.013s
+user	0m4.997s
+sys	0m0.014s
 */
 
-int main(int argc, const char *argv[])
+int main (void)
 {
-	time_t end;
-	int64_t a=1;
-	end = time(NULL)+5;
-	while (time(NULL)<= end) {
-		a++;
-	}
-	printf("%lld\n", a);
-	exit(0);
+    long long count = 0;
+    time_t t;
+
+    t = time(NULL) + 5;
+
+    while (time(NULL) < t) {
+	        count++;
+	    }
+
+    printf("%lld\n", count);
+
+    return 0;
 }

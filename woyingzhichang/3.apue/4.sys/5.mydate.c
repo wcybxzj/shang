@@ -20,7 +20,9 @@ int main(int argc,char **argv)
 
 	while(1)
 	{
+		//printf("==optind:%d===\n", optind);
 		ch = getopt(argc,argv,"-y:mdH:MS");
+		//printf("==optind:%d===\n", optind);
 		if(ch < 0)
 			break;
 
