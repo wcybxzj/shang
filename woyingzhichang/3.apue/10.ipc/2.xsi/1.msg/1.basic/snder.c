@@ -5,11 +5,13 @@
 #include <sys/msg.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 
 #include "proto.h"
 
-
-int main(void){
+//每次发1个消息
+void msgsnd_one()
+{
 	key_t key;
 	int msgid;
 	struct msg_st buf;
@@ -26,16 +28,20 @@ int main(void){
 		exit(-1);
 	}
 
+	srand(time(NULL));
 	buf.mtype = ONE;
 	strcpy(buf.name, "ybx");
-	buf.math=100;
-	buf.chinese=200;
+	buf.math=rand()%100;
+	buf.chinese=rand()%100;
 
 	len  = msgsnd(msgid, &buf, sizeof(buf)- sizeof(long), 0);
 	if (len < 0) {
 		perror("msgsnd():");
 		exit(-1);
 	}
+}
 
+int main(void){
+	msgsnd_one();
 	exit(0);
 }

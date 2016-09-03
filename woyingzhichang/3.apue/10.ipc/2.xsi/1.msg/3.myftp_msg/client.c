@@ -12,6 +12,7 @@
 
 static void fsm_driver(FSM_ST *fsm){
 	int len;
+	char *err_str;
 	switch(fsm->state){
 		case STATE_SEND:
 			len = msgsnd(fsm->msgid, &fsm->path_buf, \
@@ -45,9 +46,7 @@ static void fsm_driver(FSM_ST *fsm){
 						fsm->state = STATE_OUTPUT;
 						break;
 					case MSG_ERR:
-						printf("server said:%s\n", \
-								strerror(fsm->data_buf.data.errmsg._errno_));
-						fsm->state = STATE_T;
+						fsm->state = STATE_OUTPUT;
 						break;
 					case MSG_EOT:
 						fsm->state = STATE_T;
@@ -59,8 +58,13 @@ static void fsm_driver(FSM_ST *fsm){
 			break;
 
 		case STATE_OUTPUT:
-			len = write(1, &fsm->data_buf.data.datamsg.data, \
-					fsm->data_buf.data.datamsg.datalen);
+			if(fsm->data_buf.mtype == MSG_DATA){
+				len = write(1, &fsm->data_buf.data.datamsg.data, \
+						fsm->data_buf.data.datamsg.datalen);
+			}else if(fsm->data_buf.mtype == MSG_ERR){
+				err_str = strerror(fsm->data_buf.data.errmsg._errno_);
+				len = write(1, err_str,strlen(err_str));
+			}
 			if (len<0) {
 				if (errno == EINTR) {
 					fsm->state = STATE_OUTPUT;
@@ -69,7 +73,11 @@ static void fsm_driver(FSM_ST *fsm){
 					fsm->state = STATE_EX;
 				}
 			}else{
-				fsm->state = STATE_RCV;
+				if(fsm->data_buf.mtype == MSG_DATA){
+					fsm->state = STATE_RCV;
+				}else if(fsm->data_buf.mtype == MSG_ERR){
+					fsm->state = STATE_T;
+				}
 			}
 			break;
 
@@ -79,7 +87,7 @@ static void fsm_driver(FSM_ST *fsm){
 
 		case STATE_EX:
 			perror(fsm->errstr);
-			fsm->state = STATE_RCV;
+			fsm->state = STATE_T;
 			break;
 
 		default:

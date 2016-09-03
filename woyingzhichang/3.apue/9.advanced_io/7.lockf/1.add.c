@@ -6,7 +6,7 @@
 #include <fcntl.h>
 #include <string.h>
 
-#define NUM 2000
+#define NUM 20
 #define NAME "num.txt"
 #define SIZE 10
 
@@ -25,6 +25,7 @@ static void sysio_func(void *p){
 	num++;
 	sprintf(tmp,"%d", num);
 	lseek(fd, SEEK_SET, 0);
+	//sleep(1);
 	write(fd, tmp, strlen(tmp));
 	lockf(fd, F_ULOCK, 0);
 	close(fd);
@@ -100,11 +101,11 @@ int main(void){
 	fd = open(NAME, O_CREAT|O_TRUNC|O_RDWR);
 	write(fd, "0",1);
 	//进程文件锁成功
-	//fork_test_sysio();
+	fork_test_sysio();
 	//fork_test_stdio();
 
 	//多线程文件锁完全失败
-	pthread_test_stdio();
+	//pthread_test_stdio();
 
 	exit(0);
 }

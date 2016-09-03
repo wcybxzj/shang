@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <string.h>
 #define SIZE 10
 #define FNAME "/etc/services"
 
@@ -28,6 +29,7 @@ void* inner_struct(void *p)
 	printf("begin work tid:%lu\n", pthread_self());
 	int fd;
 	char buf[SIZE];
+	memset(buf, 0x00, SIZE);
 	//制作各线程的交叉执行效果
 	if (pthread_self()%3) {
 		printf("pthread_id:%lu, sleep(2)\n", pthread_self());
