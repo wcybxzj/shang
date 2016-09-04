@@ -85,6 +85,7 @@ void V(int semid, int process_resource[][2], int process_num){
 
 static void stdio_func(int semid, int process_resource[][2], \
 		int process_num){
+	printf("parent pid:%d, ppid:%d\n", getpid(), getppid());
 	printf("%d, block\n", process_num);
 	P(semid,  process_resource, process_num);
 	printf("%d, unblock\n", process_num);
@@ -93,6 +94,7 @@ static void stdio_func(int semid, int process_resource[][2], \
 	exit(0);
 }
 
+//fork 创建的是非亲缘关系的两个子进程来做IPC
 int fork_test_stdio(){
     struct semid_ds ds;
 	union semun arg;
@@ -138,11 +140,8 @@ int fork_test_stdio(){
 		}
 	}
 
-	for (i = 0; i < NUM; i++) {
-		wait(NULL);
-	}
 	display_semarr(semid);
-	semctl(semid, 0, IPC_RMID);
+	exit(0);
 }
 
 //测试目的:
