@@ -9,7 +9,8 @@ Linux-64	长度	1		2		4	 8		4		8		8			16
 //http://blog.csdn.net/liukun321/article/details/6974282
 //http://www.cnblogs.com/luxiaoxun/archive/2012/11/09/2762438.html
 
-//原则A：struct或者union的成员，第一个成员在偏移0的位置，之后的每个成员的起始位置必须是当前成员大小的整数倍；
+//原则A：struct或者union的成员，第一个成员在偏移0的位置，之后的每个成员的起始位置必须是当前成员大小的整数倍,
+//也就是起始地址 % sizeof(type) == 0 
 //原则B：如果结构体A含有为结构体类型的成员B，那么B的起始位置必须是B中最大元素大小整数倍地址；
 //原则C：结构体的总大小，必须是内部最大成员的整数倍；
 
