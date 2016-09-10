@@ -1,19 +1,11 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <sys/ipc.h>
-#include <sys/msg.h>
-#include <signal.h>
 #include "myftp.h"
+#define IPSIZE 16
 
 static void fsm_driver(FSM_ST *fsm){
 	int len;
 	switch(fsm->state){
 		case STATE_RCV:
+			printf("pathname:%s",fsm->path_buf.path);
 			fsm->fd = open(fsm->path_buf.path, O_RDWR);
 			if(fsm->fd < 0){
 				fsm->state = STATE_SEND;
@@ -47,8 +39,9 @@ static void fsm_driver(FSM_ST *fsm){
 
 		case STATE_SEND:
 			//sleep(1);//方便观察多个客户端
-			len = msgsnd(fsm->path_buf.client_id, &fsm->data_buf, \
-					sizeof(fsm->data_buf) - sizeof(long), 0);
+			len = sendto(fsm->server_child_sd, &fsm->data_buf, sizeof(fsm->data_buf), 0 \
+				, (struct sockaddr *) &fsm->client_addr, fsm->client_addr_len);
+
 			if (len < 0) {
 				if(errno == EINTR){
 					fsm->state = STATE_SEND;
@@ -87,16 +80,6 @@ static void fsm_driver(FSM_ST *fsm){
 
 }
 
-static void             /* SIGCHLD handler */ 
-grimReaper(int sig) 
-{ 
-    int savedErrno; 
-    savedErrno = errno;                 /* waitpid() might change 'errno' */ 
-    while (waitpid(-1, NULL, WNOHANG) > 0) 
-        continue; 
-    errno = savedErrno; 
-} 
-
 //server多进程可以同时支持多个clinet
 //终端1:./server
 //终端2:./client /etc/services
@@ -116,58 +99,64 @@ grimReaper(int sig)
 //client:msgrcv使用sleep(1)
 //然后Ctrl+C server进程,因为子进程没脱离控制终端也会被中止
 int main(void){
-	struct fsm_st fsm;
-	int server_id;
-	int msgLen;
-	struct sigaction sa;
+	int ret;
+	int sd;
 	pid_t pid;
+	char ip[IPSIZE];
+	struct fsm_st fsm;
+	struct sigaction sa;
+	struct sockaddr_in laddr, raddr;
 
-	server_id = msgget(SERVER_KEY, IPC_CREAT|0666);
-	if(server_id < 0){
-		perror("msgget():");
+	sd = socket(AF_INET, SOCK_DGRAM, 0/*IPPROTO_UDP*/);
+	if(sd < 0){
+		perror("socket()");
 		exit(-1);
 	}
-	printf("server_id:%d\n", server_id);
 
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = SA_RESTART;
-    sa.sa_handler = grimReaper;
-    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-        perror("sigaction");
-		exit(0);
+	laddr.sin_family = AF_INET;
+	laddr.sin_port = htons(atoi(RCVPORT));
+	if(inet_pton(AF_INET, "0.0.0.0", &laddr.sin_addr.s_addr) != 1){
+		perror("inent_pton()");
+		exit(-1);
+	}
+	if(bind(sd, (void *)&laddr, sizeof(laddr))){
+		perror("bind()");
+		exit(-1);
 	}
 
-    for (;;) {
-		//memset(&fsm, 0x00, sizeof(fsm));
+	for (;;) {
 		fsm.state = STATE_RCV;
-		fsm.server_id = server_id;
-        msgLen = msgrcv(server_id, &fsm.path_buf, \
-					sizeof(fsm.path_buf)-sizeof(long) , \
-					0,0);
-        if (msgLen == -1) {
-            if (errno == EINTR)         /* Interrupted by SIGCHLD handler? */
-                continue;               /* ... then restart msgrcv() */
-            perror("msgrcv!!!");           /* Some other error */
+		fsm.client_addr_len = sizeof(fsm.client_addr);
+		ret = recvfrom(sd, &fsm.path_buf, sizeof(fsm.path_buf), 0,\
+				 (void *)&fsm.client_addr, &fsm.client_addr_len);
+
+		if (ret == -1) {
+			if (errno == EINTR)         /* Interrupted by SIGCHLD handler? */
+				continue;               /* ... then restart msgrcv() */
+			perror("recvfrom !!!");           /* Some other error */
 			exit(1);
-            break;                      /* ... so terminate loop */
-        }
+			break;                      /* ... so terminate loop */
+		}
 
-        pid = fork();                   /* Create child process */
-        if (pid == -1) {
-            perror("fork");
-            break;
-        }
+		pid = fork();                   /* Create child process */
+		if (pid == -1) {
+			perror("fork");
+			break;
+		}
 
-        if (pid == 0) {                 /* Child handles request */
+		if (pid == 0) {                 /* Child handles request */
+			fsm.server_child_sd = socket(AF_INET, SOCK_DGRAM, 0/*IPPROTO_UDP*/);
+			if(fsm.server_child_sd < 0){
+				perror("socket()");
+				exit(-1);
+			}
 			while (1) {
 				fsm_driver(&fsm);
 			}
-            exit(EXIT_SUCCESS);
-        }
-        /* Parent loops to receive next client request */
-    }
-
-    if (msgctl(server_id, IPC_RMID, NULL) == -1) 
-        perror("msgctl"); 
-    exit(EXIT_SUCCESS); 
+			exit(EXIT_SUCCESS);
+		}
+		/* Parent loops to receive next client request */
+	}
+	close(sd);
+	exit(EXIT_SUCCESS); 
 }

@@ -1,11 +1,15 @@
 #ifndef PROTO_H__
 #define PROTO_H__
 
-#define SERVER_KEY 0x00000001
+//因为没有类型的数据是不一定的
+//所以这里为了保证最后使用的int 
+//做成字符串用atoi转成int
+#define RCVPORT "1990"
 
-#define PATHSIZE	1024
-#define DATASIZE	1024
+#define MSGMAX (512-20-8)
 
+#define PATHSIZE	(MSGMAX-8)
+#define DATASIZE	(MSGMAX-8-4)
 
 enum
 {
@@ -17,8 +21,7 @@ enum
 
 typedef struct msg_path_st
 {
-	long mtype;
-	int client_id;//客户端msg id
+	long mtype;//8
 	char path[PATHSIZE];
 }msg_path_t;
 
@@ -39,7 +42,7 @@ typedef struct msg_eot_st
 
 typedef struct msg_s2c_st
 {
-	long mtype;
+	long mtype;//8
 	union msg_s2c_un
 	{
 		msg_data_t datamsg;

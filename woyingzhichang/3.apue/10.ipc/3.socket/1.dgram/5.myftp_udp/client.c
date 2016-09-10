@@ -1,14 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <sys/ipc.h>
-#include <sys/msg.h>
-#include <signal.h>
-
 #include "myftp.h"
 static int client_id;
 
@@ -17,8 +6,8 @@ static void fsm_driver(FSM_ST *fsm){
 	char *err_str;
 	switch(fsm->state){
 		case STATE_SEND:
-			len = msgsnd(fsm->server_id, &fsm->path_buf, \
-					sizeof(fsm->path_buf) - sizeof(long), 0);
+			len = sendto(fsm->client_sd, &fsm->path_buf, sizeof(fsm->path_buf), 0, \
+				(void *) &fsm->server_addr, sizeof(fsm->server_addr));
 			if (len < 0) {
 				if(errno == EINTR){
 					fsm->state = STATE_SEND;
@@ -33,9 +22,8 @@ static void fsm_driver(FSM_ST *fsm){
 			break;
 		case STATE_RCV:
 			sleep(1);//方便观察多个客户端
-			len = msgrcv(fsm->path_buf.client_id, &fsm->data_buf, \
-					sizeof(fsm->data_buf)- sizeof(long) , \
-					-MSG_ERR ,0);
+			len = recvfrom(fsm->client_sd, &fsm->data_buf, sizeof(fsm->data_buf), 0,\
+					 NULL, NULL);
 			if (len < 0) {
 				if(errno == EINTR){
 					fsm->state = STATE_RCV;
@@ -99,12 +87,6 @@ static void fsm_driver(FSM_ST *fsm){
 	}
 }
 
-static void removeQueue(void)
-{
-    if (msgctl(client_id, IPC_RMID, NULL) == -1) {
-        perror("msgctl");
-	}
-}
 
 static void             /* SIGCHLD handler */ 
 func(int sig) 
@@ -115,46 +97,35 @@ func(int sig)
     errno = savedErrno; 
 } 
 
+//./client 192.168.91.11 /etc/hosts
 int main(int argc, const char *argv[]){
+	int len;
 	struct fsm_st fsm;
-	key_t key;
-	int server_id;
 	struct sigaction sa;
-	if (argc<2) {
-		printf("usgae:./client /etc/httpd/conf/httpd.conf\n");
+	struct sockaddr_in saddr;
+	if (argc!=3) {
+		printf("usgae:./client 192.168.91.11 /etc/httpd/conf/httpd.conf\n");
 		exit(-1);
 	}
 
-	//意外中断变成合理化退出进程 执行钩子
-    sigemptyset(&sa.sa_mask);
-    sa.sa_handler = func;
-    if (sigaction(SIGINT, &sa, NULL) == -1) {
-        perror("sigaction");
-		exit(0);
-	}
-
-	server_id = msgget(SERVER_KEY, 0);
-	if(server_id < 0){
-		perror("msgget():");
-		exit(-1);
-	}
-
-	client_id = msgget(IPC_PRIVATE, 0666);
-	if(client_id < 0){
-		perror("msgget():");
+	fsm.client_sd = socket(AF_INET, SOCK_DGRAM, 0/*IPPROTO_UDP*/);
+	if(fsm.client_sd < 0){
+		perror("socket()");
 		exit(-1);
 	}
 
 	fsm.state = STATE_SEND;
-	fsm.server_id = server_id;
 	memset(&fsm.path_buf, 0x00, sizeof(fsm.path_buf));
 	fsm.path_buf.mtype = MSG_PATH;
-	fsm.path_buf.client_id = client_id;
 	strcpy(fsm.path_buf.path, argv[1]);
-
-	if(atexit(removeQueue) != 0){
-		perror("atexit()");
+	saddr.sin_family = AF_INET;
+	saddr.sin_port = htons(atoi(RCVPORT));
+	if(inet_pton(AF_INET, argv[1], &saddr.sin_addr)!=1){
+		perror("inet_pton()");
+		exit(-1);
 	}
+	fsm.server_addr = saddr;
+	strcpy(fsm.path_buf.path, argv[2]);
 
 	while (1) {
 		fsm_driver(&fsm);
