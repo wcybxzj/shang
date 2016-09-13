@@ -1,7 +1,7 @@
 #include "myftp.h"
-static int client_id;
 
 static void fsm_driver(FSM_ST *fsm){
+	static int num = 1;
 	int len;
 	char *err_str;
 	switch(fsm->state){
@@ -21,9 +21,10 @@ static void fsm_driver(FSM_ST *fsm){
 			}
 			break;
 		case STATE_RCV:
-			sleep(1);//方便观察多个客户端
 			len = recvfrom(fsm->client_sd, &fsm->data_buf, sizeof(fsm->data_buf), 0,\
 					 NULL, NULL);
+			printf("=======recvfrom num:%d=====\n", num);
+			num++;
 			if (len < 0) {
 				if(errno == EINTR){
 					fsm->state = STATE_RCV;
@@ -56,6 +57,7 @@ static void fsm_driver(FSM_ST *fsm){
 				err_str = strerror(fsm->data_buf.data.errmsg._errno_);
 				len = write(1, err_str,strlen(err_str));
 			}
+			printf("=====len:%d====\n", len);
 			if (len<0) {
 				if (errno == EINTR) {
 					fsm->state = STATE_OUTPUT;
@@ -86,7 +88,6 @@ static void fsm_driver(FSM_ST *fsm){
 			break;
 	}
 }
-
 
 static void             /* SIGCHLD handler */ 
 func(int sig) 
