@@ -34,6 +34,9 @@ void func2(int sd){
 	fclose(fp);
 }
 
+//最简单测试server的方法
+//nc 127.0.0.1 1998
+//telent 127.0.0.1 1998
 int main(int argc, const char *argv[])
 {
 	int sd;

@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <string.h>
 #include <time.h>
+#include <signal.h>
 
 #include "proto.h"
 #define IP_SIZE 16
@@ -45,6 +46,14 @@ int main(){
 		exit(0);
 	}
 
+	//问题:
+	//server启动并且服务1个client
+	//server close(newfd) 在tcp主动关闭将残留TIME_WAIT持续2MSL
+	//关闭server 再次启动server
+	//报错bind(): Address already in use
+
+	//方法:
+	//通过设置SO_REUSEADDR, 让server再次启动bind时无视残留的TIME_WAIT
 	int val=1;
 	if(setsockopt(sd, SOL_SOCKET, SO_REUSEADDR,\
 				&val, sizeof(val)) < 0){
@@ -83,8 +92,10 @@ int main(){
 
 		printf("radd:%s rport:%d\n", \
 				ip, htons(raddr.sin_port));
+
 		//func1(newsd);
 		func2(newsd);
+
 		close(newsd);//如果不close fd会泄露
 
 	}
