@@ -46,6 +46,7 @@ int main(){
 		printf("%d\n", ntohl(rbuf.chinese));
 	}
 
+	sleep(10);
 	close(sd);
 	exit(0);
 }

@@ -9,17 +9,15 @@
 #include <string.h>
 #include <time.h>
 #include <signal.h>
+#include <unistd.h>
 
 #include "proto.h"
 #define IP_SIZE 16
 
-int worker(int newsd){
+int func2(int newsd){
 	char str[IP_SIZE]={'\0'};
 	int len;
 
-	//这里len加1的用处2点:
-	//1:给字符最后加个为零否则客户端输出的字符有问题
-	//2:解决server sleep中, client 无法输出的问题
 	//len = sprintf(str, FMT_STAMP, (long long)time(NULL))+1;
 	len = sprintf(str, FMT_STAMP, (long long)time(NULL));
 
@@ -29,12 +27,6 @@ int worker(int newsd){
 		perror("send()");
 		exit(-3);
 	}
-
-	//问题:
-	//添加sleep后server端还没close(newsd), client就不会输出
-	//有3种解决办法:
-	//sleep(10);
-
 	close(newsd);//如果不close fd会泄露
 }
 
@@ -44,6 +36,7 @@ int main(){
 	struct sockaddr_in laddr, raddr;
 	socklen_t rlen;
 	char ip[IP_SIZE];
+	pid_t pid;
 
 	sd = socket(AF_INET, SOCK_STREAM, 0/*IPPROTO_TCP*/);
 	if(sd < 0){
@@ -51,14 +44,6 @@ int main(){
 		exit(0);
 	}
 
-	//问题:
-	//server启动并且服务1个client
-	//server close(newfd) 在tcp主动关闭将残留TIME_WAIT持续2MSL
-	//关闭server 再次启动server
-	//报错bind(): Address already in use
-
-	//方法:
-	//通过设置SO_REUSEADDR, 让server再次启动bind时无视残留的TIME_WAIT
 	int val=1;
 	if(setsockopt(sd, SOL_SOCKET, SO_REUSEADDR,\
 				&val, sizeof(val)) < 0){
@@ -89,17 +74,21 @@ int main(){
 			exit(-2);
 		}
 
-		if(inet_ntop(AF_INET, (void *)&raddr.sin_addr, \
-					ip, IP_SIZE) == NULL){
-			perror("inet_ntop()");
-			exit(-2);
+		pid = fork();
+		if(pid == 0){
+			if(inet_ntop(AF_INET, (void *)&raddr.sin_addr, \
+						ip, IP_SIZE) == NULL){
+				perror("inet_ntop()");
+				exit(-2);
+			}
+
+			printf("radd:%s rport:%d\n", \
+					ip, htons(raddr.sin_port));
+			close(sd);//关闭从父进程继承的不需要使用的sd
+			func2(newsd);
+			exit(0);
 		}
-
-		printf("radd:%s rport:%d\n", \
-				ip, htons(raddr.sin_port));
-
-		worker(newsd);
-
+		close(newsd);//关闭用于子进程的newsd,防止泄露,导致最后父进程sd 数量超过ulimit -a
 	}
 
 	exit(0);

@@ -1,0 +1,16 @@
+S端（先运行）
+1.取得 SOCKET (socket(2)) IPPROTO_SCTP 是一种新协议，也可以实现流式套接字
+2.给 SOCKET 取得地址 (bind(2))
+3.将 SOCKET 置为监听模式 (listen(2)) backlog 参数写什么正整数都行。
+4.接受链接 (accept(2)) 如果成功返回接受链接的文件描述符，失败返回 -1 并设置 errno。
+注意不能直接用存放之前 socket(2) 返回的文件描述符变量来接收 accept(2) 的返回值，
+因为accept(2) 可能会遇到假错，这样之前变量里保存的文件描述符就丢了，会导致内存泄漏。
+5.收/发消息 (send(2))
+6.关闭 SOCKET (close(2))
+
+C端（主动）
+1.取得 SOCKET (socket)
+2.给 SOCKET 取得地址（可省） (bind)
+3.发起链接 (connect)
+4.收/发消息
+5.关闭 SOCKET

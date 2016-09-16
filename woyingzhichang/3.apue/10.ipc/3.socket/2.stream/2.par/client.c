@@ -6,16 +6,8 @@
 #include <netinet/ip.h>
 #include <arpa/inet.h>
 #include <errno.h>
-#include <string.h>
 
 #include "proto.h"
-#define SIZE 11
-void func1(int sd){
-	char str[SIZE]={'\0'};
-	read(sd, str, SIZE);
-	printf("%s\n", str);
-	close(sd);
-}
 
 void func2(int sd){
 	FILE *fp;
@@ -66,7 +58,6 @@ int main(int argc, const char *argv[])
 		exit(-2);
 	}
 
-	//func1(sd);
 	func2(sd);
 
 	return 0;
