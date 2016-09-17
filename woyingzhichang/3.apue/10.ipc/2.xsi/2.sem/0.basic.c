@@ -147,7 +147,7 @@ int fork_test_stdio(){
 //测试目的:
 //使用IPC sem_arr 模拟一个多进程中使用的mutex,替代lockf文件锁实现多进程中对数据的同步
 //测试方法:
-//for i in {1..10}; do ./add; cat num.txt; done
+//for i in {1..10}; do ./0.basic; done
 int main(void){
 	fork_test_stdio();
 	exit(0);

@@ -21,8 +21,8 @@ int func2(int newsd){
 	//len = sprintf(str, FMT_STAMP, (long long)time(NULL))+1;
 	len = sprintf(str, FMT_STAMP, (long long)time(NULL));
 
-	printf("=====len:%d======\n", len);
-	printf(FMT_STAMP, str);
+	printf("===pid===len:%d======\n", getpid(), len);
+	//printf(FMT_STAMP, str);
 	if(send(newsd, str, len, 0) < 0){
 		perror("send()");
 		exit(-3);
@@ -30,7 +30,8 @@ int func2(int newsd){
 	close(newsd);//如果不close fd会泄露
 }
 
-
+//测试看到100个请求，server产生100个子进程服务
+//for i in {1..100}; do { ./client 127.0.0.1; }& done
 int main(){
 	int sd, newsd;
 	struct sockaddr_in laddr, raddr;
@@ -87,8 +88,13 @@ int main(){
 			close(sd);//关闭从父进程继承的不需要使用的sd
 			func2(newsd);
 			exit(0);
+		}else if(pid<0){
+			perror("fork()");
+			exit(-2);
+		}else{
+			//关闭用于子进程的newsd,防止泄露,导致最后父进程sd 数量超过ulimit -a
+			close(newsd);
 		}
-		close(newsd);//关闭用于子进程的newsd,防止泄露,导致最后父进程sd 数量超过ulimit -a
 	}
 
 	exit(0);

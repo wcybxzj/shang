@@ -18,8 +18,6 @@
 
 #define SIG_NOTIFY		SIGUSR2
 
-
-
 enum
 {
 	STATE_IDLE=0,
@@ -171,7 +169,6 @@ static void scan_pool(void)
 
 	idle_count = idle;
 	busy_count = busy;
-
 }
 
 int main()
