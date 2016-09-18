@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/syscall.h>
-#include <singnal.h>
+
 pid_t gettid()
 {
      return syscall(SYS_gettid);
@@ -28,9 +28,6 @@ static void* func(void*ptr)
 {
 	int i;
 	int err;
-	sigset_t set, oset;
-
-
 	printf("child tid:%d\n", gettid());
 	err = pthread_detach(pthread_self());
     if (err) {
@@ -48,17 +45,12 @@ int main(int argc, const char *argv[])
 {
     int i, err;
     pthread_t tid;
-
-
-
 	printf("main tid:%d\n", gettid());
-	for (i = 0; i < 2; i++) {
-		err = pthread_create(&tid, NULL, func, NULL );
-		if (err) {
-			fprintf(stderr, "%s\n", strerror(err));
-			exit(1);
-		}   
-	}
+    err = pthread_create(&tid, NULL, func, NULL );
+    if (err) {
+        fprintf(stderr, "%s\n", strerror(err));
+        exit(1);
+    }   
 
 	for(i=0; i<100;i++) {
 		printf("main ok\n");
@@ -67,6 +59,6 @@ int main(int argc, const char *argv[])
 
 	pthread_exit(NULL);//必须
 	printf("never do\n");
-	return 0;
+    return 0;
 }
 

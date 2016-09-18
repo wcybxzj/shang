@@ -7,7 +7,6 @@ char *
 ALT_strsignal(int sig)
 {
     static char buf[BUF_SIZE];          /* Not thread-safe */
-
     snprintf(buf, BUF_SIZE, "SIG-%d", sig);
     return buf;
 }
