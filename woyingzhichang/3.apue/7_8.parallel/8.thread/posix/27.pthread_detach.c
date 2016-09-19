@@ -9,8 +9,19 @@ pid_t gettid()
      return syscall(SYS_gettid);
 }
 
+//前提:
+//所有线程都要基于进程，所有以任何线程exit都是把进程杀死，所有线程也就死了
+
+//main线程:
+//只能用pthread_exit终止,才不会影响其他线程
+
+//其他pthread_create创建的线程:
+//可以用pthread_exit或者return终止,才不会影响其他线程
+
+
+
 //测试1:
-//main线程立刻结束不用for, child线程不结束使用for
+//main线程立刻结束不用for, child线程使用for
 //结果:
 //进程成为僵尸因为子进程还要用进程
 //ps -ef -L|grep pthread
@@ -38,7 +49,10 @@ static void* func(void*ptr)
 		printf("child ok\n");
 		sleep(1);
 	}
+
     pthread_exit((void *)123);
+	//exit(0);
+	//return;
 }
 
 int main(int argc, const char *argv[])
@@ -58,7 +72,7 @@ int main(int argc, const char *argv[])
 	}
 
 	pthread_exit(NULL);//必须
-	printf("never do\n");
-    return 0;
+    //return 0;
+	//exit(0);
 }
 
