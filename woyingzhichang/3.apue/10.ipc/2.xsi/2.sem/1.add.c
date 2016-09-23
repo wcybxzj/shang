@@ -6,6 +6,7 @@
 #include <sys/sem.h>
 #include <fcntl.h>
 #include <string.h>
+#include <errno.h>
 
 #define NUM 20
 #define NAME "num.txt"
@@ -25,7 +26,6 @@ void P(int semid){
 			perror("semop():");
 		}
 	}
-	exit(-1);
 }
 
 void V(int semid){
@@ -52,8 +52,11 @@ static void stdio_func(int semid){
 		exit(-1);
 	}
 	fd = fileno(fp);
-	//lockf(fd, F_LOCK, 0);
+
+	//printf("P block\n");
 	P(semid);
+	//printf("P un_block\n");
+
 	fgets(str, SIZE, fp);
 	num = atoi(str);
 	num++;
@@ -62,8 +65,11 @@ static void stdio_func(int semid){
 	//sleep(1);//放大冲突(可选)
 	fputs(str, fp);
 	fflush(NULL);//知识点
+
+	//printf("V block\n");
 	V(semid);
-	//lockf(fd, F_ULOCK, 0);
+	//printf("V un_block\n");
+
 	fclose(fp);
 	exit(0);
 }
@@ -72,29 +78,16 @@ int fork_test_stdio(){
 	int i, ret;
 	pid_t pid;
 	int semid;
-	semid = semget(IPC_PRIVATE, 2, 0600);
+	semid = semget(IPC_PRIVATE, 1, 0600);
 	if(semid < 0){
 		perror("semget():");
 		exit(-1);
 	}
 
-	//写法1:
-	//struct sembuf sf;
-	//sf.sem_num = 0;
-	//sf.sem_op = 1;
-	//sf.sem_flg = 0;
-	//ret = semop(semid, &sf, 1);
-	//if (ret < 0) {
-	//	perror("semop():");
-	//	exit(-1);
-	//}
-
-	//写法2:
-	if(semctl(semid, SETVAL, 1) < 0){
+	if(semctl(semid, 0,SETVAL, 1) < 0){
 		perror("semctl()");
 		exit(1);
 	}
-
 
 	for (i = 0; i < NUM; i++) {
 		pid = fork();

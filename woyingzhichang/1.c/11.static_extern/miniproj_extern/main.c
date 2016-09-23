@@ -10,7 +10,7 @@ int main(int argc, const char *argv[])
 	func();
 	printf("[%s] i:%d\n", __FUNCTION__, i);
 
-z//test2:定义中的i 能影响引用文件中的i
+	//test2:定义中的i 能影响引用文件中的i
 	i =123;
 	func2();
 	exit(0);

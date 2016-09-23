@@ -1,0 +1,101 @@
+1.筛素数:
+find . -name '*primer*' |sort
+./6.few/primer0.c(最普通无并发)
+./6.few/primer1.c(fork 201次 无wait)
+./6.few/primer2.c(fork 201此  wait201次)
+./6.few/primerN.c(4个子进程 交叉分配法)
+./8.thread/posix/6.primer00.c(多线程 功能没实现 线程执行函数传参bug)
+./8.thread/posix/7.primer0_ugly.c(多线程  线程执行函数传参强转)
+./8.thread/posix/8.primer0_e.c(多线程  线程执行函数传参用结构体包装)
+./8.thread/posix/13.primer0_pool_busy.c(sched_yield版 查询法 忙等)
+./8.thread/posix/17.primer0_cond_pool.c(mut+cond版 通知发)
+./8.thread/posix/18.primer0_busy_pool_sleep.c(main 线程每秒方1个任务 放大忙等的效果)
+./8.thread/posix/19.primer0_cond_pool_sleep.c(main 线程每秒方1个任务 )
+./10.ipc/2.xsi/2.sem/2.primer_process_static_pool_sched_yield.c(mmap+sem_arr+进程池+sched_yield)
+
+
+2.桶做流控:
+[root@web11 3.apue]# find . -name '*cat*' |sort
+./6.few/13.mycat.c
+./7.sginal/18_25.slowcat
+./7.sginal/18_25.slowcat/18.mycat.c
+./7.sginal/18_25.slowcat/19.slowcat_sleep_leaky_bucket.c(漏桶)
+./7.sginal/18_25.slowcat/20.slowcat_alarm_leaky_bucket.c(漏桶)
+./7.sginal/18_25.slowcat/21.slowcat_alarm_token_bucket.c(令牌桶)
+./7.sginal/18_25.slowcat/25.slowcat_setitimer_leaky_bucket.c(漏桶)
+
+
+3.对令牌桶封装:
+[root@web11 3.apue]# find . -name '*mytbf*' |sort
+./7.sginal/22_37.mytbf/22.mytbf_signal_and_alarm
+./7.sginal/22_37.mytbf/37.mytbf_sigaction_and_setitimer
+./8.thread/posix/15.mytbf_mt_sched_yield
+./8.thread/posix/16.mytbf_mt_cond
+
+
+4.anytimer定时执行任务:
+find . -name '*anytimer*' |sort
+./0.homework/4.anytimer(信号版)           
+./0.homework/5.anytimer_mt(多线程版)
+
+
+5.并发对文件读写
+[root@web11 3.apue]# find . -name '*add*'|sort
+./8.thread/posix/9.add.c
+./8.thread/posix/10.add_ok.c
+./9.advanced_io/7.lockf/1.add.c
+./10.ipc/2.xsi/2.sem/1.add.c
+
+6.依次输出abcd
+find . -name '*abcd*'|sort                               
+./8.thread/posix/11.abcd
+./8.thread/posix/11.abcd.c
+./8.thread/posix/20.abcd_e
+./8.thread/posix/20.abcd_e.c
+
+
+7.用线程中mutex+cond做信号量
+[root@web11 3.apue]# find . -name '*mysem*'|sort
+./8.thread/posix/21.mysem
+./8.thread/posix/21.mysem/mysem.c
+./8.thread/posix/21.mysem/mysem.h
+
+
+8.
+find . -name '*mypipe*'
+./8.thread/posix/26.mypipe
+
+
+relayer:
+./9.advanced_io/2.select/4.relayer_mt/relayer.h
+./9.advanced_io/2.select/4.relayer_mt/relayer.c
+./9.advanced_io/3.poll/2.relayer_mt/relayer.h
+./9.advanced_io/3.poll/2.relayer_mt/relayer.c
+./9.advanced_io/4.epoll/4.relayer_mt/relayer.h
+./9.advanced_io/4.epoll/4.relayer_mt/relayer.c
+./9.advanced_io/1.nonblock/3.relayer_mt/relayer.h
+./9.advanced_io/1.nonblock/3.relayer_mt/relayer.c
+
+
+[root@web11 3.apue]# find . -name '*myftp*' |sort
+./10.ipc/2.xsi/1.msg/3.myftp_msg
+./10.ipc/2.xsi/1.msg/4.myftp_msg_fork
+./10.ipc/3.socket/1.dgram/5.myftp_udp_fork
+./10.ipc/3.socket/1.dgram/6.myftp_udp_fork_ack
+./10.ipc/3.socket/2.stream/5.myftp_tcp_fork
+
+
+dgram:
+1.basic
+2.var
+3.bcast
+4.mcast
+5.myftp_udp_fork
+6.myftp_udp_fork_ack
+
+stream:
+1.basic
+2.porcess
+3.pthread
+4.webdl.c
+5.myftp_tcp_fork
