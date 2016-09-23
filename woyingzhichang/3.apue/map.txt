@@ -17,8 +17,7 @@ find . -name '*primer*' |sort
 2.桶做流控:
 [root@web11 3.apue]# find . -name '*cat*' |sort
 ./6.few/13.mycat.c
-./7.sginal/18_25.slowcat
-./7.sginal/18_25.slowcat/18.mycat.c
+./7.sginal/18_25.slowcat/18.mycat.c(无流控 最普通)
 ./7.sginal/18_25.slowcat/19.slowcat_sleep_leaky_bucket.c(漏桶)
 ./7.sginal/18_25.slowcat/20.slowcat_alarm_leaky_bucket.c(漏桶)
 ./7.sginal/18_25.slowcat/21.slowcat_alarm_token_bucket.c(令牌桶)
@@ -39,42 +38,55 @@ find . -name '*anytimer*' |sort
 ./0.homework/5.anytimer_mt(多线程版)
 
 
-5.并发对文件读写
+5.并发对文件数字累加
 [root@web11 3.apue]# find . -name '*add*'|sort
-./8.thread/posix/9.add.c
-./8.thread/posix/10.add_ok.c
-./9.advanced_io/7.lockf/1.add.c
-./10.ipc/2.xsi/2.sem/1.add.c
+./8.thread/posix/9.add.c(功能没实现)
+./8.thread/posix/10.add_ok.c(用mutex解决问题)
+./9.advanced_io/7.lockf/1.add.c(多进程文件锁版成功,多线程文件锁失败)
+./10.ipc/2.xsi/2.sem/1.add.c(多进程 semarr版)
 
 6.依次输出abcd
 find . -name '*abcd*'|sort                               
-./8.thread/posix/11.abcd
-./8.thread/posix/11.abcd.c
-./8.thread/posix/20.abcd_e
-./8.thread/posix/20.abcd_e.c
+./8.thread/posix/11.abcd.c(多线程mutex锁链)
+./8.thread/posix/20.abcd_e.c(mutex+cond)
 
 
-7.用线程中mutex+cond做信号量
+7.多线程模拟多进程IPC的sem_arr中做为sem的情况
 [root@web11 3.apue]# find . -name '*mysem*'|sort
 ./8.thread/posix/21.mysem
-./8.thread/posix/21.mysem/mysem.c
-./8.thread/posix/21.mysem/mysem.h
 
 
-8.
+8.多线程模拟多进程IPC中的管道
 find . -name '*mypipe*'
 ./8.thread/posix/26.mypipe
 
 
-relayer:
-./9.advanced_io/2.select/4.relayer_mt/relayer.h
-./9.advanced_io/2.select/4.relayer_mt/relayer.c
-./9.advanced_io/3.poll/2.relayer_mt/relayer.h
-./9.advanced_io/3.poll/2.relayer_mt/relayer.c
-./9.advanced_io/4.epoll/4.relayer_mt/relayer.h
-./9.advanced_io/4.epoll/4.relayer_mt/relayer.c
-./9.advanced_io/1.nonblock/3.relayer_mt/relayer.h
-./9.advanced_io/1.nonblock/3.relayer_mt/relayer.c
+9.有限状态机
+relay:
+[root@web11 3.apue]# find . -name "*relay*" |sort
+./9.advanced_io/1.nonblock/1.fork_relay.c(2个子进程 2个虚拟终端 阻塞IO 互相读写)
+./9.advanced_io/1.nonblock/2.relay.c(单进程 可以用阻塞可以用非阻塞)
+./9.advanced_io/1.nonblock/3.relayer_mt(多线程盲推)
+./9.advanced_io/2.select/3.relay.c
+./9.advanced_io/2.select/4.relayer_mt
+./9.advanced_io/3.poll/1.relay.c
+./9.advanced_io/3.poll/2.relayer_mt
+./9.advanced_io/4.epoll/1.relay.c
+./9.advanced_io/4.epoll/4.relayer_mt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 [root@web11 3.apue]# find . -name '*myftp*' |sort
