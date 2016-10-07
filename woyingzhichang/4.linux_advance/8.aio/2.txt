@@ -1,0 +1,14 @@
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.122.101 node1.robin.com
+192.168.122.102 node2.robin.com
+192.168.122.103 node3.robin.com
+192.168.122.104 node4.robin.com
+192.168.122.105 node5.robin.com
+192.168.122.106 node6.robin.com
+192.168.122.107 node7.robin.com
+192.168.122.108 node8.robin.com
+192.168.122.109 node9.robin.com
+192.168.122.110 node10.robin.com
+192.168.91.187 web11.uplooking.com
+192.168.91.12 web12.uplooking.com
