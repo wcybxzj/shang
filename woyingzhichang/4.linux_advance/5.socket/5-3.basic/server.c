@@ -13,6 +13,11 @@
 #include "proto.h"
 #define IP_SIZE 16
 
+int work = 1;
+static void func(int s){
+	work = 0;
+}
+
 //目的:查看listen中backlog的作用
 //netstat -antp|grep 1989
 //listen backlog设置成1, ESTABLISH的最大数量是backlog+1=2
@@ -34,10 +39,13 @@ int worker(int newsd){
 
 
 int main(){
+	int num=0;
 	int sd, newsd;
 	struct sockaddr_in laddr, raddr;
 	socklen_t rlen;
 	char ip[IP_SIZE];
+
+	signal(SIGINT, func);
 
 	sd = socket(AF_INET, SOCK_STREAM, 0);
 	if(sd < 0){
@@ -66,7 +74,11 @@ int main(){
 
 	listen(sd, 1);
 	printf("sever sleep\n");
-	sleep(30);
+	while (work) {
+		sleep(1);
+		printf("num:%d\n",num);
+		num++;
+	}
 	printf("sever sleep done\n");
 	while (1) {
 		newsd = accept(sd, (void *)&raddr, &rlen);
