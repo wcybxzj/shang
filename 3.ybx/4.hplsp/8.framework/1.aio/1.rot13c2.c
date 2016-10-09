@@ -38,6 +38,8 @@ translate(unsigned char c)
     return(c);
 }
 
+//源码来自APUE
+//虽然用了异步IO的API+状态机,但是没有用异步IO,而是同步IO
 int main(int argc, char* argv[])
 {
 	int					ifd, ofd, i, j, n, err, numop;

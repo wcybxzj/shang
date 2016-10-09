@@ -12,6 +12,8 @@
 #define BUFSIZE 1024
 #define MAX_LIST 2
 
+//没实现
+//_SC_AIO_LISTIO_MAX设置不进去
 int main(int argc, const char *argv[])
 {
 	struct aiocb aiocb1, aiocb2;
