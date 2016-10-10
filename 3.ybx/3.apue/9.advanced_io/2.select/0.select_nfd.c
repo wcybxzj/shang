@@ -35,7 +35,7 @@ int main(int argc, const char *argv[])
 	for (i = 1; i <= 2000; i++) {
 		count++;
 		snprintf(str,11,"/tmp/%d",i);
-		fd = open(str, O_RDWR);
+		fd = open(str, O_RDWR|O_CREAT);
 		if (fd < 0) {
 			perror("open():");
 		}

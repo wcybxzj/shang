@@ -17,16 +17,7 @@ int worker(int newsd){
 	char str[IP_SIZE]={'\0'};
 	int len;
 
-
-	//问题:
-	//client就不会输出
-
-	//办法1: len+1
-	//这里len加1的用处2点:
-	//1:给字符最后加个为零否则客户端输出的字符有问题
-	//2:解决server sleep中, client 无法输出的问题
-	//len = sprintf(str, FMT_STAMP, (long long)time(NULL))+1;
-	len = sprintf(str, FMT_STAMP, (long long)time(NULL));
+	len = sprintf(str, FMT_STAMP, (long long)time(NULL))+1;
 
 	printf("=====len:%d======\n", len);
 	printf(FMT_STAMP, str);
@@ -34,33 +25,21 @@ int worker(int newsd){
 		perror("send()");
 		exit(-3);
 	}
-
-
-	//办法2:
 	close(newsd);
 }
-
-
+//表63-6
 int main(){
 	int sd, newsd;
 	struct sockaddr_in laddr, raddr;
 	socklen_t rlen;
 	char ip[IP_SIZE];
 
-	sd = socket(AF_INET, SOCK_STREAM, 0/*IPPROTO_TCP*/);
+	sd = socket(AF_INET, SOCK_STREAM, 0);
 	if(sd < 0){
 		perror("socket");
 		exit(0);
 	}
 
-	//问题:
-	//server启动并且服务1个client
-	//server close(newfd) 在tcp主动关闭将残留TIME_WAIT持续2MSL
-	//关闭server 再次启动server
-	//报错bind(): Address already in use
-
-	//方法:
-	//通过设置SO_REUSEADDR, 让server再次启动bind时无视残留的TIME_WAIT
 	int val=1;
 	if(setsockopt(sd, SOL_SOCKET, SO_REUSEADDR,\
 				&val, sizeof(val)) < 0){
@@ -79,8 +58,11 @@ int main(){
 		perror("bind()");
 		exit(0);
 	}
-
+	//TODO
 	listen(sd, 200);
+
+
+
 	while (1) {
 		newsd = accept(sd, (void *)&raddr, &rlen);
 		if(newsd<0){
@@ -101,6 +83,7 @@ int main(){
 				ip, htons(raddr.sin_port));
 
 		worker(newsd);
+
 	}
 
 	exit(0);
