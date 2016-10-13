@@ -9,30 +9,61 @@
 #include <string.h>
 #include <time.h>
 #include <signal.h>
+#include <poll.h>
+#include <limits.h>
+#include <sys/socket.h>
 
 #include "proto.h"
+
 #define IP_SIZE 16
 
+
 int worker(int newsd){
+	int i, len, ret;
 	char str[IP_SIZE]={'\0'};
-	int len;
+	struct pollfd pollfd_var;
 
+	//poll 可输出 POLLOUT
+	pollfd_var.fd = newsd;
+	pollfd_var.events = POLLIN|POLLOUT|POLLPRI;
+	printf("block\n");
+	ret = poll(&pollfd_var, 1, -1);
+	if (ret == -1) {
+		perror("poll");
+		exit(1);
+	}
+	if (pollfd_var.revents & POLLERR) {
+		printf("POLLERR\n");
+	}
+	if(pollfd_var.revents & POLLOUT){
+		printf("POLLOUT\n");
+	}
+	if(pollfd_var.revents & POLLIN){
+		printf("POLLIN\n");
+	}
+
+	sleep(2);
+	//send
 	len = sprintf(str, FMT_STAMP, (long long)time(NULL))+1;
-
-	printf("=====len:%d======\n", len);
-	printf(FMT_STAMP, str);
 	if(send(newsd, str, len, 0) < 0){
 		perror("send()");
 		exit(-3);
 	}
-	close(newsd);
+	
+	sleep(100);
+	printf("close or shutdown\n");
+	shutdown(newsd, SHUT_WR);
+	//close(newsd);
 }
+
+
 //表63-6
 int main(){
-	int sd, newsd;
+	int i, sd, newsd, ret;
 	struct sockaddr_in laddr, raddr;
 	socklen_t rlen;
 	char ip[IP_SIZE];
+	struct pollfd pollfd_var;
 
 	sd = socket(AF_INET, SOCK_STREAM, 0);
 	if(sd < 0){
@@ -58,11 +89,30 @@ int main(){
 		perror("bind()");
 		exit(0);
 	}
-	//TODO
+
+	//listen不存在阻塞的问题,要么立刻成功,要么立刻失败
 	listen(sd, 200);
 
-
-
+	//client connect后,server accept前
+	//poll 返回POLLIN
+	printf("poll\n");
+	pollfd_var.fd = sd;
+	pollfd_var.events = POLLIN|POLLOUT|POLLPRI;
+	ret = poll(&pollfd_var, 1, -1);
+	if (ret == -1) {
+		perror("poll");
+		exit(1);
+	}
+	if (pollfd_var.revents & POLLERR) {
+		printf("POLLERR\n");
+	}
+	if(pollfd_var.revents & POLLOUT){
+		printf("POLLOUT\n");
+	}
+	if(pollfd_var.revents & POLLIN){
+		printf("POLLIN\n");
+	}
+	
 	while (1) {
 		newsd = accept(sd, (void *)&raddr, &rlen);
 		if(newsd<0){
@@ -79,11 +129,10 @@ int main(){
 			exit(-2);
 		}
 
-		printf("radd:%s rport:%d\n", \
-				ip, htons(raddr.sin_port));
+		//printf("radd:%s rport:%d\n", \
+		//		ip, htons(raddr.sin_port));
 
 		worker(newsd);
-
 	}
 
 	exit(0);

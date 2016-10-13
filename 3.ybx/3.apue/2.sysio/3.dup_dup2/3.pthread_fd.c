@@ -19,8 +19,8 @@ void test_sysio_fd_arr();
 //2.内部结构体是独立的
 int main(int argc, const char *argv[])
 {
-	test_sysio_inner_struct();
-	//test_sysio_fd_arr();
+	//test_sysio_inner_struct();
+	test_sysio_fd_arr();
 	return 0;
 }
 
@@ -29,6 +29,7 @@ void* inner_struct(void *p)
 	printf("begin work tid:%lu\n", pthread_self());
 	int fd;
 	char buf[SIZE];
+	int len;
 	memset(buf, 0x00, SIZE);
 	//制作各线程的交叉执行效果
 	if (pthread_self()%3) {
@@ -40,8 +41,8 @@ void* inner_struct(void *p)
 		perror("open():");
 		exit(1);
 	}
-	read(fd, buf, SIZE);
-	printf("pthread_id:%lu, buf:%s\n", pthread_self(), buf);
+	len = read(fd, buf, SIZE);
+	printf("pthread_id:%lu, buf:%s, len:%d\n", pthread_self(), buf, len);
 	close(fd);
 	pthread_exit(NULL);
 }
