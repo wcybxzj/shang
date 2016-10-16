@@ -12,52 +12,87 @@
 #include <poll.h>
 #include <limits.h>
 #include <sys/socket.h>
-
+#include <sys/epoll.h>
+#include <fcntl.h>
 #include "proto.h"
 
 #define IP_SIZE 16
-
+#define BUF_SIZE 1024
 
 int worker(int newsd){
+	int epfd;
+	struct epoll_event ev;
 	int i, len, ret;
-	char str[IP_SIZE]={'\0'};
-	struct pollfd pollfd_var;
+	char buf[BUF_SIZE];
 
-	//poll 可输出 POLLOUT
-	pollfd_var.fd = newsd;
-	pollfd_var.events = POLLIN|POLLOUT|POLLPRI;
-	printf("block\n");
-	ret = poll(&pollfd_var, 1, -1);
-	if (ret == -1) {
-		perror("poll");
+	epfd = epoll_create(1);
+	if (epfd < 0) {
+		perror("epoll_create():");
 		exit(1);
 	}
-	if (pollfd_var.revents & POLLERR) {
-		printf("POLLERR\n");
-	}
-	if(pollfd_var.revents & POLLOUT){
-		printf("POLLOUT\n");
-	}
-	if(pollfd_var.revents & POLLIN){
-		printf("POLLIN\n");
+
+	ev.data.fd = newsd;
+	ev.events = EPOLLIN|EPOLLET;
+	epoll_ctl(epfd, EPOLL_CTL_ADD, newsd, &ev);
+	while (1) {
+		printf("block\n");
+		ret = epoll_wait(epfd,&ev ,1, -1);
+		if (ret == -1) {
+			perror("epoll()");
+			exit(1);
+		}
+
+		if (ev.data.fd = newsd && ev.events & EPOLLERR) {
+			printf("EPOLLERR\n");
+		}
+		if (ev.data.fd = newsd && ev.events & EPOLLIN) {
+			bzero(buf, BUF_SIZE);
+			printf("EPOLLIN\n");
+			len = read(newsd, buf, len);
+			printf("len:%d\n", len);
+			if (len>0) {
+				
+			}else if(len==0){
+				printf("EOF\n");
+			}
+		}
+		if (ev.data.fd = newsd && ev.events & EPOLLOUT) {
+			printf("EPOLLOUT\n");
+		}
+		if (ev.data.fd = newsd && ev.events & EPOLLRDHUP) {
+			printf("EPOLLRDHUT\n");
+		}
+		if (ev.data.fd = newsd && ev.events & EPOLLHUP) {
+			printf("EPOLLHUP\n");
+			break;
+		}
+
+		sleep(1);
+		printf("sleep 1\n");
 	}
 
-	sleep(2);
-	//send
-	len = sprintf(str, FMT_STAMP, (long long)time(NULL))+1;
-	if(send(newsd, str, len, 0) < 0){
-		perror("send()");
-		exit(-3);
+	while (1) {
+		pause();
 	}
-	
-	sleep(100);
+
 	printf("close or shutdown\n");
 	shutdown(newsd, SHUT_WR);
 	//close(newsd);
 }
 
-
 //表63-6
+// ./client 127.0.0.1
+// crtl+c
+//
+// ./server 
+// poll
+// POLLIN
+// block
+// EPOLLIN
+// len:0
+// EOF
+// sleep 1
+// block
 int main(){
 	int i, sd, newsd, ret;
 	struct sockaddr_in laddr, raddr;

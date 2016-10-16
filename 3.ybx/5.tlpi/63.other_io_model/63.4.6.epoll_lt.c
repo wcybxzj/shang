@@ -4,7 +4,6 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <signal.h>
 
 #define MAX_BUF     10

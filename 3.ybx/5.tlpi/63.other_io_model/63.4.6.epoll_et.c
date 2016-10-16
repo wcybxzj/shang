@@ -593,11 +593,10 @@ void epollin_et_func3(int argc, char * argv[]){
 //tlpi63.4.6
 int main(int argc, char *argv[])
 {
-
-	//epollin_et(argc, argv);
+	epollin_et(argc, argv);
 	//epollin_et_func1(argc, argv);
 	//epollin_et_func2(argc, argv);
-	epollin_et_func3(argc, argv);
+	//epollin_et_func3(argc, argv);
 
 
 	//数据结构测试
