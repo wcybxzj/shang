@@ -445,6 +445,7 @@ void epollin_et_func2(int argc, char * argv[]){
 					s = read(evlist[j].data.fd, buf, MAX_BUF);
 					if (s == -1){
 						if (errno == EAGAIN) {
+							printf("EAGAIN\n");
 							break;
 						}else{
 							errExit("read");
@@ -593,9 +594,9 @@ void epollin_et_func3(int argc, char * argv[]){
 //tlpi63.4.6
 int main(int argc, char *argv[])
 {
-	epollin_et(argc, argv);
+	//epollin_et(argc, argv);
 	//epollin_et_func1(argc, argv);
-	//epollin_et_func2(argc, argv);
+	epollin_et_func2(argc, argv);
 	//epollin_et_func3(argc, argv);
 
 
