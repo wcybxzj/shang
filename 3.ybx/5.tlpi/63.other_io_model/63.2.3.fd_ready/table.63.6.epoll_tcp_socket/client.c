@@ -21,17 +21,19 @@ int sd;
 
 void sig_handler(int s){
 	printf("sig_hanler\n");
-	shutdown(sd, SHUT_WR);
+	close(sd);
+	//shutdown(sd, SHUT_WR);
 }
 
 void func2(){
 	int i;
 	int ret;
 	char str[BUF_SIZE];
-	long long time;
-	while (1) {
-		pause();
-	}
+	printf("sleep 10\n");
+	sleep(10);
+	printf("write abc \n");
+	write(sd,"abc",3);
+	pause();
 }
 
 int main(int argc, const char *argv[])

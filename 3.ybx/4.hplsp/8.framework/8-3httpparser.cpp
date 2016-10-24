@@ -327,6 +327,7 @@ int main( int argc, char* argv[] )
 				}
 				else if( result == GET_REQUEST )
 				{
+					chdir("www");
 					if ( stat( file_name, &file_stat ) < 0 ) {
 						valid = false;
 					}else {

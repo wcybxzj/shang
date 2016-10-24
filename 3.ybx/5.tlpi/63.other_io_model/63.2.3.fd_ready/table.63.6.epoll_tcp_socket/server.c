@@ -32,7 +32,7 @@ int worker(int newsd){
 	}
 
 	ev.data.fd = newsd;
-	ev.events = EPOLLIN|EPOLLET;
+	ev.events = EPOLLIN|EPOLLET|EPOLLOUT;
 	epoll_ctl(epfd, EPOLL_CTL_ADD, newsd, &ev);
 	while (1) {
 		printf("block\n");
@@ -41,7 +41,7 @@ int worker(int newsd){
 			perror("epoll()");
 			exit(1);
 		}
-
+		printf("epoll_wait:ret:%d\n",ret);
 		if (ev.data.fd = newsd && ev.events & EPOLLERR) {
 			printf("EPOLLERR\n");
 		}
@@ -66,9 +66,6 @@ int worker(int newsd){
 			printf("EPOLLHUP\n");
 			break;
 		}
-
-		sleep(1);
-		printf("sleep 1\n");
 	}
 
 	while (1) {
@@ -81,18 +78,32 @@ int worker(int newsd){
 }
 
 //表63-6
-// ./client 127.0.0.1
-// crtl+c
-//
-// ./server 
-// poll
-// POLLIN
-// block
-// EPOLLIN
-// len:0
-// EOF
-// sleep 1
-// block
+/*
+./server 127.0.0.1
+poll
+poll return ret:1
+POLLIN
+block
+epoll_wait:ret:1
+EPOLLOUT
+block
+epoll_wait:ret:1
+EPOLLIN
+len:3
+EPOLLOUT
+block
+epoll_wait:ret:1
+EPOLLIN
+len:0
+EOF
+EPOLLOUT
+block
+
+./client 127.0.0.1
+sleep 10
+write abc 
+^Csig_hanler
+*/
 int main(){
 	int i, sd, newsd, ret;
 	struct sockaddr_in laddr, raddr;
@@ -134,6 +145,7 @@ int main(){
 	pollfd_var.fd = sd;
 	pollfd_var.events = POLLIN|POLLOUT|POLLPRI;
 	ret = poll(&pollfd_var, 1, -1);
+	printf("poll return ret:%d\n");
 	if (ret == -1) {
 		perror("poll");
 		exit(1);
