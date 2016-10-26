@@ -270,6 +270,8 @@ int main( int argc, char* argv[] )
 	char header_buf[BUFFER_SIZE];
 	struct iovec iv[2];
 
+recv:
+	//printf("while 1\n");
 	while (1) {
 		socklen_t client_addrlength = sizeof( client_address );
 		fd = accept( listenfd, ( struct sockaddr* )&client_address, \
@@ -288,8 +290,21 @@ int main( int argc, char* argv[] )
 			checkstate = CHECK_STATE_REQUESTLINE;
 			while( 1 )
 			{
+				//printf("block recv\n");
 				data_read = recv( fd, buffer + read_index, \
 						BUFFER_SIZE - read_index, 0 );
+				//printf("unblock recv\n");
+				valid = true;
+				if ( data_read == -1 )
+				{
+					printf( "ERROR:reading failed\n" );
+					goto recv;
+				}
+				else if ( data_read == 0 )
+				{
+					printf( "ERROR:remote client has closed the connection\n" );
+					goto recv;
+				}
 				printf("========原始========\n");
 				printf("%s\n",buffer);
 				printf("========转义========\n");
@@ -305,18 +320,6 @@ int main( int argc, char* argv[] )
 					}
 				}
 				printf("--------------------\n");
-
-				valid = true;
-				if ( data_read == -1 )
-				{
-					printf( "ERROR:reading failed\n" );
-					break;
-				}
-				else if ( data_read == 0 )
-				{
-					printf( "ERROR:remote client has closed the connection\n" );
-					break;
-				}
 				read_index += data_read;
 				HTTP_CODE result = parse_content( buffer, checked_index, \
 						checkstate, read_index, start_line ,&file_name);

@@ -1,5 +1,5 @@
 #ifndef __unp_h
-#include "../config.h"
+#include "config.h"
 
 #include    <sys/types.h>   /* basic system data types */
 #include    <sys/socket.h>  /* basic socket definitions */
@@ -80,27 +80,25 @@ typedef void    Sigfunc(int);   /* for signal handlers */
 #define min(a,b)    ((a) < (b) ? (a) : (b))
 #define max(a,b)    ((a) > (b) ? (a) : (b))
 
+int     tcp_connect(const char *, const char *);
+ssize_t writen(int fd, const void *ptr, size_t n);
+ssize_t readn(int fd, void *ptr, size_t n);
 
 
-
-
-
-
-
-
-
+struct	addrinfo * host_serv(const char *host, const char *serv, \
+		int family, int socktype);
+struct	addrinfo * Host_serv(const char *host, const char *serv, \
+		int family, int socktype);
+void	Writen(int fd, const void *ptr, size_t n);
+ssize_t Readn(int fd, void *ptr, size_t n);
+void	Close(int fd);
+int     Tcp_connect(const char *, const char *);
 
 void     err_dump(const char *, ...);
 void     err_msg(const char *, ...);
 void     err_quit(const char *, ...);
 void     err_ret(const char *, ...);
 void     err_sys(const char *, ...);
-
-
-
-
-
-
 
 
 #endif //end __unp_h

@@ -1,10 +1,11 @@
 CC = gcc
-CFLAGS = -g -O2 -D_REENTRANT -Wall
+CFLAGS = -g -O2 -D_REENTRANT -Wall -I ../
 LIBS = ../libunp.a -lpthread
 RANLIB = ranlib
 
 LIBUNP_NAME = ../libunp.a
 
-LIB_OBJS = tcp_connect.o error.o wrapunix.o
+LIB_OBJS = tcp_connect.o error.o wrapunix.o writen.o readn.o \
+			host_serv.o
 
 CLEANFILES = core core.* *.core *.o *.out

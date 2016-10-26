@@ -18,16 +18,16 @@ tcp_connect(const char *host, const char *serv)
 
 	do {
 		sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-		if (sockfd < 0)
-			continue;	/* ignore this one */
-
-		if (connect(sockfd, res->ai_addr, res->ai_addrlen) == 0)
-			break;		/* success */
-
-		Close(sockfd);	/* ignore this one */
+		if (sockfd < 0){
+			continue;
+		}
+		if (connect(sockfd, res->ai_addr, res->ai_addrlen) == 0){
+			break;	
+		}
+		Close(sockfd);
 	} while ( (res = res->ai_next) != NULL);
 
-	if (res == NULL)	/* errno set from final connect() */
+	if (res == NULL)
 		err_sys("tcp_connect error for %s, %s", host, serv);
 
 	freeaddrinfo(ressave);
@@ -47,3 +47,14 @@ Tcp_connect(const char *host, const char *serv)
 {
 	return(tcp_connect(host, serv));
 }
+
+////gcc tcp_connect.c -I .. error.o wrapunix.o
+//int main(int argc, const char *argv[])
+//{
+//	char *host = "127.0.0.1";
+//	char *port = "1234";
+//
+//	int fd = tcp_connect(host, port);
+//	printf("%d\n", fd);
+//	return 0;
+//}

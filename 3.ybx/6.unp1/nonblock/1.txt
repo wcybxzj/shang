@@ -1,0 +1,221 @@
+start_connect for /1.jpg fd:3
+EINPROGRESS fd:3
+start_connect for /2.jpg fd:4
+EINPROGRESS fd:4
+start_connect for /3.jpg fd:5
+EINPROGRESS fd:5
+block select
+unblcok select n:3
+===============================================
+f_name:/1.jpg fd:3 flags:1
+F_CONNECTING f_name:/1.jpg
+nonblock fd connect success for /1.jpg, fd:3
+request 49 bytes for /1.jpg, fd:3
+===============================================
+f_name:/2.jpg fd:4 flags:1
+F_CONNECTING f_name:/2.jpg
+nonblock fd connect success for /2.jpg, fd:4
+request 49 bytes for /2.jpg, fd:4
+===============================================
+f_name:/3.jpg fd:5 flags:1
+F_CONNECTING f_name:/3.jpg
+nonblock fd connect success for /3.jpg, fd:5
+request 49 bytes for /3.jpg, fd:5
+block select
+unblcok select n:3
+===============================================
+f_name:/1.jpg fd:3 flags:2
+read ret:4096
+read!!! 4096 bytes from /1.jpg
+===============================================
+f_name:/2.jpg fd:4 flags:2
+read ret:4096
+read!!! 4096 bytes from /2.jpg
+===============================================
+f_name:/3.jpg fd:5 flags:2
+read ret:4096
+read!!! 4096 bytes from /3.jpg
+block select
+unblcok select n:3
+===============================================
+f_name:/1.jpg fd:3 flags:2
+read ret:4096
+read!!! 4096 bytes from /1.jpg
+===============================================
+f_name:/2.jpg fd:4 flags:2
+read ret:4096
+read!!! 4096 bytes from /2.jpg
+===============================================
+f_name:/3.jpg fd:5 flags:2
+read ret:4096
+read!!! 4096 bytes from /3.jpg
+block select
+unblcok select n:3
+===============================================
+f_name:/1.jpg fd:3 flags:2
+read ret:4096
+read!!! 4096 bytes from /1.jpg
+===============================================
+f_name:/2.jpg fd:4 flags:2
+read ret:303
+read!!! 303 bytes from /2.jpg
+===============================================
+f_name:/3.jpg fd:5 flags:2
+read ret:4096
+read!!! 4096 bytes from /3.jpg
+block select
+unblcok select n:3
+===============================================
+f_name:/1.jpg fd:3 flags:2
+read ret:494
+read!!! 494 bytes from /1.jpg
+===============================================
+f_name:/2.jpg fd:4 flags:2
+read ret:0
+f_name:/2.jpg EOF
+===============================================
+f_name:/3.jpg fd:5 flags:2
+read ret:4096
+read!!! 4096 bytes from /3.jpg
+start_connect for /4.jpg fd:4
+EINPROGRESS fd:4
+block select
+unblcok select n:3
+===============================================
+f_name:/1.jpg fd:3 flags:2
+read ret:0
+f_name:/1.jpg EOF
+===============================================
+f_name:/3.jpg fd:5 flags:2
+read ret:2961
+read!!! 2961 bytes from /3.jpg
+===============================================
+f_name:/4.jpg fd:4 flags:1
+F_CONNECTING f_name:/4.jpg
+nonblock fd connect success for /4.jpg, fd:4
+request 49 bytes for /4.jpg, fd:4
+start_connect for /5.jpg fd:3
+EINPROGRESS fd:3
+block select
+unblcok select n:3
+===============================================
+f_name:/3.jpg fd:5 flags:2
+read ret:0
+f_name:/3.jpg EOF
+===============================================
+f_name:/4.jpg fd:4 flags:2
+read ret:4096
+read!!! 4096 bytes from /4.jpg
+===============================================
+f_name:/5.jpg fd:3 flags:1
+F_CONNECTING f_name:/5.jpg
+nonblock fd connect success for /5.jpg, fd:3
+request 49 bytes for /5.jpg, fd:3
+start_connect for /6.jpg fd:5
+EINPROGRESS fd:5
+block select
+unblcok select n:3
+===============================================
+f_name:/4.jpg fd:4 flags:2
+read ret:4096
+read!!! 4096 bytes from /4.jpg
+===============================================
+f_name:/5.jpg fd:3 flags:2
+read ret:4096
+read!!! 4096 bytes from /5.jpg
+===============================================
+f_name:/6.jpg fd:5 flags:1
+F_CONNECTING f_name:/6.jpg
+nonblock fd connect success for /6.jpg, fd:5
+request 49 bytes for /6.jpg, fd:5
+block select
+unblcok select n:3
+===============================================
+f_name:/4.jpg fd:4 flags:2
+read ret:4096
+read!!! 4096 bytes from /4.jpg
+===============================================
+f_name:/5.jpg fd:3 flags:2
+read ret:4096
+read!!! 4096 bytes from /5.jpg
+===============================================
+f_name:/6.jpg fd:5 flags:2
+read ret:4096
+read!!! 4096 bytes from /6.jpg
+block select
+unblcok select n:3
+===============================================
+f_name:/4.jpg fd:4 flags:2
+read ret:438
+read!!! 438 bytes from /4.jpg
+===============================================
+f_name:/5.jpg fd:3 flags:2
+read ret:4096
+read!!! 4096 bytes from /5.jpg
+===============================================
+f_name:/6.jpg fd:5 flags:2
+read ret:4096
+read!!! 4096 bytes from /6.jpg
+block select
+unblcok select n:3
+===============================================
+f_name:/4.jpg fd:4 flags:2
+read ret:0
+f_name:/4.jpg EOF
+===============================================
+f_name:/5.jpg fd:3 flags:2
+read ret:4096
+read!!! 4096 bytes from /5.jpg
+===============================================
+f_name:/6.jpg fd:5 flags:2
+read ret:4096
+read!!! 4096 bytes from /6.jpg
+start_connect for /7.jpg fd:4
+EINPROGRESS fd:4
+block select
+unblcok select n:3
+===============================================
+f_name:/5.jpg fd:3 flags:2
+read ret:414
+read!!! 414 bytes from /5.jpg
+===============================================
+f_name:/6.jpg fd:5 flags:2
+read ret:3006
+read!!! 3006 bytes from /6.jpg
+===============================================
+f_name:/7.jpg fd:4 flags:1
+F_CONNECTING f_name:/7.jpg
+nonblock fd connect success for /7.jpg, fd:4
+request 49 bytes for /7.jpg, fd:4
+block select
+unblcok select n:3
+===============================================
+f_name:/5.jpg fd:3 flags:2
+read ret:0
+f_name:/5.jpg EOF
+===============================================
+f_name:/6.jpg fd:5 flags:2
+read ret:0
+f_name:/6.jpg EOF
+===============================================
+f_name:/7.jpg fd:4 flags:2
+read ret:4096
+read!!! 4096 bytes from /7.jpg
+block select
+unblcok select n:1
+===============================================
+f_name:/7.jpg fd:4 flags:2
+read ret:4096
+read!!! 4096 bytes from /7.jpg
+block select
+unblcok select n:1
+===============================================
+f_name:/7.jpg fd:4 flags:2
+read ret:1547
+read!!! 1547 bytes from /7.jpg
+block select
+unblcok select n:1
+===============================================
+f_name:/7.jpg fd:4 flags:2
+read ret:0
+f_name:/7.jpg EOF

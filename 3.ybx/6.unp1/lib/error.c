@@ -57,7 +57,7 @@ void err_dump(const char *fmt, ...){
 	exit(1);
 }
 
-//not fatal erro, no related to s system call
+//not fatal error, no related to s system call
 void err_msg(const char *fmt, ...){
 	va_list ap;
 	va_start(ap, fmt);
@@ -66,7 +66,7 @@ void err_msg(const char *fmt, ...){
 	return;
 }
 
-//fatal erro, related to s system call
+//fatal error, related to s system call
 void err_quit(const char *fmt, ...){
 	va_list ap;
 	va_start(ap, fmt);
