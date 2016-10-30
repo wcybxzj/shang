@@ -1,9 +1,10 @@
 #include "web.h"
 
+//解析home_page从中获取要并发connect的请求
 void home_page(char *host, char *port, const char *page, \
 		struct file *filearr, int *nfiles){
 
-	int sd, n, i, len;
+	int sd, n, i, j , len, num;
 	char line[MAXLINE];
 	sd = tcp_connect(host, port);
 
@@ -17,31 +18,49 @@ void home_page(char *host, char *port, const char *page, \
         exit(1);
     }
 
-	int j = 0;
-    char *tmp = NULL;
-	for (i = 1; 1 ; i++) {
-        bzero(line, sizeof(line));
-        tmp = fgets(line, sizeof(line), fd);
-        if (tmp == NULL) {
+    int content_length;
+    while (1) {
+        fgets(line, sizeof(line), fd);
+        if (strcmp(line, "\r\n")==0) {
             break;
         }
-		if (i>3) {
+        //Content-Length: 5928
+        if (strncmp(line, "Content-Length", strlen("Content-Length")) == 0) {
+            sscanf(line, "Content-Length: %d", &content_length);
+            //printf("%s", line);
+        }
+    }
+
+	j = 0;
+    num = 0;
+    while (1) {
+        if(fgets(line, sizeof(line), fd) == NULL) {
+            break;
+        }else{
+            num+=strlen(line);
 			len = strlen(line);
 			line[len-1]='\0';
 			filearr[j].f_name = malloc(strlen(line));
 			filearr[j].f_name = strndup(line, strlen(line));
 			filearr[j].f_host = host;
 			filearr[j].f_port = port;
+			filearr[j].f_fp = NULL;
+			filearr[j].content_length = 0;
+			filearr[j].current_content_length = 0;
 			filearr[j].f_flags = F_INIT;
+			filearr[j].http_flags = HTTP_HEADER;
 			j++;
-		}
+        }
+        //客户端读取到足够的content-length主动关闭
+        //对付开启keep-alive的web-server
+        if (num == content_length) {
+            break;
+        }
     }
 
 	*nfiles = j;
 
 	//printf("j:%d\n", j);
-
-
 
     close( sd );
     fclose(fd);

@@ -32,11 +32,11 @@ int worker(int newsd){
 	}
 
 	ev.data.fd = newsd;
-	ev.events = EPOLLIN|EPOLLET|EPOLLOUT;
+	ev.events = EPOLLIN|EPOLLET|EPOLLOUT|EPOLLRDHUP;
 	epoll_ctl(epfd, EPOLL_CTL_ADD, newsd, &ev);
 	while (1) {
-		printf("block\n");
-		ret = epoll_wait(epfd,&ev ,1, -1);
+		printf("============ epoll_wait block==========\n");
+		ret = epoll_wait(epfd, &ev, 1, -1);
 		if (ret == -1) {
 			perror("epoll()");
 			exit(1);
@@ -60,7 +60,7 @@ int worker(int newsd){
 			printf("EPOLLOUT\n");
 		}
 		if (ev.data.fd = newsd && ev.events & EPOLLRDHUP) {
-			printf("EPOLLRDHUT\n");
+			printf("EPOLLRDHUP\n");
 		}
 		if (ev.data.fd = newsd && ev.events & EPOLLHUP) {
 			printf("EPOLLHUP\n");
@@ -77,33 +77,6 @@ int worker(int newsd){
 	//close(newsd);
 }
 
-//表63-6
-/*
-./server 127.0.0.1
-poll
-poll return ret:1
-POLLIN
-block
-epoll_wait:ret:1
-EPOLLOUT
-block
-epoll_wait:ret:1
-EPOLLIN
-len:3
-EPOLLOUT
-block
-epoll_wait:ret:1
-EPOLLIN
-len:0
-EOF
-EPOLLOUT
-block
-
-./client 127.0.0.1
-sleep 10
-write abc 
-^Csig_hanler
-*/
 int main(){
 	int i, sd, newsd, ret;
 	struct sockaddr_in laddr, raddr;
@@ -141,9 +114,9 @@ int main(){
 
 	//client connect后,server accept前
 	//poll 返回POLLIN
-	printf("poll\n");
 	pollfd_var.fd = sd;
 	pollfd_var.events = POLLIN|POLLOUT|POLLPRI;
+	printf("===============poll block==============\n");
 	ret = poll(&pollfd_var, 1, -1);
 	printf("poll return ret:%d\n");
 	if (ret == -1) {

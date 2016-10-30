@@ -90,31 +90,40 @@ recv:
 					printf( "ERROR:remote client has closed the connection\n" );
 					goto recv;
 				}
-				printf("========原始========\n");
-				printf("%s\n",buffer);
-				printf("========转义========\n");
-				for (i = 0; i < data_read; i++) {
-					if (buffer[i]=='\r') {
-						printf("\\r");
-					}else if (buffer[i]=='\t') {
-						printf("\\t\n");
-					}else if (buffer[i]=='\n') {
-						printf("\\n\n");
-					}else{
-						printf("%c",buffer[i]);
-					}
-				}
+				//printf("========原始========\n");
+				//printf("%s\n",buffer);
+				//printf("========转义========\n");
+				//for (i = 0; i < data_read; i++) {
+				//	if (buffer[i]=='\r') {
+				//		printf("\\r");
+				//	}else if (buffer[i]=='\t') {
+				//		printf("\\t\n");
+				//	}else if (buffer[i]=='\n') {
+				//		printf("\\n\n");
+				//	}else{
+				//		printf("%c",buffer[i]);
+				//	}
+				//}
 				printf("--------------------\n");
 				read_index += data_read;
-				HTTP_CODE result = parse_content( buffer, checked_index, \
+				HTTP_REQUEST_CODE result = parse_content( buffer, checked_index, \
 						checkstate, read_index, start_line ,&file_name);
 				printf("---%s\n", file_name);
 				printf("---result:%d\n", result);
-				if( result == NO_REQUEST )
+
+				if (result == NEED_RESQUEST_HEADER) {
+					printf("仍需头部数据\n");
+				}else if(result == GET_REQUEST_HEADER){
+					printf("头部处理完成\n");
+				}else if(result == BAD_REQUEST_HEADER){
+					printf("错误头部数据\n");
+				}
+
+				if( result == NEED_RESQUEST_HEADER )
 				{
 					continue;
 				}
-				else if( result == GET_REQUEST )
+				else if( result == GET_REQUEST_HEADER )
 				{
 					chdir("www");
 					if ( stat( file_name, &file_stat ) < 0 ) {

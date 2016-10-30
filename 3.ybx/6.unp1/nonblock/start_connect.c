@@ -14,7 +14,8 @@ void start_connect(struct file* fptr){
 		exit(1);
 	}
 
-	fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+	fd = socket(ai->ai_family, ai->ai_socktype, \
+			ai->ai_protocol);
 	if (fd == -1) {
 		perror("socket");
 		exit(1);

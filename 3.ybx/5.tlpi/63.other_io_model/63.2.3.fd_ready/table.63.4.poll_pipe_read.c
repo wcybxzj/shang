@@ -7,7 +7,7 @@
 //POLLHUP:		 close(pd[1])并且pipe没数据
 //POLLIN:		 注释close(pd[1])并且pipe有数据
 //POLLIN|POLLHUP:close(pd[1])并且pipe有数据
-int main(int argc, const char *argv[])
+void func1()
 {
 	int pd[2];
 	int ret;
@@ -25,7 +25,7 @@ int main(int argc, const char *argv[])
 	close(pd[1]);
 
 	pollfd_var.fd = pd[0];
-	pollfd_var.events = POLLIN;
+	pollfd_var.events = POLLIN|POLLOUT;
 
 	ret = poll(&pollfd_var, 1, 0);
 	if (ret == -1) {
@@ -39,6 +39,14 @@ int main(int argc, const char *argv[])
 	if(pollfd_var.revents & POLLIN){
 		printf("POLLIN\n");
 	}
+	if(pollfd_var.revents & POLLOUT){
+		printf("POLLOUT\n");
+	}
 
-	return 0;
+}
+
+
+int main(int argc, const char *argv[])
+{
+	func1();
 }

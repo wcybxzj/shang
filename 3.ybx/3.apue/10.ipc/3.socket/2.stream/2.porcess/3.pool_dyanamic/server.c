@@ -180,7 +180,6 @@ int main(){
 		pool_arr[i].pid = -1;
 	}
 
-
 	sd = socket(AF_INET, SOCK_STREAM, 0/*IPPROTO_TCP*/);
 	if(sd < 0){
 		perror("socket");
@@ -207,6 +206,7 @@ int main(){
 	}
 
 	listen(sd, 200);
+	printf("w\n");
 	for(i=0; i<MINSEPARATE; i++){
 		add_one_worker();
 	}

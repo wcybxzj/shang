@@ -6,16 +6,84 @@
 #define MAX 100
 char *content_arr[MAX];
 
+//只能处理 keep-alive:close
+void func1(int sd)
+{
+	int  len;
+	int content_length;
+	char buf[BUFFER_SIZE];
+	int num = 0;
+	//成功
+	FILE *fd = fdopen(sd, "r");
+	if (fd== NULL) {
+		perror("fdopen");
+		exit(1);
+	}
+
+	while (1) {
+		bzero(buf, BUFFER_SIZE);
+		fgets(buf, sizeof(buf)-1, fd);
+		if (strcmp(buf, "\r\n")==0) {
+			break;
+		}
+		//Content-Length: 5928
+		if (strncmp(buf, "Content-Length", strlen("Content-Length")) == 0) {
+			sscanf(buf, "Content-Length: %d", &content_length);
+		}
+	}
+
+	num =0;
+	while (1) {
+		bzero(buf, BUFFER_SIZE);
+		num = fread(buf, 1, sizeof(buf)-1, fd);
+		if (num<=0) {
+			break;
+		}   
+		fwrite(buf, 1, num, stdout);
+		fflush(NULL);
+	}   
+
+	fclose(fd);
+}
+
+//处理 开启或关闭keep-alive
+void func2(int sd)
+{
+	char buffer[BUFFER_SIZE];
+	int content_length = 0;
+	int data_read = 0;
+	int read_index = 0;
+	int checked_index = 0;
+	int start_line = 0;
+	CHECK_STATE checkstate = CHECK_STATE_LINE;
+
+	while (1) {
+		bzero(buffer, sizeof(buffer));
+		data_read = recv(sd, buffer,sizeof(buffer),0);
+		if (data_read < 0) {
+			perror("recv");
+			break;
+		}
+		//write(1, buffer, data_read);
+
+		read_index += data_read;
+		HTTP_RESPONSE_CODE result = parse_response_content( buffer, checked_index, \
+				checkstate, read_index, start_line, &content_length);
+
+	}
+}
+
+
 int main( int argc, char* argv[] )
 {
 	if( argc <= 3 )
 	{
-		printf( "usage: %s ip_address port_number index.html\n", \
+		printf( "usage: %s ip_address port_number /index.html\n", \
 				basename( argv[0] ) );
 		return 1;
 	}
 
-	int i, ret, len, sd;
+	int  ret, len, sd;
 	const char* ip = argv[1];
 	int port = atoi( argv[2] );
 	char *page= argv[3];
@@ -52,35 +120,9 @@ int main( int argc, char* argv[] )
 		exit(1);
 	}
 
-	//失败
-	//bzero(buf, BUFFER_SIZE);
-	//while (1) {
-	//	ret = read(sd, buf, BUFFER_SIZE);
-	//	//ret = recv(sd, buf, BUFFER_SIZE, 0);
-	//	if (ret<=0) {
-	//		break;
-	//	}
-	//	write(1, buf, ret);
-	//}
+	//func1(sd);
+	func2(sd);
 
-	//成功
-	FILE *fd = fdopen(sd, "r");
-	if (fd== NULL) {
-		perror("fdopen");
-		exit(1);
-	}
-	for (i = 0; i < 3; i++) {
-		fgets(buf, sizeof(buf), fd);
-		//printf("%s",buf);
-	}
-	bzero(buf, BUFFER_SIZE);
-	while (1) { 
-		len = fread(buf, 1, BUFFER_SIZE, fd); 
-		if (len<=0) { 
-			break; 
-		} 
-		fwrite(buf, 1, len, stdout); 
-	}
-
+	close(sd);
 	return 0;
 }

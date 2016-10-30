@@ -22,7 +22,7 @@ pid_t gettid()
      return syscall(SYS_gettid);
 }
 
-	int sd;
+int sd;
 
 void * worker_loop(void *p){
 	char str[IP_SIZE]={'\0'};
