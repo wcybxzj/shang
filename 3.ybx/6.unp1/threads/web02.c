@@ -73,7 +73,6 @@ void pthread_deal_http(struct file *ptr)
 
 	close(fd);
 	close(output_fd);
-	ptr->f_flags = F_DONE;     /* clears F_READING */
 
 	printf("tid:%u, lock 11\n", pthread_self());
 	if ( (ret = pthread_mutex_lock(&ndone_mutex)) != 0){
@@ -88,6 +87,7 @@ void pthread_deal_http(struct file *ptr)
 		pthread_exit((void *) ret);
 	}
 	printf("tid:%u, lock 44\n", pthread_self());
+
 }
 
 void * do_get_read(void *vptr)
@@ -113,6 +113,8 @@ void * do_get_read(void *vptr)
 		pthread_exit((void*) errno);
 	}
 	pthread_deal_http(fptr);
+
+	fptr->f_flags = F_DONE;     /* clears F_READING */
 	return(fptr);       /* terminate thread */
 }
 
@@ -181,6 +183,7 @@ int main(int argc, char *argv[])
 		}
 
 		printf("main lock 1\n");
+
         if ( (n = pthread_mutex_lock(&ndone_mutex)) != 0)
             errno = n, err_sys("pthread_mutex_lock error");
 
