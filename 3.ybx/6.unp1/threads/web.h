@@ -8,7 +8,8 @@ enum F_FLAGS{
 	F_CONNECTING = 1,
 	F_READING	 = 2,
 	F_DONE		 = 4,
-	F_FAIL		 = 8
+	F_FAIL		 = 8,
+	F_JOINED	 = 16
 };
 
 struct file{
@@ -16,6 +17,7 @@ struct file{
 	char *f_host;
 	char *f_port;
 	int  f_fd;//socket fd
+	pthread_t f_tid;
 
 	int  output_fd;
 	int  content_length;//http header中content_length

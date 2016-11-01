@@ -88,7 +88,7 @@ LINE_STATUS parse_line( char* buffer, int& checked_index, int& read_index )
 HTTP_REQUEST_CODE parse_requestline( char* szTemp, CHECK_STATE& checkstate, char** name)
 {
 	char* szURL = strpbrk( szTemp, " \t" );
-	printf("szTemp:%s\n", szTemp);
+	//printf("szTemp:%s\n", szTemp);
 	if ( ! szURL )
 	{
 		return BAD_REQUEST_HEADER;
@@ -98,7 +98,7 @@ HTTP_REQUEST_CODE parse_requestline( char* szTemp, CHECK_STATE& checkstate, char
 	char* szMethod = szTemp;
 	if ( strcasecmp( szMethod, "GET" ) == 0 )
 	{
-		printf( "The request method is GET\n" );
+		//printf( "The request method is GET\n" );
 	}
 	else
 	{
@@ -128,7 +128,7 @@ HTTP_REQUEST_CODE parse_requestline( char* szTemp, CHECK_STATE& checkstate, char
 		return BAD_REQUEST_HEADER;
 	}
 	//URLDecode( szURL );
-	printf( "The request URL is: %s\n", szURL );
+	//printf( "The request URL is: %s\n", szURL );
 
 	deal_url(szURL, name);
 
@@ -140,7 +140,7 @@ HTTP_REQUEST_CODE parse_requestline( char* szTemp, CHECK_STATE& checkstate, char
 HTTP_RESPONSE_CODE parse_responseline( char* szTemp, CHECK_STATE& checkstate)
 {
 	char* szURL = strpbrk( szTemp, " \t" );
-	printf( "The request URL is: %s\n", szTemp );
+	//printf( "The request URL is: %s\n", szTemp );
 	if ( ! szURL )
 	{
 		return BAD_RESPONSE_HEADER;
@@ -204,7 +204,7 @@ HTTP_REQUEST_CODE parse_request_headers( char* szTemp )
 	return NEED_RESQUEST_HEADER;
 }
 
-HTTP_RESPONSE_CODE parse_response_headers( char* szTemp )
+HTTP_RESPONSE_CODE parse_response_headers( char* szTemp, int &content_length)
 {
 	int all;
 	char *tmp;
@@ -219,7 +219,10 @@ HTTP_RESPONSE_CODE parse_response_headers( char* szTemp )
 		if(tmp){
 			*tmp++ = '\0';
 			*tmp++ = '\0';
-			printf("%s:%s\n", szTemp,tmp);
+			if (strcasecmp("Content-Length", szTemp)==0) {
+				content_length = atoi(tmp);
+			}
+			//printf("%s:%s\n", szTemp,tmp);
 		}
 		else
 		{
@@ -229,7 +232,8 @@ HTTP_RESPONSE_CODE parse_response_headers( char* szTemp )
 	return NEED_RESPONSE_HEADER;
 }
 
-HTTP_REQUEST_CODE parse_content( char* buffer, int& checked_index, CHECK_STATE& checkstate, int& read_index, int& start_line, char **ret_name )
+HTTP_REQUEST_CODE parse_content( char* buffer, int& checked_index,\
+		CHECK_STATE& checkstate, int& read_index, int& start_line, char **ret_name )
 {
 	LINE_STATUS linestatus = LINE_OK;
 	HTTP_REQUEST_CODE retcode = NEED_RESQUEST_HEADER;
@@ -285,7 +289,7 @@ HTTP_REQUEST_CODE parse_content( char* buffer, int& checked_index, CHECK_STATE& 
 }
 
 HTTP_RESPONSE_CODE parse_response_content( char* buffer, int& checked_index, \
-		CHECK_STATE& checkstate, int& read_index, int& start_line, int *content_length)
+		CHECK_STATE& checkstate, int& read_index, int& start_line, int &content_length)
 {
 	LINE_STATUS linestatus = LINE_OK;
 	HTTP_RESPONSE_CODE retcode = NEED_RESPONSE_HEADER;
@@ -307,7 +311,7 @@ HTTP_RESPONSE_CODE parse_response_content( char* buffer, int& checked_index, \
 			}
 			case CHECK_STATE_HEADER:
 			{
-				retcode = parse_response_headers( szTemp );//TODO content_length
+				retcode = parse_response_headers( szTemp, content_length );
 				if ( retcode == BAD_RESPONSE_HEADER )
 				{
 					return BAD_RESPONSE_HEADER;

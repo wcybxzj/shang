@@ -1,10 +1,10 @@
 include ../Make.defines
 
-PROGS = web
+PROGS = web02
 
 all: ${PROGS}
 
-web: web.o home_page.o start_connect.o write_get_cmd.o http.o
+${PROGS}: web02.o home_page.o write_get_cmd.o http.o
 	${CC} ${CFLAGS} -o $@ $^  ${LIBS}
 
 clean:

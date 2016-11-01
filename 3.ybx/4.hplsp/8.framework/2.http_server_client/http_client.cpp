@@ -6,49 +6,16 @@
 #define MAX 100
 char *content_arr[MAX];
 
-//只能处理 keep-alive:close
-void func1(int sd)
+void setnonblocking(int sd)
 {
-	int  len;
-	int content_length;
-	char buf[BUFFER_SIZE];
-	int num = 0;
-	//成功
-	FILE *fd = fdopen(sd, "r");
-	if (fd== NULL) {
-		perror("fdopen");
-		exit(1);
-	}
-
-	while (1) {
-		bzero(buf, BUFFER_SIZE);
-		fgets(buf, sizeof(buf)-1, fd);
-		if (strcmp(buf, "\r\n")==0) {
-			break;
-		}
-		//Content-Length: 5928
-		if (strncmp(buf, "Content-Length", strlen("Content-Length")) == 0) {
-			sscanf(buf, "Content-Length: %d", &content_length);
-		}
-	}
-
-	num =0;
-	while (1) {
-		bzero(buf, BUFFER_SIZE);
-		num = fread(buf, 1, sizeof(buf)-1, fd);
-		if (num<=0) {
-			break;
-		}   
-		fwrite(buf, 1, num, stdout);
-		fflush(NULL);
-	}   
-
-	fclose(fd);
+	int old = fcntl(sd, F_GETFL,0);
+	fcntl(sd, F_SETFL, old|O_NONBLOCK );
 }
 
 //处理 开启或关闭keep-alive
 void func2(int sd)
 {
+	int len, sum;
 	char buffer[BUFFER_SIZE];
 	int content_length = 0;
 	int data_read = 0;
@@ -59,20 +26,52 @@ void func2(int sd)
 
 	while (1) {
 		bzero(buffer, sizeof(buffer));
-		data_read = recv(sd, buffer,sizeof(buffer),0);
+		data_read = recv(sd, buffer+start_line, \
+				sizeof(buffer)-start_line, 0);
 		if (data_read < 0) {
 			perror("recv");
 			break;
+		}else if (data_read == 0){
+			printf("ERROR: remote client has closed the connection\n");
+			exit(1);
 		}
 		//write(1, buffer, data_read);
 
 		read_index += data_read;
 		HTTP_RESPONSE_CODE result = parse_response_content( buffer, checked_index, \
-				checkstate, read_index, start_line, &content_length);
+				checkstate, read_index, start_line, content_length);
 
+		if (result == NEED_RESPONSE_HEADER) {
+			continue;
+		}else if(result == GET_RESPONSE_HEADER){
+			break;
+		}
+	}
+	sum=0;
+	len =  data_read-checked_index;
+	if (len>0) {
+		sum += len;
+		write(1, buffer+checked_index, len);
+	}
+	while (1) {
+		bzero(buffer, BUFFER_SIZE);
+		len = recv(sd, buffer, sizeof(buffer), 0);
+		//printf("%d\n", len);
+		if (len==0) {
+			//printf("EOF\n");
+			break;
+		}else if (len<0){
+			printf("recv\n");
+			exit(1);
+		}
+		sum += len;
+		//printf("%d\n", sum);
+		write(1, buffer, len);
+		if (sum == content_length) {
+			break;
+		}
 	}
 }
-
 
 int main( int argc, char* argv[] )
 {
@@ -120,7 +119,6 @@ int main( int argc, char* argv[] )
 		exit(1);
 	}
 
-	//func1(sd);
 	func2(sd);
 
 	close(sd);

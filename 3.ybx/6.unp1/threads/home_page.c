@@ -30,6 +30,7 @@ void home_page(char *host, char *port, const char *page, \
             //printf("%s", line);
         }
     }
+	//printf("%d\n", content_length);
 
 	j = 0;
     num = 0;

@@ -1,7 +1,40 @@
 #include "web.h"
-//这里访问的server必须是下面这个server,
-//因为解析home_page中 http头协议是写死的
-//
+#include "http.h"
+
+int setblocking(int sd){
+	int old = fcntl(sd, F_GETFL);
+	fcntl(sd, F_SETFL, old & ~O_NONBLOCK);
+	return old;
+}
+
+//非阻塞没能实现 每个子请求去并发下载,改用多线程实现6.unp1/threads/web03.c
+void deal_reading(int fd, struct file filearr[], \
+					int *current_conn, int *nlefttoread)
+{
+	if (fgets(buf, sizeof(buf), filearr[i].f_fp) == NULL) {
+		if (errno == EINPROGRESS) {
+			continue;
+		}else{
+			perror("fgets(!)");
+			exit(1);
+		}
+	}else{
+		filearr[i].current_content_length+=strlen(buf);
+		write(filearr[i].output_fd, buf, strlen(buf));
+	}
+
+	if (filearr[i].current_content_length == content_length) {
+		printf("f_name:%s EOF\n", filearr[i].f_name);
+		close(fd);
+		filearr[i].f_flags = F_DONE;
+		FD_CLR(fd, &rset);
+		current_conn--;
+		nlefttoread--;
+		close(filearr[i].output_fd);
+	}
+}
+
+//server 可以用自己的webserver或者nginx/apache
 //server:
 //cd 4.hplsp/8.framework/2.http_server_client
 //./http_server 192.168.91.11 1234
@@ -12,15 +45,13 @@
 int main(int argc, char *argv[])
 {
 	enum F_FLAGS flags;
-	enum HTTP_PARSE_FLAGS http_flags;
 	int i, n, fd, ret, nfiles, error, content_length;
 	socklen_t error_size;
 	int nlefttoread, nlefttoconn;
 	struct file filearr[MAXFILES];
 	int maxconn, current_conn;
-	char *host, *port ,*page, *file_name, *ptr;
-	char buf[MAXLINE];
-	FILE *fp;
+	char *host, *port ,*page, *file_name;
+
 	if (argc != 5) {
 		printf("./web 3 192.168.91.11 1234 /index.html\n");
 		exit(1);
@@ -74,9 +105,7 @@ int main(int argc, char *argv[])
 		}else{
 			for (i = 0; i < nfiles; i++) {
 				flags = filearr[i].f_flags;
-				http_flags = filearr[i].http_flags;
 				fd = filearr[i].f_fd;
-				fp = filearr[i].f_fp;
 				content_length = filearr[i].content_length;
 
 				if (flags==F_INIT || flags == F_DONE || flags == F_FAIL) {
@@ -109,71 +138,20 @@ int main(int argc, char *argv[])
 						write_get_cmd(&filearr[i]);
 
 						printf(">>write_get_cmd after: %d<<\n", filearr[i].f_flags);
-						
+
 						//创建子请求的文件
 						file_name = basename(filearr[i].f_name);
 						remove(file_name);
 						filearr[i].output_fd = open(file_name, \
-													O_CREAT|O_APPEND|O_RDWR,\
-													0644);
+								O_CREAT|O_APPEND|O_RDWR,\
+								0644);
 						if (filearr[i].output_fd == -1) {
 							perror("open");
 							exit(1);
 						}
-
-						filearr[i].f_fp = fdopen(fd, "r");
-						if (filearr[i].f_fp == NULL) {
-							perror("fdopen");
-							exit(1);
-						}
 					}
 				}else if(flags == F_READING && FD_ISSET(fd, &rset)){
-					if (http_flags == HTTP_HEADER) {
-						printf("HTTP_HEADER\n");
-						ptr = fgets(buf, sizeof(buf), fp);
-						if (ptr == NULL) {
-							perror("fgets");
-							exit(1);
-						}
-						if (strcmp(buf, "\r\n")==0) {
-							//printf("bbbbb\n");
-							filearr[i].http_flags = HTTP_BODY;
-							break;
-						}else{
-							//Content-Length: 5928
-							ret = strncmp(buf, "Content-Length", \
-									strlen("Content-Length"));
-							if ( ret == 0) {
-								sscanf(buf, "Content-Length: %d",\
-										&filearr[i].content_length);
-							}
-						}
-					}else if(http_flags == HTTP_BODY){
-						printf("HTTP_BODY\n");
-						printf("content_length:%d, current_content_length:%d\n",
-								content_length, filearr[i].current_content_length);
-						if (fgets(buf, sizeof(buf), filearr[i].f_fp) == NULL) {
-							if (errno == EINPROGRESS) {
-								continue;
-							}else{
-								perror("fgets(!)");
-								exit(1);
-							}
-						}else{
-							filearr[i].current_content_length+=strlen(buf);
-							write(filearr[i].output_fd, buf, strlen(buf));
-						}
-
-						if (filearr[i].current_content_length == content_length) {
-							printf("f_name:%s EOF\n", filearr[i].f_name);
-							close(fd);
-							filearr[i].f_flags = F_DONE;
-							FD_CLR(fd, &rset);
-							current_conn--;
-							nlefttoread--;
-							close(filearr[i].output_fd);
-						}
-					}
+					//deal_reading(fd, filearr, &current_conn, &nlefttoread);
 				}
 			}
 		}
