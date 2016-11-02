@@ -237,7 +237,6 @@ HTTP_REQUEST_CODE parse_content( char* buffer, int& checked_index,\
 {
 	LINE_STATUS linestatus = LINE_OK;
 	HTTP_REQUEST_CODE retcode = NEED_RESQUEST_HEADER;
-	char *name = (char *)malloc(50);
 
 	while( ( linestatus = parse_line( buffer, checked_index, read_index ) ) == LINE_OK )
 	{
@@ -248,14 +247,11 @@ HTTP_REQUEST_CODE parse_content( char* buffer, int& checked_index,\
 		{
 			case CHECK_STATE_LINE:
 			{
-				bzero(name, strlen(name));
-				retcode = parse_requestline( szTemp, checkstate, &name);
+				retcode = parse_requestline( szTemp, checkstate, ret_name);
 				if ( retcode == BAD_REQUEST_HEADER )
 				{
 					return BAD_REQUEST_HEADER;
 				}
-				printf(">>>%s\n", name);
-				*ret_name = strdup(name);
 				break;
 			}
 			case CHECK_STATE_HEADER:
@@ -285,7 +281,6 @@ HTTP_REQUEST_CODE parse_content( char* buffer, int& checked_index,\
 	{
 		return BAD_REQUEST_HEADER;
 	}
-	free(name);
 }
 
 HTTP_RESPONSE_CODE parse_response_content( char* buffer, int& checked_index, \
