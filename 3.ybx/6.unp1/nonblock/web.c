@@ -7,7 +7,7 @@ int setblocking(int sd){
 	return old;
 }
 
-//非阻塞没能实现 每个子请求去并发下载,改用多线程实现6.unp1/threads/web03.c
+//非阻塞没能实现 每个子请求去并发下载, 改用多线程实现6.unp1/threads/web0x.c
 void deal_reading(int fd, struct file filearr[], \
 					int *current_conn, int *nlefttoread)
 {

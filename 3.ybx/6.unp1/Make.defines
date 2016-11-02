@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -g -O2 -D_REENTRANT -Wall -I ../
+CFLAGS = -g  -O2 -D_REENTRANT -Wall -I ../
 LIBS = ../libunp.a -lpthread
 RANLIB = ranlib
 

@@ -17,6 +17,6 @@ void write_get_cmd(struct file *ptr){
 	if (ptr->f_fd > maxfd) {
 		maxfd = ptr->f_fd;
 	}
-	printf("request %d bytes for %s, fd:%d\n", n, ptr->f_name, ptr->f_fd);
+	//printf("request %d bytes for %s, fd:%d\n", n, ptr->f_name, ptr->f_fd);
 }
 

@@ -3,11 +3,10 @@
 
 struct file filearr[MAXFILES];
 
-int	ndone;
+//volatile  sig_atomic_t ndone;
+//volatile  int ndone;
+int ndone;
 pthread_mutex_t ndone_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-//1-133 errno已经存在
-#define MSG_ERROR_REMOTE_SERVER_CLOSE 134
 
 //专用于线程
 void pthread_deal_http(struct file *ptr)
@@ -24,14 +23,15 @@ void pthread_deal_http(struct file *ptr)
 	fd = ptr->f_fd;
 	output_fd = ptr->output_fd;
 
+	//解析response line
     while (1) {
         bzero(buffer, sizeof(buffer));
         data_read = recv(fd, buffer+start_line, \
                 sizeof(buffer)-start_line, 0);
         if (data_read < 0) {
-			pthread_exit((void *) errno);
+			pthread_exit((void *) "recv");
         }else if (data_read == 0){
-			pthread_exit((void *)MSG_ERROR_REMOTE_SERVER_CLOSE);
+			pthread_exit(NULL);
         }
 
         read_index += data_read;
@@ -52,7 +52,7 @@ void pthread_deal_http(struct file *ptr)
         sum += len;
         ret = write(output_fd, buffer+checked_index, len);
 		if (ret == -1) {
-			pthread_exit((void *) errno);
+			pthread_exit((void *) "write");
 		}
     }
 
@@ -62,7 +62,7 @@ void pthread_deal_http(struct file *ptr)
         if (len==0) {
             break;
         }else if (len<0){
-			pthread_exit((void *) errno);
+			pthread_exit((void *) "recv");
         }
         sum += len;
         write(output_fd, buffer, len);
@@ -74,20 +74,15 @@ void pthread_deal_http(struct file *ptr)
 	close(fd);
 	close(output_fd);
 
-	printf("tid:%u, lock 11\n", pthread_self());
 	if ( (ret = pthread_mutex_lock(&ndone_mutex)) != 0){
-		pthread_exit((void *) ret);
+		pthread_exit((void *) "pthread_mutex_lock");
 	}
-	printf("tid:%u, unlock 22\n", pthread_self());
+	ptr->f_flags = F_DONE;
 	ndone++;
-	printf("=======tid:%u=======node:%d\n", pthread_self(), ndone);
 
-	printf("tid:%u, lock 33\n", pthread_self());
 	if ( (ret = pthread_mutex_unlock(&ndone_mutex)) != 0){
-		pthread_exit((void *) ret);
+		pthread_exit((void *) "pthread_mutex_unlock");
 	}
-	printf("tid:%u, lock 44\n", pthread_self());
-
 }
 
 void * do_get_read(void *vptr)
@@ -99,10 +94,8 @@ void * do_get_read(void *vptr)
 
 	fd = Tcp_connect(fptr->f_host, fptr->f_port);
 	fptr->f_fd = fd;
-	printf("do_get_read for %s, fd %d, thread %u\n",
-			fptr->f_name, fd, (int)fptr->f_tid);
 
-	write_get_cmd(fptr);    /* write() the GET command */
+	write_get_cmd(fptr);
 
 	//创建子请求的文件
 	file_name = basename(fptr->f_name);
@@ -110,13 +103,40 @@ void * do_get_read(void *vptr)
 	fptr->output_fd = open(file_name, \
 			O_CREAT|O_APPEND|O_RDWR, 0644);
 	if (fptr->output_fd == -1) {
-		pthread_exit((void*) errno);
+		pthread_exit((void*) "open");
 	}
 	pthread_deal_http(fptr);
 
-	fptr->f_flags = F_DONE;     /* clears F_READING */
-	return(fptr);       /* terminate thread */
+	return(fptr);
 }
+
+
+//并发1 和并发20几乎没区别
+//[root@web11 threads]# for i in {1..10}; do time ./web02 1 192.168.91.11 80 /index.html ; done 
+//[root@web11 threads]# for i in {1..10}; do time ./web02 20 192.168.91.11 80 /index.html ; done 
+//
+//1.txt:real	0m0.108s
+//1.txt:real	0m0.035s
+//1.txt:real	0m0.036s
+//1.txt:real	0m0.035s
+//1.txt:real	0m0.033s
+//1.txt:real	0m0.033s
+//1.txt:real	0m0.038s
+//1.txt:real	0m0.030s
+//1.txt:real	0m0.050s
+//1.txt:real	0m0.036s
+//
+//20.txt:real	0m0.114s
+//20.txt:real	0m0.046s
+//20.txt:real	0m0.038s
+//20.txt:real	0m0.033s
+//20.txt:real	0m0.033s
+//20.txt:real	0m0.026s
+//20.txt:real	0m0.019s
+//20.txt:real	0m0.050s
+//20.txt:real	0m0.026s
+//20.txt:real	0m0.032s
+
 
 //server 可以用自己的webserver或者nginx/apache
 //server:
@@ -163,57 +183,61 @@ int main(int argc, char *argv[])
 				}
 			}
 			if (i == nfiles) {
-				printf("all filearr is loaded\n");
+				//printf("all filearr is loaded\n");
 				break;
 			}
+
+			filearr[i].f_flags = F_CONNECTING;
 			ret = pthread_create(&tid, NULL, do_get_read, &filearr[i]);
 			if (ret!=0) {
 				perror("pthread_crate");
 				exit(1);
 			}
-			printf("pthread_create tid:%u\n", (int)tid);
+
 			filearr[i].f_tid = tid;
-			filearr[i].f_flags = F_CONNECTING;
 			current_conn++;
 			nlefttoconn--;
 		}
 
-		while (ndone==0) {
-			sched_yield();
-		}
-
-		printf("main lock 1\n");
 
         if ( (n = pthread_mutex_lock(&ndone_mutex)) != 0)
             errno = n, err_sys("pthread_mutex_lock error");
 
-		printf("main unlock 2\n");
+		//main thread 在unblock mutex的部分需要出让cpu调度
+		//好让其他线程有就会lock mutex ndone++,并进入F_DONE,
+		//好让 main thread,pthread_join,并开始创建新的工作进程
+		//
+		//办法1:sleep 太耗时
+		//办法2:sched_yield 一般
+		//办法3:条件变量 看web03
+
+		while (ndone==0) {
+			if ( (n = pthread_mutex_unlock(&ndone_mutex)) != 0)
+				errno = n, err_sys("pthread_mutex_unlock error");
+			sched_yield();
+			if ( (n = pthread_mutex_lock(&ndone_mutex)) != 0)
+				errno = n, err_sys("pthread_mutex_lock error");
+		}
+
         if (ndone > 0) {
             for (i = 0; i < nfiles; i++) {
                 if (filearr[i].f_flags == F_DONE) {
-					printf("join 111111111111111\n");
                     if ( (n = pthread_join(filearr[i].f_tid, (void **) &fptr)) != 0)
                         errno = n, err_sys("pthread_join error");
-					printf("join 22222222222222222\n");
 
                     if (&filearr[i] != fptr){
-						printf("pthrad_join  error:%d\n", (int) fptr);
 						exit(1);
 					}
 
-                    fptr->f_flags = F_JOINED;   /* clears F_DONE */
+                    fptr->f_flags = F_JOINED;
                     ndone--;
                     current_conn--;
                     nlefttoread--;
-                    printf("thread id %u for %s done\n",
-                            (int)filearr[i].f_tid, fptr->f_name);
                 }
             }
         }
-		printf("main lock 3\n");
         if ( (n = pthread_mutex_unlock(&ndone_mutex)) != 0)
             errno = n, err_sys("pthread_mutex_unlock error");
-		printf("main unlock 4\n");
 	}
 
 	for (i = 0; i < nfiles; i++) {
