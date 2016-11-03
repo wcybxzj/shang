@@ -1,5 +1,9 @@
 #include "web.h"
 
+void func1()
+{
+	printf("11111111111111\n");
+}
 //解析home_page从中获取要并发connect的请求
 void home_page(char *host, char *port, const char *page, \
 		struct file *filearr, int *nfiles){

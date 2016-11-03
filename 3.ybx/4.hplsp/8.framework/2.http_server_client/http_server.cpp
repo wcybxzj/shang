@@ -1,4 +1,5 @@
 #include "http.h"
+#include <libgen.h>
 
 //杰作2016
 //源代码有功能缺陷 http header host后无法解析，此代码更正
@@ -48,7 +49,7 @@ int main( int argc, char* argv[] )
 	struct sockaddr_in client_address;
 
 	int len;
-	char *file_buf;
+	char *file_buf, *ptr;
 	int file_fd;
 	bool valid;
 	struct stat file_stat;
@@ -166,6 +167,12 @@ recv:
 				ret = snprintf( header_buf + len, BUFFER_SIZE-1-len, \
 						"Content-Length: %lld\r\n", file_stat.st_size );
 				len +=ret;
+				ptr = strstr(file_name, "mp4");
+				if (ptr!=NULL) {
+					ret = snprintf( header_buf + len, BUFFER_SIZE-1-len, \
+							"Content-Type: video/mp4\r\n");
+					len +=ret;
+				}
 				ret = snprintf( header_buf + len, BUFFER_SIZE-1-len, "%s", \
 						"\r\n" );
 				iv[ 0 ].iov_base = header_buf;

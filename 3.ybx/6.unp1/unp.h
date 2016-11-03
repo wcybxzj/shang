@@ -81,6 +81,13 @@ typedef void    Sigfunc(int);   /* for signal handlers */
 #define min(a,b)    ((a) < (b) ? (a) : (b))
 #define max(a,b)    ((a) > (b) ? (a) : (b))
 
+
+
+//mylib
+#include <sys/syscall.h> 
+int my_rand(int range);
+pid_t gettid();
+
 int     tcp_connect(const char *, const char *);
 ssize_t writen(int fd, const void *ptr, size_t n);
 ssize_t readn(int fd, void *ptr, size_t n);

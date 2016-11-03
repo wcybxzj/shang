@@ -11,9 +11,11 @@ tcp_connect(const char *host, const char *serv)
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	if ( (n = getaddrinfo(host, serv, &hints, &res)) != 0)
+	if ( (n = getaddrinfo(host, serv, &hints, &res)) != 0){
+		perror("getaddrinfo():");
 		err_quit("tcp_connect error for %s, %s: %s",
 				 host, serv, gai_strerror(n));
+	}
 	ressave = res;
 
 	do {

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>
+#include <unistd.h>
 
 #define FNAME "log"
 #define SIZE 128
