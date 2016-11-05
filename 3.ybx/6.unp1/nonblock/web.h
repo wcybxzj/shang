@@ -32,8 +32,7 @@ int maxfd;
 
 //0 success
 //-1 failed
-void home_page(char *host, char *port, const char *page, \
-		struct file *filearr, int *nfiles);
-
+void home_page(char *host, char *port,\
+		const char *page, struct file *filearr, int *nfiles);
 void start_connect(struct file* fptr);
 void write_get_cmd(struct file* fptr);

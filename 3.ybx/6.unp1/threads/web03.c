@@ -2,9 +2,8 @@
 #include "http.h"
 
 struct file filearr[MAXFILES];
+char *func_name;// pthread_cond_signal or pthread_cond_broadcast
 
-//volatile  sig_atomic_t ndone;
-//volatile  int ndone;
 int ndone;
 pthread_mutex_t ndone_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t ndone_cond = PTHREAD_COND_INITIALIZER;
@@ -78,7 +77,14 @@ void pthread_deal_http(struct file *ptr)
 	if ( (ret = pthread_mutex_lock(&ndone_mutex)) != 0){
 		pthread_exit((void *) "pthread_mutex_lock");
 	}
-	pthread_cond_signal(&ndone_cond);
+	if (strcmp("signal", func_name)==0) {
+		pthread_cond_signal(&ndone_cond);
+	}else if(strcmp("broadcast", func_name)==0){
+		pthread_cond_broadcast(&ndone_cond);
+	}else{
+		printf("pthread_cond_xxxx set fail");
+		exit(1);
+	}
 	ptr->f_flags = F_DONE;
 	ndone++;
 
@@ -112,11 +118,6 @@ void * do_get_read(void *vptr)
 	return(fptr);
 }
 
-
-//并发1 和并发20几乎没区别
-//[root@web11 threads]# for i in {1..10}; do time ./web03 1 192.168.91.11 80 /index.html ; done 
-//[root@web11 threads]# for i in {1..10}; do time ./web03 20 192.168.91.11 80 /index.html ; done 
-
 //server 可以用自己的webserver或者nginx/apache
 //server:
 //cd 4.hplsp/8.framework/2.http_server_client
@@ -133,15 +134,19 @@ int main(int argc, char *argv[])
 	int maxconn, current_conn;
 	char *host, *port ,*page;
 	struct file *fptr;
-	if (argc != 5) {
-		printf("./web 3 192.168.91.11 1234 /index.html\n");
+
+	struct timeval start, end;
+	gettimeofday( &start, NULL );
+	if (argc != 6) {
+		printf("./web 3  (signal or broadcast) 192.168.91.11 1234 /index.html\n");
 		exit(1);
 	}
 
 	maxconn = atoi(argv[1]);//并发数
-	host = argv[2];
-	port = argv[3];
-	page = argv[4];
+	func_name = argv[2];
+	host = argv[3];
+	port = argv[4];
+	page = argv[5];
 
 	home_page(host, port, page, filearr, &nfiles);
 
@@ -219,5 +224,9 @@ int main(int argc, char *argv[])
 		free(filearr[i].f_name);
 	}
 
+	gettimeofday( &end, NULL );
+	printf("main tid:%d, used-time:%g sec\n",\
+			gettid(), \
+			(end.tv_sec-start.tv_sec)+((end.tv_usec-start.tv_usec)/1000000.0));
 	return 0;
 }

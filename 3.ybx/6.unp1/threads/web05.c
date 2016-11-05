@@ -110,50 +110,24 @@ void * do_get_read(void *vptr)
 //串行发访问index.html里的所有连接,进行pthread_join 
 void func1(int nfiles)
 {
-	pthread_t tid;
-	int i, ret;
+	pid_t pid;
+	int i;
 	for (i = 0; i < nfiles ; i++) {
-		ret = pthread_create(&tid, NULL, do_get_read, &filearr[i]);
-		if (ret!=0) {
-			perror("pthread_crate");
+		pid =  fork();
+		if (pid==0) {
+			do_get_read(&filearr[i]);
+		} else if (pid>0) {
+			//
+		}else{
+			perror("fork");
 			exit(1);
 		}
-		filearr[i].f_tid = tid;
-		pthread_join(filearr[i].f_tid, NULL);
+	}
+	for (i = 0; i < nfiles; i++) {
+		wait(NULL);
 	}
 }
 
-//并发访问index.html里的所有连接,进行pthread_join 
-void func2(int nfiles)
-{
-	pthread_t tid;
-	int i, ret;
-	for (i = 0; i < nfiles ; i++) {
-		ret = pthread_create(&tid, NULL, do_get_read, &filearr[i]);
-		if (ret!=0) {
-			perror("pthread_crate");
-			exit(1);
-		}
-		filearr[i].f_tid = tid;
-	}
-	for (i = 0; i < nfiles ; i++) {
-		pthread_join(filearr[i].f_tid, NULL);
-	}
-}
-
-//并发访问index.html里的所有连接,不进行pthread_join 
-void func3(int nfiles)
-{
-	pthread_t tid;
-	int i, ret;
-	for (i = 0; i < nfiles ; i++) {
-		ret = pthread_create(&tid, NULL, do_get_read, &filearr[i]);
-		if (ret!=0) {
-			perror("pthread_crate");
-			exit(1);
-		}
-	}
-}
 
 int main(int argc, char *argv[])
 {
@@ -162,10 +136,13 @@ int main(int argc, char *argv[])
 
 	struct timeval start, end;
 	gettimeofday( &start, NULL );
+
+
 	if (argc != 5) {
-		printf("./web funcN 192.168.91.11 1234 /index.html\n");
+		printf("./web func1 192.168.91.11 1234 /index.html\n");
 		exit(1);
 	}
+
 	funcN = argv[1];
 	host = argv[2];
 	port = argv[3];
@@ -180,13 +157,12 @@ int main(int argc, char *argv[])
 	//}
 	//exit(1);
 
-	if (strcmp("func1", funcN)==0) {
-		func1(nfiles);
-	}else if(strcmp("func2", funcN)==0){
-		func2(nfiles);
-	}else if(strcmp("func3", funcN)==0){
-		func3(nfiles);
+	if (strcmp("func1", funcN)!=0) {
+		printf("./web func1 192.168.91.11 1234 /index.html\n");
+		exit(1);
 	}
+
+	func1(nfiles);
 
 	gettimeofday( &end, NULL );
 	printf("main tid:%d, used-time:%g sec\n",\

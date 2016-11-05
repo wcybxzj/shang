@@ -1,13 +1,7 @@
 #include "web.h"
 
-void func1()
-{
-	printf("11111111111111\n");
-}
 //解析home_page从中获取要并发connect的请求
-void home_page(char *host, char *port, const char *page, \
-		struct file *filearr, int *nfiles){
-
+void home_page(char *host, char *port, const char *page, struct file *filearr, int *nfiles){
 	int sd, n, j , len, num;
 	char line[MAXLINE];
 	sd = tcp_connect(host, port);

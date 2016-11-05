@@ -21,7 +21,7 @@ void start_connect(struct file* fptr){
 		exit(1);
 	}
 	fptr->f_fd = fd;
-	printf("start_connect for %s fd:%d\n", fptr->f_name, fd);
+	//printf("start_connect for %s fd:%d\n", fptr->f_name, fd);
 
 	flags = fcntl(fd, F_GETFL, 0);
 	fcntl(fd, F_SETFL, flags|O_NONBLOCK);
@@ -32,7 +32,7 @@ void start_connect(struct file* fptr){
 			perror("connect");
 			exit(1);
 		}
-		printf("EINPROGRESS fd:%d\n", fd);
+		//printf("EINPROGRESS fd:%d\n", fd);
 		fptr->f_flags = F_CONNECTING;
 		FD_SET(fd, &rset);
 		FD_SET(fd, &wset);

@@ -1,0 +1,250 @@
+1.机器:
+vm虚拟机1 client:192.168.91.11
+vm虚拟机2 apache:192.168.91.12
+不要让server和client 在一台机器,因为可以看到所有版本效率基本一样，
+因为io是瓶颈单进程单线程io都不够用,怎么弄都是白费经
+
+2.程序:
+web00:单进程单线程串行
+web02:多线程,可指定并发数mutex+sched_yield
+web03:多线程,可指定并发数
+//mutex+pthread_cond_signal
+//mutex+pthread_cond_broadcast
+web04:多线程
+//func1:串行发访问index.html里的所有连接,进行pthread_join 
+//func2:并发访问index.html里的所有连接,进行pthread_join 
+//func3:并发访问index.html里的所有连接,不进行pthread_join (不测试)
+web05:多进程 
+//func1:wait
+
+3.监控IO
+iostat -d -x -k 1
+
+4.测试:
+./test.sh 
+===============================web01===========================================
+for i in {1..10}; do ./web00 192.168.91.12 80 /index.html; sleep 1; done
+main, used-time:0.575292 sec
+main, used-time:0.488534 sec
+main, used-time:0.539136 sec
+main, used-time:0.487384 sec
+main, used-time:0.48283 sec
+main, used-time:0.504997 sec
+main, used-time:0.515237 sec
+main, used-time:0.527097 sec
+main, used-time:0.486457 sec
+main, used-time:0.461537 sec
+================================web02==========================================
+for i in {1..10}; do ./web02 1 192.168.91.12 80 /index.html; sleep 2; done
+main tid:71470, used-time:0.488805 sec
+main tid:71512, used-time:0.472753 sec
+main tid:71554, used-time:0.510436 sec
+main tid:71596, used-time:0.491858 sec
+main tid:71638, used-time:0.496486 sec
+main tid:71680, used-time:0.580283 sec
+main tid:71722, used-time:0.562428 sec
+main tid:71765, used-time:0.570114 sec
+main tid:71807, used-time:0.585985 sec
+main tid:71849, used-time:0.62758 sec
+for i in {1..10}; do ./web02 2 192.168.91.12 80 /index.html; sleep 2; done
+main tid:71892, used-time:0.289549 sec
+main tid:71934, used-time:0.277006 sec
+main tid:71976, used-time:0.319197 sec
+main tid:72018, used-time:0.328059 sec
+main tid:72060, used-time:0.32182 sec
+main tid:72102, used-time:0.481997 sec
+main tid:72144, used-time:0.388349 sec
+main tid:72186, used-time:0.306525 sec
+main tid:72228, used-time:0.327725 sec
+main tid:72278, used-time:0.321739 sec
+for i in {1..10}; do ./web02 3 192.168.91.12 80 /index.html; sleep 2; done
+main tid:72322, used-time:0.330425 sec
+main tid:72364, used-time:0.279969 sec
+main tid:72406, used-time:0.310484 sec
+main tid:72448, used-time:0.292198 sec
+main tid:72490, used-time:0.419833 sec
+main tid:72532, used-time:0.289393 sec
+main tid:72574, used-time:0.266623 sec
+main tid:72616, used-time:0.346906 sec
+main tid:72658, used-time:0.373775 sec
+main tid:72700, used-time:0.289087 sec
+for i in {1..10}; do ./web02 5 192.168.91.12 80 /index.html; sleep 2; done
+main tid:72743, used-time:0.286895 sec
+main tid:72785, used-time:0.306188 sec
+main tid:72828, used-time:0.348034 sec
+main tid:72870, used-time:0.312585 sec
+main tid:72912, used-time:0.311385 sec
+main tid:72954, used-time:0.289182 sec
+main tid:72996, used-time:0.37375 sec
+main tid:73038, used-time:0.399611 sec
+main tid:73080, used-time:0.311987 sec
+main tid:73122, used-time:0.349823 sec
+for i in {1..10}; do ./web02 10 192.168.91.12 80 /index.html; sleep 2; done
+main tid:73173, used-time:0.317259 sec
+main tid:73215, used-time:0.391423 sec
+main tid:73257, used-time:0.384816 sec
+main tid:73299, used-time:0.320358 sec
+main tid:73341, used-time:0.306382 sec
+main tid:73383, used-time:0.298581 sec
+main tid:73426, used-time:0.311229 sec
+main tid:73468, used-time:0.340939 sec
+main tid:73510, used-time:0.335006 sec
+main tid:73552, used-time:0.36553 sec
+for i in {1..10}; do ./web02 20 192.168.91.12 80 /index.html; sleep 2; done
+main tid:73595, used-time:0.336133 sec
+main tid:73637, used-time:0.303108 sec
+main tid:73679, used-time:0.306439 sec
+main tid:73721, used-time:0.315592 sec
+main tid:73763, used-time:0.307308 sec
+main tid:73805, used-time:0.323976 sec
+main tid:73847, used-time:0.433703 sec
+main tid:73889, used-time:0.36987 sec
+main tid:73931, used-time:0.344098 sec
+main tid:73973, used-time:0.332502 sec
+=====================pthred_cond_signal=========================
+for i in {1..10}; do ./web03 1 signal 192.168.91.12 80 /index.html; sleep 2; done
+main tid:74016, used-time:0.514788 sec
+main tid:74058, used-time:0.5582 sec
+main tid:74108, used-time:0.65368 sec
+main tid:74150, used-time:0.573434 sec
+main tid:74192, used-time:0.475692 sec
+main tid:74234, used-time:0.443963 sec
+main tid:74276, used-time:0.502838 sec
+main tid:74318, used-time:0.503442 sec
+main tid:74360, used-time:0.578529 sec
+main tid:74402, used-time:0.51695 sec
+for i in {1..10}; do ./web03 2 signal 192.168.91.12 80 /index.html; sleep 2; done
+main tid:74445, used-time:0.273309 sec
+main tid:74487, used-time:0.309313 sec
+main tid:74529, used-time:0.282631 sec
+main tid:74572, used-time:0.262386 sec
+main tid:74614, used-time:0.30035 sec
+main tid:74656, used-time:0.274526 sec
+main tid:74698, used-time:0.296899 sec
+main tid:74740, used-time:0.27677 sec
+main tid:74793, used-time:0.28986 sec
+main tid:74835, used-time:0.294932 sec
+for i in {1..10}; do ./web03 3 signal 192.168.91.12 80 /index.html; sleep 2; done
+main tid:74878, used-time:0.306281 sec
+main tid:74920, used-time:0.286424 sec
+main tid:74962, used-time:0.292848 sec
+main tid:75012, used-time:0.254897 sec
+main tid:75054, used-time:0.29057 sec
+main tid:75096, used-time:0.271102 sec
+main tid:75138, used-time:0.314013 sec
+main tid:75181, used-time:0.292595 sec
+main tid:75223, used-time:0.259981 sec
+main tid:75265, used-time:0.300019 sec
+for i in {1..10}; do ./web03 10 signal 192.168.91.12 80 /index.html; sleep 2; done
+main tid:75730, used-time:0.331446 sec
+main tid:75772, used-time:0.294991 sec
+main tid:75814, used-time:0.278746 sec
+main tid:75856, used-time:0.326017 sec
+main tid:75898, used-time:0.336718 sec
+main tid:75948, used-time:0.309453 sec
+main tid:75990, used-time:0.398756 sec
+main tid:76032, used-time:0.362842 sec
+main tid:76074, used-time:0.262969 sec
+main tid:76116, used-time:0.340595 sec
+for i in {1..10}; do ./web03 20 signal 192.168.91.12 80 /index.html; sleep 2; done
+main tid:76159, used-time:0.327118 sec
+main tid:76201, used-time:0.288436 sec
+main tid:76243, used-time:0.455829 sec
+main tid:76286, used-time:0.289327 sec
+main tid:76328, used-time:0.343653 sec
+main tid:76370, used-time:0.392219 sec
+main tid:76412, used-time:0.304124 sec
+main tid:76454, used-time:0.348218 sec
+main tid:76496, used-time:0.437724 sec
+main tid:76538, used-time:0.291632 sec
+===========================web03 pthread_cond_broadcast=========================
+for i in {1..10}; do ./web03 1 broadcast 192.168.91.12 80 /index.html; sleep 2; done
+main tid:76580, used-time:0.452659 sec
+main tid:76622, used-time:0.515193 sec
+main tid:76664, used-time:0.499352 sec
+main tid:76706, used-time:0.511564 sec
+main tid:76748, used-time:0.567285 sec
+main tid:76790, used-time:0.691816 sec
+main tid:76832, used-time:0.498603 sec
+main tid:76882, used-time:0.51101 sec
+main tid:76925, used-time:0.50041 sec
+main tid:76967, used-time:0.461594 sec
+for i in {1..10}; do ./web03 2 broadcast 192.168.91.12 80 /index.html; sleep 2; done
+main tid:77010, used-time:0.271894 sec
+main tid:77052, used-time:0.283664 sec
+main tid:77094, used-time:0.317157 sec
+main tid:77136, used-time:0.329469 sec
+main tid:77178, used-time:0.300904 sec
+main tid:77220, used-time:0.308738 sec
+main tid:77262, used-time:0.32391 sec
+main tid:77304, used-time:0.284262 sec
+main tid:77346, used-time:0.266311 sec
+main tid:77388, used-time:0.28414 sec
+for i in {1..10}; do ./web03 3 broadcast 192.168.91.12 80 /index.html; sleep 2; done
+main tid:77432, used-time:0.272259 sec
+main tid:77474, used-time:0.291573 sec
+main tid:77516, used-time:0.273156 sec
+main tid:77558, used-time:0.294614 sec
+main tid:77600, used-time:0.294733 sec
+main tid:77642, used-time:0.312694 sec
+main tid:77684, used-time:0.294961 sec
+main tid:77726, used-time:0.252012 sec
+main tid:77768, used-time:0.32536 sec
+main tid:77818, used-time:0.290217 sec
+for i in {1..10}; do ./web03 10 broadcast 192.168.91.12 80 /index.html; sleep 2; done
+main tid:78283, used-time:0.25108 sec
+main tid:78325, used-time:0.337419 sec
+main tid:78367, used-time:0.284295 sec
+main tid:78409, used-time:0.308658 sec
+main tid:78451, used-time:0.310273 sec
+main tid:78493, used-time:0.372964 sec
+main tid:78535, used-time:0.326012 sec
+main tid:78577, used-time:0.297935 sec
+main tid:78620, used-time:0.277518 sec
+main tid:78662, used-time:0.31073 sec
+for i in {1..10}; do ./web03 20 broadcast 192.168.91.12 80 /index.html; sleep 2; done
+main tid:78713, used-time:0.264124 sec
+main tid:78755, used-time:0.342233 sec
+main tid:78797, used-time:0.332842 sec
+main tid:78839, used-time:0.296183 sec
+main tid:78881, used-time:0.382151 sec
+main tid:78923, used-time:0.279357 sec
+main tid:78965, used-time:0.286544 sec
+main tid:79007, used-time:0.364193 sec
+main tid:79049, used-time:0.391848 sec
+main tid:79091, used-time:0.335923 sec
+================================web04==========================================
+for i in {1..10}; do ./web04 func1 192.168.91.12 80 /index.html; sleep 2; done
+main tid:79133, used-time:0.515996 sec
+main tid:79175, used-time:0.546274 sec
+main tid:79218, used-time:0.476447 sec
+main tid:79260, used-time:0.503951 sec
+main tid:79302, used-time:0.498919 sec
+main tid:79344, used-time:0.635823 sec
+main tid:79386, used-time:0.522482 sec
+main tid:79433, used-time:0.536496 sec
+main tid:79475, used-time:0.536034 sec
+main tid:79517, used-time:0.501603 sec
+for i in {1..10}; do ./web04 func2 192.168.91.12 80 /index.html; sleep 2; done
+main tid:79560, used-time:0.31367 sec
+main tid:79610, used-time:0.373212 sec
+main tid:79652, used-time:0.3515 sec
+main tid:79694, used-time:0.378381 sec
+main tid:79736, used-time:0.316229 sec
+main tid:79779, used-time:0.307091 sec
+main tid:79821, used-time:0.379064 sec
+main tid:79863, used-time:0.35977 sec
+main tid:79905, used-time:0.291139 sec
+main tid:79947, used-time:0.311887 sec
+================================web05==========================================
+for i in {1..10}; do ./web05 func1 192.168.91.12 80 /index.html; sleep 2; done
+main tid:79990, used-time:0.275432 sec
+main tid:80032, used-time:0.322982 sec
+main tid:80074, used-time:0.303147 sec
+main tid:80116, used-time:0.367372 sec
+main tid:80158, used-time:0.295518 sec
+main tid:80200, used-time:0.279075 sec
+main tid:80242, used-time:0.368467 sec
+main tid:80284, used-time:0.290009 sec
+main tid:80326, used-time:0.316463 sec
+main tid:80369, used-time:0.289635 sec

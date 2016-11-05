@@ -25,9 +25,11 @@ void pthread_deal_http(struct file *ptr)
         data_read = recv(fd, buffer+start_line, \
                 sizeof(buffer)-start_line, 0);
         if (data_read < 0) {
-			pthread_exit((void *) "recv");
+			perror("recv");
+			exit(1);
         }else if (data_read == 0){
-			pthread_exit(NULL);
+			printf("EOF\n");
+			exit(1);
         }
 
         read_index += data_read;
@@ -48,7 +50,8 @@ void pthread_deal_http(struct file *ptr)
         sum += len;
         ret = write(output_fd, buffer+checked_index, len);
 		if (ret == -1) {
-			pthread_exit((void *) "write");
+			perror("write");
+			exit(1);
 		}
     }
 
@@ -58,7 +61,8 @@ void pthread_deal_http(struct file *ptr)
         if (len==0) {
             break;
         }else if (len<0){
-			pthread_exit((void *) "recv");
+			perror("recv");
+			exit(1);
         }
         sum += len;
         write(output_fd, buffer, len);
@@ -71,7 +75,7 @@ void pthread_deal_http(struct file *ptr)
 	close(output_fd);
 }
 
-void * do_get_read(void *vptr)
+void  do_get_read(void *vptr)
 {
 	int fd;
 	struct file *fptr;
@@ -82,7 +86,6 @@ void * do_get_read(void *vptr)
 
 	fd = Tcp_connect(fptr->f_host, fptr->f_port);
 	fptr->f_fd = fd;
-
 	write_get_cmd(fptr);
 
 	//创建子请求的文件
@@ -91,85 +94,45 @@ void * do_get_read(void *vptr)
 	fptr->output_fd = open(file_name, \
 			O_CREAT|O_APPEND|O_RDWR, 0644);
 	if (fptr->output_fd == -1) {
-		pthread_exit((void*) "open");
+		perror("open");
+		exit(1);
 	}
 	pthread_deal_http(fptr);
 
 	gettimeofday( &end, NULL );
-
 	//printf("end.tv_usec:%lu\n", end.tv_usec);
 	//printf("start.tv_usec:%lu\n",start.tv_usec);
-	/*printf("tid:%d,f_name:%s, used-time:%g sec\n",\
-			gettid(), fptr->f_name, \
-			(end.tv_sec-start.tv_sec)+((end.tv_usec-start.tv_usec)/1000000.0));*/
-	pthread_exit(NULL);
-}
-//测试方法:for i in {1..30}; do ./web04 192.168.91.11 80 /index.html; done
-//运行30此取得平均时间
 
-//串行发访问index.html里的所有连接,进行pthread_join 
-void func1(int nfiles)
+	/*printf("f_name:%s, used-time:%g sec\n",\
+			 fptr->f_name, \
+			end.tv_sec-start.tv_sec+((end.tv_usec-start.tv_usec)/1000000.0));*/
+}
+
+//串行发访问index.html里的所有连接
+void func0(int nfiles)
 {
-	pthread_t tid;
-	int i, ret;
+	int i;
 	for (i = 0; i < nfiles ; i++) {
-		ret = pthread_create(&tid, NULL, do_get_read, &filearr[i]);
-		if (ret!=0) {
-			perror("pthread_crate");
-			exit(1);
-		}
-		filearr[i].f_tid = tid;
-		pthread_join(filearr[i].f_tid, NULL);
+		 do_get_read(&filearr[i]);
 	}
 }
 
-//并发访问index.html里的所有连接,进行pthread_join 
-void func2(int nfiles)
-{
-	pthread_t tid;
-	int i, ret;
-	for (i = 0; i < nfiles ; i++) {
-		ret = pthread_create(&tid, NULL, do_get_read, &filearr[i]);
-		if (ret!=0) {
-			perror("pthread_crate");
-			exit(1);
-		}
-		filearr[i].f_tid = tid;
-	}
-	for (i = 0; i < nfiles ; i++) {
-		pthread_join(filearr[i].f_tid, NULL);
-	}
-}
-
-//并发访问index.html里的所有连接,不进行pthread_join 
-void func3(int nfiles)
-{
-	pthread_t tid;
-	int i, ret;
-	for (i = 0; i < nfiles ; i++) {
-		ret = pthread_create(&tid, NULL, do_get_read, &filearr[i]);
-		if (ret!=0) {
-			perror("pthread_crate");
-			exit(1);
-		}
-	}
-}
 
 int main(int argc, char *argv[])
 {
 	int nfiles;
-	char *host, *port ,*page, *funcN;
+	char *host, *port ,*page;
 
 	struct timeval start, end;
 	gettimeofday( &start, NULL );
-	if (argc != 5) {
-		printf("./web funcN 192.168.91.11 1234 /index.html\n");
+	if (argc != 4) {
+		printf("./web 192.168.91.11 1234 /index.html\n");
 		exit(1);
 	}
-	funcN = argv[1];
-	host = argv[2];
-	port = argv[3];
-	page = argv[4];
+
+	host = argv[1];
+	port = argv[2];
+	page = argv[3];
 
 	home_page(host, port, page, filearr, &nfiles);
 
@@ -180,17 +143,10 @@ int main(int argc, char *argv[])
 	//}
 	//exit(1);
 
-	if (strcmp("func1", funcN)==0) {
-		func1(nfiles);
-	}else if(strcmp("func2", funcN)==0){
-		func2(nfiles);
-	}else if(strcmp("func3", funcN)==0){
-		func3(nfiles);
-	}
+	func0(nfiles);
 
 	gettimeofday( &end, NULL );
-	printf("main tid:%d, used-time:%g sec\n",\
-			gettid(), \
-			(end.tv_sec-start.tv_sec)+((end.tv_usec-start.tv_usec)/1000000.0));
-	pthread_exit(NULL);
+	printf("main, used-time:%g sec\n",\
+			end.tv_sec-start.tv_sec+((end.tv_usec-start.tv_usec)/1000000.0));
+	exit(0);
 }

@@ -110,34 +110,6 @@ void * do_get_read(void *vptr)
 	return(fptr);
 }
 
-
-//并发1 和并发20几乎没区别
-//[root@web11 threads]# for i in {1..10}; do time ./web02 1 192.168.91.11 80 /index.html ; done 
-//[root@web11 threads]# for i in {1..10}; do time ./web02 20 192.168.91.11 80 /index.html ; done 
-//
-//1.txt:real	0m0.108s
-//1.txt:real	0m0.035s
-//1.txt:real	0m0.036s
-//1.txt:real	0m0.035s
-//1.txt:real	0m0.033s
-//1.txt:real	0m0.033s
-//1.txt:real	0m0.038s
-//1.txt:real	0m0.030s
-//1.txt:real	0m0.050s
-//1.txt:real	0m0.036s
-//
-//20.txt:real	0m0.114s
-//20.txt:real	0m0.046s
-//20.txt:real	0m0.038s
-//20.txt:real	0m0.033s
-//20.txt:real	0m0.033s
-//20.txt:real	0m0.026s
-//20.txt:real	0m0.019s
-//20.txt:real	0m0.050s
-//20.txt:real	0m0.026s
-//20.txt:real	0m0.032s
-
-
 //server 可以用自己的webserver或者nginx/apache
 //server:
 //cd 4.hplsp/8.framework/2.http_server_client
@@ -154,6 +126,8 @@ int main(int argc, char *argv[])
 	int maxconn, current_conn;
 	char *host, *port ,*page;
 	struct file *fptr;
+	struct timeval start, end;
+	gettimeofday( &start, NULL );
 	if (argc != 5) {
 		printf("./web 3 192.168.91.11 1234 /index.html\n");
 		exit(1);
@@ -243,6 +217,9 @@ int main(int argc, char *argv[])
 	for (i = 0; i < nfiles; i++) {
 		free(filearr[i].f_name);
 	}
-
+	gettimeofday( &end, NULL );
+	printf("main tid:%d, used-time:%g sec\n",\
+			gettid(), \
+			(end.tv_sec-start.tv_sec)+((end.tv_usec-start.tv_usec)/1000000.0));
 	return 0;
 }
