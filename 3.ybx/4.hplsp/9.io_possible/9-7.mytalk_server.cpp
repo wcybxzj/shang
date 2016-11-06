@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <errno.h>
-#define USER_LIMIT 5
+#define USER_LIMIT 3
 #define BUFFER_SIZE 64
 #define FD_LIMIT 65535
 struct client_data{
@@ -86,6 +86,7 @@ int main(int argc, char *argv[])
 					const char* info = "too many users\n";
 					printf( "%s\n", info );
 					send( connfd, info, strlen( info ), 0 );
+					sleep(1);
 					close( connfd );
 					continue;
 				}
@@ -113,6 +114,8 @@ int main(int argc, char *argv[])
 				i--;
 				user_counter--;
 				printf("a client left\n");
+				printf("i:%d\n", i);
+				printf("server current user_counter:%d\n", user_counter);
 			}else if ( fds[i].revents & POLLIN ) {
 				int connfd = fds[i].fd;
 				memset( users[connfd].buf, '\0', BUFFER_SIZE );

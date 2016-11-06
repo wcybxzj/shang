@@ -115,7 +115,6 @@ void epoll_version(int argc, const char *argv[])
 			perror("epoll_wait()");
 			break;
 		}
-		bzero(buf, sizeof(buf));
 
 		//sockfd
 		if (ev.data.fd == sockfd && ev.events & EPOLLRDHUP) {
@@ -123,6 +122,7 @@ void epoll_version(int argc, const char *argv[])
 			break;
 		}else if (ev.data.fd == sockfd && ev.events & EPOLLIN) {
 			while (1) {
+				bzero(buf, sizeof(buf));
 				ret = recv(sockfd, buf, sizeof(buf)-1 ,0);
 				if (ret<0) {
 					if (errno == EAGAIN) {
@@ -229,7 +229,7 @@ void poll_version(int argc, const char *argv[])
 			break;
 		}else if (fds[1].revents & POLLIN) {
 			ret = recv(sockfd, buf, sizeof(buf)-1 ,0);
-			printf("%s",buf);
+			printf("%s\n",buf);
 		}
 
 		//STDIN_FILENO
