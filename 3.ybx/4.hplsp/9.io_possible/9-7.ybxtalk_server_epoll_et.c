@@ -99,7 +99,7 @@ int main(int argc, const char *argv[])
 	struct epoll_event ev, tmp_ev;
 	struct epoll_event evlist[USER_LIMIT];
 	ev.data.fd = listenfd;
-	ev.events = EPOLLIN|EPOLLERR|EPOLLRDHUP;
+	ev.events = EPOLLIN|EPOLLERR|EPOLLRDHUP|EPOLLET;
 	epoll_ctl(epfd, EPOLL_CTL_ADD, listenfd, &ev);
 
 	int connfd;
@@ -157,7 +157,7 @@ int main(int argc, const char *argv[])
 				fds[user_counter].address = client_address;
 				setnonblocking(connfd);
 				ev.data.fd = connfd;
-				ev.events = EPOLLIN|EPOLLRDHUP|EPOLLERR;
+				ev.events = EPOLLIN|EPOLLRDHUP|EPOLLERR|EPOLLET;
 				epoll_ctl(epfd, EPOLL_CTL_ADD, connfd, &ev);
 				printf("come a new user, now have %d users\n", user_counter);
 				//printf("user fd:%d\n", connfd);
@@ -218,7 +218,7 @@ int main(int argc, const char *argv[])
 							}
 							//printf("to fd:%d\n", fd);
 							ev.data.fd = fd;
-							ev.events = EPOLLIN|EPOLLRDHUP|EPOLLERR|EPOLLOUT;
+							ev.events = EPOLLIN|EPOLLRDHUP|EPOLLERR|EPOLLOUT|EPOLLET;
 							epoll_ctl(epfd, EPOLL_CTL_MOD,fd , &ev);
 							fds[j].write_buf = fds[k].buf;
 						}
@@ -234,7 +234,7 @@ int main(int argc, const char *argv[])
 				}
 				if (! fds[k].write_buf) {
 					ev.data.fd = connfd;
-					ev.events = EPOLLIN|EPOLLRDHUP|EPOLLERR;
+					ev.events = EPOLLIN|EPOLLRDHUP|EPOLLERR|EPOLLET;
 					epoll_ctl(epfd, EPOLL_CTL_MOD, connfd, &ev);
 					continue;
 				}
@@ -246,7 +246,7 @@ int main(int argc, const char *argv[])
 				}
 				fds[k].write_buf = NULL;
 				ev.data.fd = connfd;
-				ev.events = EPOLLIN|EPOLLRDHUP|EPOLLERR;
+				ev.events = EPOLLIN|EPOLLRDHUP|EPOLLERR|EPOLLET;
 				epoll_ctl(epfd, EPOLL_CTL_MOD, connfd, &ev);
 			}
 		}

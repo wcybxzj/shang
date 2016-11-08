@@ -1,5 +1,4 @@
 #include "web.h"
-#include "http.h"
 
 //如果放在函数中stack size不够会段错误
 struct file filearr[MAXFILES];
@@ -86,8 +85,7 @@ void func1(int maxconn, int nfiles)
 						filearr[i].f_flags = F_DONE;
 						current_conn--;
 						nlefttoread--;
-						//printf("f_name:%s, nlefttoread:%d\n", \
-								filearr[i].f_name, nlefttoread);
+						//printf("f_name:%s, nlefttoread:%d\n", filearr[i].f_name, nlefttoread);
 					}
 				}
 			}
@@ -104,7 +102,7 @@ void func1(int maxconn, int nfiles)
 //for i in {1..10}; do ./web 2 127.0.0.1 80 /index.html; done
 int main(int argc, char *argv[])
 {
-	int i, nfiles;
+	int nfiles;
 	int maxconn;
 	char *host, *port ,*page;
 	if (argc != 5) {
@@ -119,6 +117,7 @@ int main(int argc, char *argv[])
 
 	home_page(host, port, page, filearr, &nfiles);
 
+	//int i;
 	//for (i = 0; i < nfiles; i++) {
 	//	printf("%s\n", filearr[i].f_name);
 	//	printf("%d\n", strlen(filearr[i].f_name));

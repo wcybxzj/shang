@@ -7,6 +7,25 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+
+/*
+ ./5-6.oobsend 127.0.0.1 5678
+ send oob data out
+
+
+ ./9-1.use_select 127.0.0.1 5678
+ ip is 127.0.0.1 and port is 5678
+ connect with ip: 127.0.0.1 and port: 44181
+ select one
+ get 3 bytes of normal data: 123
+ select one
+ get 2 bytes of normal data: ab
+ select one
+ get 1 bytes of oob data:c
+ select one
+ get 3 bytes of normal data: 123
+ select one
+ */
 int main(int argc, char *argv[])
 {
 	if ( argc <= 2) {
@@ -40,7 +59,9 @@ int main(int argc, char *argv[])
 	}
 
 	char remote_addr[INET_ADDRSTRLEN];
-	printf( "connect with ip: %s and port: %d\n", inet_ntop( AF_INET, &client_address.sin_addr, remote_addr, INET_ADDRSTRLEN ), ntohs( client_address.sin_port ) );
+	printf( "connect with ip: %s and port: %d\n", \
+			inet_ntop( AF_INET, &client_address.sin_addr, remote_addr, INET_ADDRSTRLEN ), \
+			ntohs( client_address.sin_port ) );
 
 	char buf[1024];
 	fd_set read_fds;
