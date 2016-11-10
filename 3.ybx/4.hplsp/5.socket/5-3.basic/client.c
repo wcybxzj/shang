@@ -49,8 +49,8 @@ int main(int argc, const char *argv[])
 {
 	int sd;
 	struct sockaddr_in saddr;
-	if(argc!=2){
-		perror("lack argc");
+	if(argc != 3){
+		printf("./a.out 127.0.0.1 1234");
 		exit(-1);
 	}
 
@@ -61,7 +61,7 @@ int main(int argc, const char *argv[])
 	}
 
 	saddr.sin_family = AF_INET;
-	saddr.sin_port = htons(atoi(SERVERPORT));
+	saddr.sin_port = htons(atoi(argv[2]));
 	if(inet_pton(AF_INET, argv[1], &saddr.sin_addr) != 1){
 		perror("inet_pton()");
 		exit(0);

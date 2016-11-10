@@ -15,7 +15,7 @@
 
 int work = 1;
 static void func(int s){
-	work = 0;
+       work = 0;
 }
 
 //目的:查看listen中backlog的作用
@@ -37,8 +37,15 @@ int worker(int newsd){
 	}
 }
 
+int main(int argc, char *argv[]){
+	if (argc != 4) {
+		printf("./a.out ip  port  backlog\n");
+		exit(1);
+	}
 
-int main(){
+	int port = atoi(argv[2]);
+	int backlog = atoi(argv[3]);
+
 	int num=0;
 	int sd, newsd;
 	struct sockaddr_in laddr, raddr;
@@ -61,7 +68,7 @@ int main(){
 	}
 
 	laddr.sin_family = AF_INET;
-	laddr.sin_port = htons(atoi(SERVERPORT));
+	laddr.sin_port = htons(port);
 	if(inet_pton(AF_INET,"0.0.0.0",&laddr.sin_addr) != 1){
 		perror("inet_pton()");
 		exit(0);
@@ -72,13 +79,16 @@ int main(){
 		exit(0);
 	}
 
-	listen(sd, 1);
+	listen(sd, backlog);
 	printf("sever sleep\n");
+
+	int i= 0;
 	while (work) {
 		sleep(1);
 		printf("num:%d\n",num);
 		num++;
 	}
+
 	printf("sever sleep done\n");
 	while (1) {
 		newsd = accept(sd, (void *)&raddr, &rlen);
