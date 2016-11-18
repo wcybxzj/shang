@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include "proj.h"
 
+int i;
 void func()
 {
-	i=234;
+	i =222;
 	printf("[%s] i:%d\n", __FUNCTION__, i);
 }
 
