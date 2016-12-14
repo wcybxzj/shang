@@ -21,7 +21,13 @@ int setnonblocking( int fd ){
     return old_option;
 }
 
-//如果想要出现超时只能在client把fd设置成nonblocking
+//终端1:
+//nc -l 1998
+//
+//终端2:
+//./11-1.connect_timeout 127.0.0.1 1998 1
+//EINPROGRESS
+//connect timeout
 int main(int argc, char *argv[])
 {
 	if (argc != 4) {
@@ -52,7 +58,8 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	//setnonblocking(sockfd);
+	//如果想要出现超时只能在client把fd设置成nonblocking
+	setnonblocking(sockfd);
 
 	ret = setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &timeout, len);
 	if (ret == -1) {
@@ -63,11 +70,13 @@ int main(int argc, char *argv[])
 	ret = connect(sockfd, (struct sockaddr *)&address,  addr_len);
 	if (ret == -1) {
 		if (errno == EINPROGRESS) {
+			printf("EINPROGRESS\n");
 			printf("connect timeout\n");
 			exit(1);
+		}else{
+			printf("%s\n", strerror(errno));
+			exit(1);
 		}
-		printf("%s\n", strerror(errno));
-		exit(1);
 	}
 
 	int i;

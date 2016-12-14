@@ -1,5 +1,6 @@
 #include <iostream>
 using namespace std;
+
 class Point
 {
 	public:
@@ -8,7 +9,6 @@ class Point
 			cout<<"Point destructor"<<endl;
 		}
 };
-
 
 class Circle:public Point
 {
