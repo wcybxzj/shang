@@ -40,14 +40,7 @@ void delfd(int epfd, int fd)
 
 void sig_handler(int sig){
 	int save_errno = errno;
-	int ret;
-	char buf[BUF_SIZE]={0};
-	ret = snprintf(buf, BUF_SIZE, "%d",sig);
-	if (ret <=0) {
-		perror("snprintf");
-		exit(1);
-	}
-	send( pipefd[1], (char *)&buf, strlen(buf)+1, 0);
+	send( pipefd[1], (char *)&sig,1, 0);
 	errno = save_errno;
 }
 
@@ -197,8 +190,29 @@ int main(int argc, char *argv[])
 					continue;
 				}
 			}else if (sockfd == pipefd[0]) {
-				len = recv(sockfd, buf, sizeof(buf), 0);
-				printf("signal:%s\n", buf);
+				int sig;
+				char signals[1024];
+				ret = recv(sockfd, signals, sizeof(signals), 0);
+				//printf("signals:%s\n", signals);
+				if (ret == -1) {
+					continue;
+				}else if(ret == 0){
+					continue;
+				}else{
+					for (i = 0; i < ret; i++) {
+						printf("I caught the signal:%d\n", signals[i]);
+						switch(signals[i])
+						{
+							case SIGINT:
+								printf("SIGINT!!!!\n");
+								stop_serer = 1;
+								break;
+							case SIGHUP:
+								printf("SIGHUP!!!!\n");
+								break;
+						}
+					}
+				}
 			}else{
 				if(events[i].events & EPOLLIN){
 					while (1) {

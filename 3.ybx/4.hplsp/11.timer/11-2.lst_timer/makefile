@@ -1,8 +1,8 @@
 CC=g++
-all:main
+all:11-3.nonactive_conn
 
-main:main.o lst_timer.o
+11-3.nonactive_conn:11-3.nonactive_conn.o 11-2.lst_timer.o
 	$(CC) $^ -o $@ -Wall
 
 clean:
-	$(RM) -r  *.o main
+	$(RM) -r  *.o 11-3.nonactive_conn

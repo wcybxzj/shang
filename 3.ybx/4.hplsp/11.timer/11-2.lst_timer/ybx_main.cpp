@@ -21,6 +21,7 @@ void myfunc(client_data *pt)
 	cout<<pt->buf<<endl;
 }
 
+//自己写的调试11-2.list_timer,升序定时器的测试代码
 int main(int argc, const char *argv[])
 {
 	client_data* data_pt = new client_data;

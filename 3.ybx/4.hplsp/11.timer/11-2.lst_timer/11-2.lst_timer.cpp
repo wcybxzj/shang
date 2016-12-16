@@ -1,4 +1,4 @@
-#include "lst_timer.h"
+#include "11-2.lst_timer.h"
 
 sort_timer_lst::~sort_timer_lst(){
 	util_timer *tmp = head;
@@ -97,10 +97,6 @@ void sort_timer_lst::tick() {
 		}
 		delete tmp;
 		tmp = head;
-	}
-	if (!tmp) {
-		cout<<"work is done, queue is empty"<<endl;
-		exit(1);
 	}
 }
 

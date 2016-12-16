@@ -21,11 +21,10 @@ class util_timer
 		client_data* user_data;
 		util_timer* prev;
 		util_timer* next;
-		util_timer(time_t ex, void (*fun)(client_data*), client_data* data): 
-			expire(ex), cb_func(fun), user_data(data), prev(NULL), next(NULL){}
-		//util_timer(): prev(NULL), next(NULL){}
+		util_timer(): prev(NULL), next(NULL){}
 };
 
+//升序定时器链表
 class sort_timer_lst
 {
 	private:
