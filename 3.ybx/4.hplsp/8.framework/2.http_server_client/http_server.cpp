@@ -90,6 +90,8 @@ recv:
 				else if ( data_read == 0 )
 				{
 					printf( "ERROR:remote client has closed the connection\n" );
+					printf("EOF close fd:%d\n", fd);
+					close(fd);
 					goto recv;
 				}
 				//printf("========原始========\n");

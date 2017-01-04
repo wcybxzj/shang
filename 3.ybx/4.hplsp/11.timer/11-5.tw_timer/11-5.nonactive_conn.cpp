@@ -14,14 +14,14 @@
 #include <strings.h>
 #include <sys/epoll.h>
 #include <pthread.h>
-#include "11-2.lst_timer.h"
+#include "11-5.tw_timer.h"
 
-#define TIMESLOT 5 //每次tick间隔
+#define TIMESLOT 1
 #define FD_LIMIT 65535
 #define MAX_EVENT_NUMBER 1024
 
 static int pipefd[2];
-static sort_timer_lst timer_lst;
+static  time_wheel wheel;
 static int epollfd = 0;
 
 int setnonblocking(int fd)
@@ -63,7 +63,7 @@ void addsig(int sig)
 
 void timer_handler()
 {
-	timer_lst.tick();
+	wheel.tick();
 	alarm(TIMESLOT);
 }
 
@@ -80,8 +80,10 @@ void cb_func(client_data* user_data)
 
 //linux socket本来可以用KEEPALIVE来处理非活动连接
 //但在本里中应用层自己来处理非活动连接
+
+
 //服务端:
-//./11-3.nonactive_conn 127.0.0.1 1234
+//./11-5.nonactive_conn 127.0.0.1 1234
 //客户端:
 //nc 127.0.0.1 1234
 int main(int argc, const char *argv[])
@@ -112,7 +114,6 @@ int main(int argc, const char *argv[])
 		perror("setsockpit");
 		exit(1);
 	}
-
 	ret = bind(listenfd, (struct sockaddr *) &address, sizeof(address));
 	if (ret < 0) {
 		perror("bind()");
@@ -154,10 +155,10 @@ int main(int argc, const char *argv[])
 	int sockfd, connfd;
 	struct sockaddr_in client_address;
 	socklen_t client_addrlength = sizeof(client_address);
-	util_timer *timer = NULL;
+	tw_timer* timer;
 	while (!stop_server) {
 		number = epoll_wait(epollfd, events, MAX_EVENT_NUMBER, -1);
-		if ( (number<0) && (errno!=EINTR)) {
+		if ((number<0) && (errno!=EINTR)) {
 			printf("epoll_wait return fail\n");
 			break;
 		}
@@ -169,15 +170,14 @@ int main(int argc, const char *argv[])
 						(struct sockaddr *) &client_address,
 						&client_addrlength);
 				addfd(epollfd, connfd);
-				users[connfd].address = client_address;
-				users[connfd].sockfd = connfd;
-				util_timer *timer = new util_timer;
+				timer = wheel.add_timer(15);//10秒超时
 				timer->cb_func = cb_func;
 				timer->user_data = &users[connfd];
-				cur = time(NULL);
-				timer->expire = cur + 3*TIMESLOT;
 				users[connfd].timer = timer;
-				timer_lst.add_timer(timer);
+				users[connfd].address = client_address;
+				users[connfd].sockfd = connfd;
+				printf("add_timer fd:%d\n", connfd);
+				//printf("add_timer ts:%d\n",timer->time_slot);
 			}else if((sockfd == pipefd[0]) && (events[i].events & EPOLLIN)){
 				ret = recv(pipefd[0], signals, sizeof(signals), 0);
 				if (ret == -1) {
@@ -207,22 +207,22 @@ int main(int argc, const char *argv[])
 					if (errno != EAGAIN) {
 						cb_func(&users[sockfd]);
 						if (timer) {
-							timer_lst.del_timer(timer);
+							wheel.del_timer(timer);
 						}
 					}
 				}else if (ret==0){
 					cb_func(&users[sockfd]);
 					if (timer) {
-						timer_lst.del_timer(timer);
+						wheel.del_timer(timer);
 					}
 				}else{
 					send(sockfd, users[sockfd].buf, BUFFER_SIZE-1, 0);
 					if (timer) {
-						printf("adjust_timer\n");
-						time_t cur = time(NULL);
-						timer->expire = cur + 3*TIMESLOT;//过期时间
-						printf("adjust timer\n");
-						timer_lst.adjust_timer(timer);
+						printf("adjust_timer fd:%d, rotation:%d\n",
+								timer->user_data->sockfd, timer->rotation);
+						wheel.adjust_timer(timer);
+						printf("adjust_timer fd:%d, rotation:%d\n",
+								timer->user_data->sockfd, timer->rotation);
 					}else{
 						perror("not have timer");
 						exit(1);

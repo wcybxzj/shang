@@ -14,14 +14,14 @@
 #include <strings.h>
 #include <sys/epoll.h>
 #include <pthread.h>
-#include "11-2.lst_timer.h"
+#include "11-6.heap_timer.h"
 
-#define TIMESLOT 5 //每次tick间隔
+#define TIMESLOT 1 //每次tick间隔
 #define FD_LIMIT 65535
 #define MAX_EVENT_NUMBER 1024
 
 static int pipefd[2];
-static sort_timer_lst timer_lst;
+static time_heap my_time_heap(1);
 static int epollfd = 0;
 
 int setnonblocking(int fd)
@@ -63,8 +63,22 @@ void addsig(int sig)
 
 void timer_handler()
 {
-	timer_lst.tick();
-	alarm(TIMESLOT);
+	heap_timer* timer;
+	time_t cur = time(NULL);
+	time_t alarm_time;
+
+	my_time_heap.tick();
+	if (my_time_heap.empty()) {
+		alarm_time = TIMESLOT;
+	}else{
+		timer = my_time_heap.top();
+		if (cur < timer->expire) {
+			alarm_time =  timer->expire - cur;
+		}else{
+			alarm_time = 1;
+		}
+	}
+	alarm(alarm_time);
 }
 
 void cb_func(client_data* user_data)
@@ -78,10 +92,29 @@ void cb_func(client_data* user_data)
 	printf("close fd:%d\n", user_data->sockfd);
 }
 
+//1.特点:
+//time_heap第一种方式初始化，把heap_timer一个一个添加进定时器
+
+//2.使用:
 //linux socket本来可以用KEEPALIVE来处理非活动连接
 //但在本里中应用层自己来处理非活动连接
+
 //服务端:
-//./11-3.nonactive_conn 127.0.0.1 1234
+//./11-6.nonactive_conn 127.0.0.1 1234
+//tick worker
+//tick worker
+//tick worker
+//tick worker
+//tick worker
+//tick worker
+//tick worker
+//tick worker
+//(tick 3秒不运行因为当有连接进入最小堆后， alarm是的时间是按照最小堆,堆顶元素时间设置)
+//close fd:7
+//tick worker
+//tick worker
+//tick worker
+
 //客户端:
 //nc 127.0.0.1 1234
 int main(int argc, const char *argv[])
@@ -118,6 +151,7 @@ int main(int argc, const char *argv[])
 		perror("bind()");
 		exit(1);
 	}
+
 	ret = listen(listenfd, 5);
 	if (ret < 0) {
 		perror("listen");
@@ -148,13 +182,13 @@ int main(int argc, const char *argv[])
 	bool timeout = false;
 	alarm(TIMESLOT);
 
-	time_t cur;
-	int i, number, sig;
+	int i, number;
 	char signals[1024];
 	int sockfd, connfd;
 	struct sockaddr_in client_address;
 	socklen_t client_addrlength = sizeof(client_address);
-	util_timer *timer = NULL;
+
+	heap_timer *timer = NULL;
 	while (!stop_server) {
 		number = epoll_wait(epollfd, events, MAX_EVENT_NUMBER, -1);
 		if ( (number<0) && (errno!=EINTR)) {
@@ -171,13 +205,11 @@ int main(int argc, const char *argv[])
 				addfd(epollfd, connfd);
 				users[connfd].address = client_address;
 				users[connfd].sockfd = connfd;
-				util_timer *timer = new util_timer;
+				timer = new heap_timer(3*TIMESLOT);
 				timer->cb_func = cb_func;
 				timer->user_data = &users[connfd];
-				cur = time(NULL);
-				timer->expire = cur + 3*TIMESLOT;
 				users[connfd].timer = timer;
-				timer_lst.add_timer(timer);
+				my_time_heap.add_timer(timer);
 			}else if((sockfd == pipefd[0]) && (events[i].events & EPOLLIN)){
 				ret = recv(pipefd[0], signals, sizeof(signals), 0);
 				if (ret == -1) {
@@ -207,22 +239,22 @@ int main(int argc, const char *argv[])
 					if (errno != EAGAIN) {
 						cb_func(&users[sockfd]);
 						if (timer) {
-							timer_lst.del_timer(timer);
+							my_time_heap.del_timer(timer);
 						}
 					}
 				}else if (ret==0){
 					cb_func(&users[sockfd]);
 					if (timer) {
-						timer_lst.del_timer(timer);
+						my_time_heap.del_timer(timer);
 					}
 				}else{
 					send(sockfd, users[sockfd].buf, BUFFER_SIZE-1, 0);
 					if (timer) {
-						printf("adjust_timer\n");
-						time_t cur = time(NULL);
-						timer->expire = cur + 3*TIMESLOT;//过期时间
-						printf("adjust timer\n");
-						timer_lst.adjust_timer(timer);
+						//printf("adjust_timer\n");
+						//time_t cur = time(NULL);
+						//timer->expire = cur + 3*TIMESLOT;//过期时间
+						//printf("adjust timer\n");
+						//timer_lst.adjust_timer(timer);
 					}else{
 						perror("not have timer");
 						exit(1);

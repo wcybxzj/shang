@@ -7,8 +7,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
-#include <iostream>
-using namespace std;
 #define BUFFER_SIZE 64
 
 struct client_data;
