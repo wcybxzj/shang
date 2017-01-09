@@ -95,7 +95,8 @@ void cb_func(client_data* user_data)
 //1.特点:
 //time_heap第一种方式初始化，把heap_timer一个一个添加进定时器
 
-//2.使用:
+//==============================================================
+//2.基本测试1:
 //linux socket本来可以用KEEPALIVE来处理非活动连接
 //但在本里中应用层自己来处理非活动连接
 
@@ -117,6 +118,13 @@ void cb_func(client_data* user_data)
 
 //客户端:
 //nc 127.0.0.1 1234
+//==============================================================
+//3.测试del_timer
+//客户端:
+//nc 127.0.0.1 1234
+//ctrl+d 发送EOF
+
+
 int main(int argc, const char *argv[])
 {
 	if (argc < 2) {
@@ -205,7 +213,7 @@ int main(int argc, const char *argv[])
 				addfd(epollfd, connfd);
 				users[connfd].address = client_address;
 				users[connfd].sockfd = connfd;
-				timer = new heap_timer(3*TIMESLOT);
+				timer = new heap_timer(10*TIMESLOT);//给客户端设置超时时间，让服务器主动关闭客户端
 				timer->cb_func = cb_func;
 				timer->user_data = &users[connfd];
 				users[connfd].timer = timer;
@@ -232,8 +240,8 @@ int main(int argc, const char *argv[])
 			}else if(events[i].events & EPOLLIN){
 				bzero(users[sockfd].buf, BUFFER_SIZE);
 				ret = recv(sockfd, users[sockfd].buf, BUFFER_SIZE-1, 0);
-				printf("get %d bytes, data: %s from fd:%d\n",
-						ret, users[sockfd].buf, sockfd);
+				printf("from fd:%d, get %d bytes, data:%s",
+						 sockfd, ret, users[sockfd].buf);
 				timer = users[sockfd].timer;
 				if (ret<0) {
 					if (errno != EAGAIN) {
@@ -242,7 +250,7 @@ int main(int argc, const char *argv[])
 							my_time_heap.del_timer(timer);
 						}
 					}
-				}else if (ret==0){
+				}else if (ret==0){//EOF
 					cb_func(&users[sockfd]);
 					if (timer) {
 						my_time_heap.del_timer(timer);
@@ -250,11 +258,7 @@ int main(int argc, const char *argv[])
 				}else{
 					send(sockfd, users[sockfd].buf, BUFFER_SIZE-1, 0);
 					if (timer) {
-						//printf("adjust_timer\n");
-						//time_t cur = time(NULL);
-						//timer->expire = cur + 3*TIMESLOT;//过期时间
-						//printf("adjust timer\n");
-						//timer_lst.adjust_timer(timer);
+						my_time_heap.adjust_timer(timer, 5*TIMESLOT);
 					}else{
 						perror("not have timer");
 						exit(1);

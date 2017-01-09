@@ -35,7 +35,7 @@ heap_timer:: heap_timer(int delay)
 class time_heap
 {
 	private:
-		int cur_size;
+		int cur_size;//当前元素个数
 		int capacity;
 		heap_timer** array;
 
@@ -89,11 +89,15 @@ class time_heap
 		}
 		~time_heap();
 
-		void add_timer(heap_timer* timer) throw (exception);
+		int add_timer(heap_timer* timer) throw (exception);
 
 		void del_timer(heap_timer* timer);
 
-		void adjust_timer(heap_timer* timer);
+		void adjust_timer(heap_timer* timer, int delay);
+
+		int find_timer(heap_timer* timer);
+
+		void print_timer(heap_timer * timer);
 
 		heap_timer* top() const;
 
@@ -102,6 +106,8 @@ class time_heap
 		void tick();
 
 		bool empty() const;
+		
+		void debug();
 
 	private:
 		void percolate_down(int hole);
@@ -109,11 +115,6 @@ class time_heap
 
 
 };
-
-//初始化方式1:
-
-//初始化方式2:
-
 
 time_heap::~time_heap()
 {
@@ -124,7 +125,7 @@ time_heap::~time_heap()
 	delete [] array;
 }
 
-void time_heap::add_timer(heap_timer* timer) throw (exception)
+int time_heap::add_timer(heap_timer* timer) throw (exception)
 {
 	if (!timer) {
 		throw exception();
@@ -137,7 +138,7 @@ void time_heap::add_timer(heap_timer* timer) throw (exception)
 
 	//hole不是唯一节点
 	for(; hole>0; hole=parent) {
-		parent = hole-1/2;
+		parent = (hole-1)/2;
 		if (timer->expire < array[parent]->expire) {
 			array[hole] = array[parent];
 		}else{
@@ -145,14 +146,77 @@ void time_heap::add_timer(heap_timer* timer) throw (exception)
 		}
 	}
 	array[hole] = timer;
+	//cout<<"add_timer hole is :"<<hole<<endl;
+	//print_timer(timer);
+	//debug();
+	return hole;
 }
 
-void time_heap:: del_timer(heap_timer* timer)
+int time_heap::find_timer(heap_timer* timer)
+{
+	if (empty()) {
+		return -1;
+	}
+	int i;
+	for (i = 0; i < cur_size; i++) {
+		if (timer == array[i]) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+//用于处理客户端主动发送EOF,服务器需要del_timer
+void time_heap::del_timer(heap_timer* timer)
 {
 	if (!timer) {
 		return;
 	}
-	timer->cb_func = NULL;
+	//find the num of the timer
+	int num;
+	if (!empty()) {
+		num = find_timer(timer);
+	}
+
+	//printf("num:%d\n", num);
+	if (num>=0) {
+		delete array[num];
+		array[num] = array[--cur_size];
+		percolate_down(num);
+	}
+}
+
+void time_heap::adjust_timer(heap_timer* timer, int delay){
+	//先找到要调整时间的timer在堆中
+	//从堆中移除
+	//加时间
+	//放回堆
+	int num, new_num;
+	heap_timer* tmp_timer;
+	if (!empty()) {
+		num = find_timer(timer);
+	}
+
+	//cout <<"++adjust_timer start, timer adderss:"<<timer<<endl;
+	//cout <<"find num:"<<num <<endl;
+	//debug();
+
+	if (num<0) {
+		printf("can not find timer\n");
+		exit(1);
+	}else{
+		tmp_timer = array[num];
+		tmp_timer->expire+=delay;
+		array[num] = array[--cur_size];
+		printf("on adjust\n");
+		//debug();
+		percolate_down(num);
+		new_num = add_timer(tmp_timer);
+		//debug();
+		//cout <<"new_num:"<<new_num<<" ";
+		print_timer(tmp_timer);
+	}
+	//cout << "++adjust done" <<endl;
 }
 
 heap_timer* time_heap:: top() const
@@ -199,12 +263,34 @@ bool time_heap::empty() const{
 	return cur_size == 0;
 }
 
-void time_heap:: percolate_down(int hole)
+void time_heap::print_timer(heap_timer * timer)
+{
+	cout <<"address:"<<timer;
+	cout <<" new_expire:"<<timer->expire<<endl;
+}
+
+void time_heap::debug()
+{
+	int i;
+	cout <<">>debug info:"<<endl;
+	cout <<"cur_size:"<<cur_size<<endl;
+	if (!empty()) {
+		for (i = 0; i < cur_size; i++) {
+			cout <<"i:"<<i<<" address:"<<array[i]
+				<<" expire:"<<array[i]->expire<<endl;
+		}
+	}else{
+		printf("heap is empty\n");
+	}
+	cout<<">>debug done"<<endl;
+}
+
+void time_heap :: percolate_down(int hole)
 {
 	heap_timer* timer= array[hole];
 	int child;
 	//是否有子节点
-	while ( 2*hole+1 <= cur_size-1) {
+	while (2*hole+1 <= cur_size-1) {
 		child = 2*hole+1;
 		//是否有右孩子
 		if (child < cur_size-1 && array[child]->expire > array[child+1]->expire) {
