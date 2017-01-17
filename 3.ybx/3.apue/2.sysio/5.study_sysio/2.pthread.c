@@ -47,6 +47,31 @@ void* inner_struct(void *p)
 	pthread_exit(NULL);
 }
 
+/*
+多线程中文件表项不共享，所以每个线程读取的都是文件头
+./3.pthread_fd 
+begin work tid:140329947027200
+pthread_id:140329947027200, sleep(2)
+begin work tid:140329926047488
+pthread_id:140329926047488, sleep(2)
+begin work tid:140329863108352
+pthread_id:140329863108352, sleep(2)
+begin work tid:140329884088064
+pthread_id:140329884088064, sleep(2)
+begin work tid:140329873598208
+pthread_id:140329873598208, buf:# /etc/ser, len:10
+begin work tid:140329905067776
+pthread_id:140329905067776, buf:# /etc/ser, len:10
+begin work tid:140329957517056
+pthread_id:140329957517056, sleep(2)
+begin work tid:140329894577920
+pthread_id:188, buf:# /etc/ser, len:10
+pthread_id:140329863108352, buf:# /etc/ser, len:10
+pthread_id:140329884088064, buf:# /etc/ser, len:10
+pthread_id:140329957517056, buf:# /etc/ser, len:10
+pthread_id:140329894577920, buf:# /etc/ser, len:10
+pthread_id:140329915557632, buf:# /etc/ser, len:10
+*/
 void test_sysio_inner_struct()
 {
 	int i;
@@ -75,6 +100,14 @@ void *fd_arr(void *p){
 	pthread_exit(0);
 }
 
+/*
+多线程中文件描述符数组是共享的
+./3.pthread_fd 
+child tid:140279389501184, fd:3
+child tid:140279379011328, fd:4
+child tid:140279368521472, fd:5
+...
+*/
 void test_sysio_fd_arr()
 {
 	int i;
