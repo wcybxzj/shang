@@ -5,11 +5,16 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
+#include <errno.h>
 
 #define NAME "num.txt"
 
-//证明fork后子进程,不继承父亲中的锁
 //方法1:ret = lockf(fd, F_TEST, 0);//测试
+//证明:fork后子进程,不继承父亲中的锁
+//测试:父进程可以锁文件，子进程不能锁文件
+//./4.lockf_fork 
+//child:其他错误:Permission denied
+//parent:被当前进程意外解锁或者上锁
 void child_lockf1(){
 	pid_t pid;
 	int fd, ret;
@@ -23,19 +28,16 @@ void child_lockf1(){
 
 	pid = fork();
 	if(pid == 0) {
-		//close(fd);
-		//fd = open(NAME,O_RDWR);
-		//if (fd <0) {
-		//	perror("child: open():");
-		//	exit(-1);
-		//}
-
 		sleep(1);
 		ret = lockf(fd, F_TEST, 0);//测试
 		if(ret == 0){
-			printf("child:被当前进程解锁或者上锁\n");
+			printf("child:当前进程可锁此文件\n");
 		}else if(ret < 0){
-			printf("child:被其他进程锁住\n");
+			if (errno == EAGAIN) {
+				printf("child:被其他进程锁住\n");
+			}else{
+				printf("child:其他错误:%s\n", strerror(errno));
+			}
 		}
 		exit(0);
 	}
@@ -43,14 +45,17 @@ void child_lockf1(){
 	wait(NULL);
 	ret = lockf(fd, F_TEST, 0);//测试
 	if(ret == 0){
-		printf("parent:被当前进程解锁或者上锁\n");
+		printf("parent:被当前进程意外解锁或者上锁\n");
 	}else if(ret < 0){
 		printf("parent:被其他进程锁住\n");
 	}
 }
 
-//证明fork后子进程,不继承父亲中的锁
+//证明:fork后子进程,不继承父亲中的锁
 //方法2:ret = lockf(fd, F_LOCK, 0);//测试
+//测试:子进程不能上锁一直阻塞等待
+//./4.lockf_fork 
+//child 上锁永远阻塞来证明,子进程没继承父进程的锁
 void child_lockf2(){
 	pid_t pid;
 	int fd, ret;
@@ -64,13 +69,6 @@ void child_lockf2(){
 
 	pid = fork();
 	if(pid == 0) {
-		//close(fd);
-		//fd = open(NAME,O_RDWR);
-		//if (fd <0) {
-		//	perror("child: open():");
-		//	exit(-1);
-		//}
-
 		sleep(1);
 		printf("child 上锁永远阻塞来证明,子进程没继承父进程的锁\n");
 		ret = lockf(fd, F_LOCK, 0);//永远阻塞

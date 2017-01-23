@@ -12,9 +12,6 @@
 
 typedef struct sockaddr SA;
 
-
-
-
 void socket_read_cb(struct bufferevent* bev, void* arg)
 {
 	char msg[4096]={'\0',};

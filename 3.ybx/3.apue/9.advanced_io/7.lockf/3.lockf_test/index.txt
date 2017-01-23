@@ -6,3 +6,25 @@
 终端2:
 在上面2个10秒，获得不同的结果
 ./2.lockf_test
+
+==============================================
+==============================================
+==============================================
+实际测试结果:
+终端1:
+./1.lockf 
+current pid is 11455
+lock by current process
+第一sleep 10,在此期间是LOCK状态
+sleep over
+第二次sleep 10,此状态是意外解除前面LOCK
+sleep over
+
+终端2:
+./2.lockf_test 
+current pid is 11456
+file is locked by another process
+./2.lockf_test 
+current pid is 11465
+ret == 0
+

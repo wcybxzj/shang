@@ -7,6 +7,7 @@
 #include <string.h>
 #include <event.h>
 #include <errno.h>
+#include <event2/thread.h>
 
 typedef struct sockaddr SA;
 int  tcp_server_init(char *port, int listen_num)
@@ -119,7 +120,7 @@ int main(int argc, char *argv[])
 		printf("./a.out 9999\n");
 		exit(1);
 	}
-
+	evthread_use_pthreads();
 	char *port = argv[1];
 	//socket+bind+listen
 	int listenfd = tcp_server_init(port, 10);
