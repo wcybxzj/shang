@@ -89,6 +89,22 @@ int main(int argc, char  *argv[])
 		printf("the last is:%d\n",item->value);
 	}
 
+	//另外一种TAILQ_LAST的方法
+	struct  tailq_entry **pp = (&my_tailq_head)->tqh_last;  
+	pp += 1; //加1个指针的偏移量，在32位的系统中，就等于+4  
+	//因为这里得到的是二级指针的地址值，所以按理来说，得到的是一个  
+	////三级指针。故要用强制转换成三级指针。  
+	struct queue_entry_t ***ppp = (struct queue_entry_t ***)pp;  
+	struct tailq_entry *s = (struct tailq_entry *)**ppp;  
+	printf("the last is %d\n", s->value);  
+	//该代码虽然能得到正确的结果，但总感觉直接加上一个偏移量的方式太粗暴了。
+	//有一点要提出，+1那里并不会因为在64位的系统就不能运行，一样能正确运行的。
+	//因为1不是表示一个字节，而是一个指针的偏移量。
+	//在64位的系统上一个指针的偏移量为8字节。
+	//这种”指针 + 数值”，实际其增加的值为:数值 + sizeof(*指针)。
+	//不信的话，可以试一下char指针、int指针、结构体指针(结构体要有多个成员)。
+	
+
 	//删除一个元素
 	printf("Deleting item with value 3: ");
 	for(item = TAILQ_FIRST(&my_tailq_head); item != NULL; item = tmp_item) {

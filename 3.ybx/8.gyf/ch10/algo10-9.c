@@ -47,6 +47,7 @@ void HeapSort(HeapType *H)
 {
 	RedType tmp;
 	int i;
+	//建堆
 	for (i = (H->length)/2; i >0; i--) {
 		HeapAdjust(H, i, H->length);
 	}
