@@ -13,11 +13,15 @@
  
 #include <event3/util.h>
 
-enum event_method_feature {                                                                                                                                                         
-    EV_FEATURE_ET = 0x01,
-    EV_FEATURE_O1 = 0x02,
-    EV_FEATURE_FDS = 0x04
-};
+enum event_method_feature {  
+    //支持边沿触发  
+    EV_FEATURE_ET = 0x01,  
+    //添加、删除、或者确定哪个事件激活这些动作的时间复杂度都为O(1)  
+    //select、poll是不能满足这个特征的.epoll则满足  
+    EV_FEATURE_O1 = 0x02,  
+    //支持任意的文件描述符，而不能仅仅支持套接字  
+    EV_FEATURE_FDS = 0x04  
+};  
 
 enum event_base_config_flag {
 	EVENT_BASE_FLAG_NOLOCK = 0x01,
