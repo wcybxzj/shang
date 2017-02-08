@@ -51,7 +51,7 @@ eqsocket(struct event_map_entry *e1, struct event_map_entry *e2)
 //因为HT_PROTOTYPE里展开的函数都是static的所以需要再次引用
 HT_PROTOTYPE(event_io_map, event_map_entry, map_node, hashsocket, eqsocket)
 
-//HT_GENERATE里展开的函数变量都不是static所以用原来的就行
+////HT_GENERATE里展开的函数变量都不是static所以用原来的就行
 //HT_GENERATE(event_io_map, event_map_entry, map_node, hashsocket, eqsocket,
 //            0.5, mm_malloc, mm_realloc, mm_free)
 
@@ -68,25 +68,25 @@ int remove_fun(struct event_map_entry*p1, void *p2){
 }
 
 //和HT_REPLACE一样, 手写了一个出问题方便调试
-static inline struct event_map_entry*
-MY_HT_REPLACE(struct event_io_map *head, struct event_map_entry *elm)
-{
-  struct event_map_entry **p, *r;
-  if (!head->hth_table || head->hth_n_entries >= head->hth_load_limit)
-    event_io_map_HT_GROW(head, head->hth_n_entries+1);
-  _HT_SET_HASH(elm, map_node, hashsocket);
-  p = _event_io_map_HT_FIND_P(head, elm);
-  r = *p;
-  *p = elm;
-  if (r && (r!=elm)) {
-    elm->map_node.hte_next = r->map_node.hte_next;
-    r->map_node.hte_next = NULL;
-    return r;
-  } else {
-    ++head->hth_n_entries;
-    return NULL;
-  }
-}
+//static inline struct event_map_entry*
+//MY_HT_REPLACE(struct event_io_map *head, struct event_map_entry *elm)
+//{
+//  struct event_map_entry **p, *r;
+//  if (!head->hth_table || head->hth_n_entries >= head->hth_load_limit)
+//    event_io_map_HT_GROW(head, head->hth_n_entries+1);
+//  _HT_SET_HASH(elm, map_node, hashsocket);
+//  p = _event_io_map_HT_FIND_P(head, elm);
+//  r = *p;
+//  *p = elm;
+//  if (r && (r!=elm)) {
+//    elm->map_node.hte_next = r->map_node.hte_next;
+//    r->map_node.hte_next = NULL;
+//    return r;
+//  } else {
+//    ++head->hth_n_entries;
+//    return NULL;
+//  }
+//}
 
 //7.hashtable.c是需要特别指定makefile文件进行make
 //make -f makefile_win32

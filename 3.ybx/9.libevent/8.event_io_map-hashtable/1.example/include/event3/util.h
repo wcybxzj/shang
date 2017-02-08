@@ -117,24 +117,11 @@ int evutil_make_socket_closeonexec(evutil_socket_t sock);
 int evutil_closesocket(evutil_socket_t sock);
 #define EVUTIL_CLOSESOCKET(s) evutil_closesocket(s)
 
-#ifdef WIN32
-#define EVUTIL_SOCKET_ERROR() WSAGetLastError()
-#define EVUTIL_SET_SOCKET_ERROR(errcode)		\
-	do { WSASetLastError(errcode); } while (0)
-int evutil_socket_geterror(evutil_socket_t sock);
-const char *evutil_socket_error_to_string(int errcode);
-#elif defined(_EVENT_IN_DOXYGEN)
-#define EVUTIL_SOCKET_ERROR() ...
-#define EVUTIL_SET_SOCKET_ERROR(errcode) ...
-#define evutil_socket_geterror(sock) ...
-#define evutil_socket_error_to_string(errcode) ...
-#else
 #define EVUTIL_SOCKET_ERROR() (errno)
 #define EVUTIL_SET_SOCKET_ERROR(errcode)		\
 		do { errno = (errcode); } while (0)
 #define evutil_socket_geterror(sock) (errno)
 #define evutil_socket_error_to_string(errcode) (strerror(errcode))
-#endif
 
 #ifdef _EVENT_HAVE_TIMERADD                                                                                                         
 #define evutil_timeradd(tvp, uvp, vvp) timeradd((tvp), (uvp), (vvp))

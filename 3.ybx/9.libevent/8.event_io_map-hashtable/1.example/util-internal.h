@@ -29,9 +29,11 @@ int EVUTIL_ISUPPER(char c);
 char EVUTIL_TOUPPER(char c);
 char EVUTIL_TOLOWER(char c);
 
+
+
+int evutil_ersatz_socketpair(int, int , int, evutil_socket_t[]);
 const char *evutil_getenv(const char *name);
 
-#ifndef WIN32
 #define EVUTIL_ERR_RW_RETRIABLE(e)				\
 	((e) == EINTR || (e) == EAGAIN)
 
@@ -43,26 +45,6 @@ const char *evutil_getenv(const char *name);
 
 #define EVUTIL_ERR_CONNECT_REFUSED(e)					\
 	((e) == ECONNREFUSED)
-
-#else
-
-#define EVUTIL_ERR_RW_RETRIABLE(e)					\
-	((e) == WSAEWOULDBLOCK ||					\
-	    (e) == WSAEINTR)
-
-#define EVUTIL_ERR_CONNECT_RETRIABLE(e)					\
-	((e) == WSAEWOULDBLOCK ||					\
-	    (e) == WSAEINTR ||						\
-	    (e) == WSAEINPROGRESS ||					\
-	    (e) == WSAEINVAL)
-
-#define EVUTIL_ERR_ACCEPT_RETRIABLE(e)			\
-	EVUTIL_ERR_RW_RETRIABLE(e)
-
-#define EVUTIL_ERR_CONNECT_REFUSED(e)					\
-	((e) == WSAECONNREFUSED)
-
-#endif //define WIN32
 
 
 

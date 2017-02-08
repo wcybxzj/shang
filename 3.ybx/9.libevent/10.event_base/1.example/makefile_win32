@@ -1,9 +1,0 @@
-CFLAGS+=-I ./include -pthread -DWIN32 -Wall
-LDFLAGS+=-pthread
-
-all: 8.hashtable
-
-8.hashtable:8.hashtable.o evmap.o evutil_rand.o event.o evthread.o evthread_pthread.o signal.o log.o evutil.o
-
-clean:
-	rm -rf *.o  8.hashtable
