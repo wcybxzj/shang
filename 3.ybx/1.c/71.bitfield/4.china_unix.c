@@ -13,10 +13,13 @@ void main(int argn ,char *argv)
     data.b=0x111;
     data.c=0x7;
     data.d=0x8;
-    
+
+    //位域可以使用指针获取值,但是不能对位域取地址
     pData=&data;
     printf("data.a=%x data.b= %x data.c=%x data.d=%x\nn", 
-		pData->a,pData->b,pData->c,pData->d);//位域可以使用指针
+		pData->a,pData->b,pData->c,pData->d);
+
+	//printf("%x\n", &data.a);//error: cannot take address of bit-field ‘a’
 
     printf("sizeof(data)=%d\n",sizeof(data));   //4 bytes ，最常用的情况
 
