@@ -1,5 +1,5 @@
 #include <stdio.h>
-//如果成员之间穿插着非位域成员，那么不会进行压缩
+//结构体成员之间穿插着非位域成员，那么不会进行压缩
 //在各个编译器下 sizeof 的结果都是 12。
 
 //通过上面的分析，我们发现位域成员往往不占用完整的字节，有时候也不处于字节的开头位置，
@@ -12,6 +12,6 @@ int main(){
 		unsigned p: 4;
 	};
 
-	printf("%d\n", sizeof(struct bs));
+	printf("%d\n", sizeof(struct bs));//12
 	return 0;
 }

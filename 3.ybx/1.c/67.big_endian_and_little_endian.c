@@ -1,10 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef union var_st{
-	int var;
-	char arr[4];
-}VAR_ST;
 
 
 //测试方法1:
@@ -29,6 +25,11 @@ void test1(){
 
 //测试方法2:
 void test2(){
+	typedef union{
+		int var;
+		char arr[4];
+	}VAR_ST;
+
 	VAR_ST v;
 	v.var=0x12345678;
 	//printf("%x", v.arr[0]);//78
@@ -39,8 +40,26 @@ void test2(){
 	}
 }
 
+void test3()
+{
+	typedef union {
+		int var;
+		int a:8;
+	} UN;
+
+	UN v;
+	v.var = 0x12345678;
+	printf("%X\n", v.a);
+	if (v.a == 0x78) {
+		printf("little-endian\n");
+	}else{
+		printf("big-endian\n");
+	}
+}
+
 int main(void){
 	test1();
 	test2();
+	test3();
 	exit(0);
 }

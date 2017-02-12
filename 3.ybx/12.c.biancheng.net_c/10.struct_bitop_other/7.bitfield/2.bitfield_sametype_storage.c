@@ -26,7 +26,7 @@ void test1()
 //n 会从新的位置开始存储，相对 m 的偏移量是 sizeof(unsigned int)，也即 4 个字节。
 void test2()
 {
-	//22+12+4=38 超过1个int 就是64位->8字节
+	//22+12+4=38 超过1个int
     struct bs{
 	        unsigned m: 22;
 	        unsigned n: 12;
