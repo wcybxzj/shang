@@ -94,8 +94,7 @@ const char *evutil_getenv(const char *name);
 #endif
 
 
-
-
+long evutil_tv_to_msec(const struct timeval *tv);
 
 #ifdef __cplusplus
 }

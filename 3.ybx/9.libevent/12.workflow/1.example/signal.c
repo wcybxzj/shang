@@ -148,7 +148,8 @@ evsig_init(struct event_base *base)
     evutil_make_socket_nonblocking(base->sig.ev_signal_pair[1]);  
   
     //将ev_signal_pair[1]与ev_signal这个event相关联。ev_signal_pair[1]为读端  
-    //该函数的作用等同于event_new。实际上event_new内部也是调用event_assign函数完成工作的  
+    //该函数的作用等同于event_new。
+	//实际上event_new内部也是调用event_assign函数完成工作的  
     event_assign(&base->sig.ev_signal, base, base->sig.ev_signal_pair[1],  
         EV_READ | EV_PERSIST, evsig_cb, base);  
   
@@ -180,6 +181,8 @@ _evsig_set_handler(struct event_base *base,
 	 * resize saved signal handler array up to the highest signal number.
 	 * a dynamic array is used to keep footprint on the low side.
 	 */
+	//数组的一个元素就存放一个信号。信号值等于其下标  
+    //信号值等于其数组下标  
 	if (evsignal >= sig->sh_old_max) {
 		int new_max = evsignal + 1;
 		event_debug(("%s: evsignal (%d) >= sh_old_max (%d), resizing",
@@ -196,7 +199,7 @@ _evsig_set_handler(struct event_base *base,
 		sig->sh_old_max = new_max;
 		sig->sh_old = p;
 	}
-
+	//注意sh_old是一个二级指针。元素是一个一级指针。为这个一级指针分配内存  
 	/* allocate space for previous handler out of dynamic array */
 	sig->sh_old[evsignal] = mm_malloc(sizeof *sig->sh_old[evsignal]);
 	if (sig->sh_old[evsignal] == NULL) {
@@ -224,6 +227,7 @@ _evsig_set_handler(struct event_base *base,
 		sig->sh_old[evsignal] = NULL;
 		return (-1);
 	}
+	//保存之前的信号捕抓函数。当用户event_del这个信号监听后，就可以恢复了  
 	*sig->sh_old[evsignal] = sh;
 #endif
 
@@ -235,11 +239,14 @@ evsig_add(struct event_base *base, evutil_socket_t evsignal, short old, short ev
 {
 	struct evsig_info *sig = &base->sig;
 	(void)p;
-
+    //NSIG是信号的个数。定义在系统头文件中  
 	EVUTIL_ASSERT(evsignal >= 0 && evsignal < NSIG);
 
 	/* catch signals if they happen quickly */
+    //加锁保护。但实际其锁变量为NULL。所以并没有保护。应该会在以后的版本有所改正  
+    //在2.1.4-alpha版本中，就已经改进了这个问题。为锁变量分配了锁  
 	EVSIGBASE_LOCK();
+	//如果有多个event_base，那么捕抓信号这个工作只能由其中一个完成。  
 	if (evsig_base != base && evsig_base_n_signals_added) {
 		event_warnx("Added a signal to event base %p with signals "
 		    "already added to event_base %p.  Only one can have "
@@ -259,8 +266,25 @@ evsig_add(struct event_base *base, evutil_socket_t evsignal, short old, short ev
 		goto err;
 	}
 
-
+	//从后面的那个if语句可以得知，
+	//当sig->ev_signal_added变量为0时(即用户第一次监听一个信号)，
+	//就会将ev_signal这个event加入到event_base中。
+	//从“统一事件源”可知，ev_signal的作用就是通知event_base，有信号发生。
+	//只需一个event即可完成工作，即使用户要监听多个不同的信号，
+	//因为这个event已经和socketpair的读端相关联了。
+	//如果要监听多个信号，那么就在信号处理函数中往这个socketpair写入不同的值即可。
+	//event_base能监听到可读，并可以从读到的内容可以判断是哪个信号发生了。
+		   
+	//Libevent不会为每个信号监听创建一个event。
+	//它只会创建一个全局的专门用于监听信号的event。
+	//event_base第一次监听信号事件。要添加ev_signal到event_base中  
+	//这里的ev_signal实际是在event_base_new
 	if (!sig->ev_signal_added) {
+		 //本函数的调用路径为
+		//event_add->event_add_internal->evmap_signal_map->evsig_add  
+        //所以这里是递归调用event_add函数。
+		//而event_add函数是会加锁的。所以需要锁为递归锁  
+		//printf("evsignal:%d\n", evsignal);
 		if (event_add(&sig->ev_signal, NULL))
 			goto err;
 		sig->ev_signal_added = 1;

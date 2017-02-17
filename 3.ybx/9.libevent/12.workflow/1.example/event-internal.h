@@ -24,8 +24,12 @@ extern "C" {
 #define ev_pncalls	_ev.ev_signal.ev_pncalls
 
 /* Possible values for ev_closure in struct event. */
+//指定event_base 执行事件处理器的回调函数时的行为
+//默认行为
 #define EV_CLOSURE_NONE 0
+//执行信号事件处理器的回调函数时,调用ev.ev_signal.ev_ncalls次该回调函数
 #define EV_CLOSURE_SIGNAL 1
+//执行完回调函数后，再次将事件处理器加入注册事件队列中
 #define EV_CLOSURE_PERSIST 2
 
 struct eventop {

@@ -45,7 +45,7 @@ extern const struct eventop evportops;
 extern const struct eventop selectops;
 #endif
 #ifdef _EVENT_HAVE_POLL
-//extern const struct eventop pollops;
+extern const struct eventop pollops;
 #endif
 #ifdef _EVENT_HAVE_EPOLL
 //extern const struct eventop epollops;
@@ -75,7 +75,7 @@ static const struct eventop *eventops[] = {
 	&devpollops,
 #endif
 #ifdef _EVENT_HAVE_POLL
-	//&pollops,
+	&pollops,
 #endif
 #ifdef _EVENT_HAVE_SELECT
 	&selectops,
@@ -726,39 +726,44 @@ event_config_require_features(struct event_config *cfg,
 	return (0);
 }
 
-int
-event_base_priority_init(struct event_base *base, int npriorities)
-{
-	int i;
-
-	if (N_ACTIVE_CALLBACKS(base) || npriorities < 1
-	    || npriorities >= EVENT_MAX_PRIORITIES)
-		return (-1);
-
-	if (npriorities == base->nactivequeues)
-		return (0);
-
-	if (base->nactivequeues) {
-		mm_free(base->activequeues);
-		base->nactivequeues = 0;
-	}
-
-	/* Allocate our priority queues */
-	base->activequeues = (struct event_list *)
-	  mm_calloc(npriorities, sizeof(struct event_list));
-	if (base->activequeues == NULL) {
-		event_warn("%s: calloc", __func__);
-		return (-1);
-	}
-	base->nactivequeues = npriorities;
-
-	for (i = 0; i < base->nactivequeues; ++i) {
-		TAILQ_INIT(&base->activequeues[i]);
-	}
-
-	return (0);
-}
-
+//可以通过event_base_priority_init函数设置event_base->activequeues数组的个数
+int  
+event_base_priority_init(struct event_base *base, int npriorities)  
+{  
+    int i;  
+  
+    //由N_ACTIVE_CALLBACKS宏可以知道，本函数应该要在event_base_dispatch  
+    //函数调用前调用。不然将无法设置。  
+    if (N_ACTIVE_CALLBACKS(base) || npriorities < 1  
+        || npriorities >= EVENT_MAX_PRIORITIES)  
+        return (-1);  
+  
+    //之前和现在要设置的优先级数是一样的。  
+    if (npriorities == base->nactivequeues)  
+        return (0);  
+  
+    //释放之前的，因为N_ACTIVE_CALLBACKS,所以没有active的event。  
+    //可以随便mm_free  
+    if (base->nactivequeues) {   
+        mm_free(base->activequeues);  
+        base->nactivequeues = 0;  
+    }  
+  
+    //分配一个优先级数组。  
+    base->activequeues = (struct event_list *)  
+      mm_calloc(npriorities, sizeof(struct event_list));  
+    if (base->activequeues == NULL) {  
+        event_warn("%s: calloc", __func__);  
+        return (-1);  
+    }  
+    base->nactivequeues = npriorities;  
+  
+    for (i = 0; i < base->nactivequeues; ++i) {  
+        TAILQ_INIT(&base->activequeues[i]);  
+    }  
+  
+    return (0);  
+}  
 
 /* Returns true iff we're currently watching any events. */
 static int
@@ -779,7 +784,10 @@ event_signal_closure(struct event_base *base, struct event *ev)
 	ncalls = ev->ev_ncalls;
 	if (ncalls != 0)
 		ev->ev_pncalls = &ncalls;
+	//while循环里面会调用用户设置的回调函数。该回调函数可能会执行很久  
+    //所以要解锁先.  
 	EVBASE_RELEASE_LOCK(base, th_base_lock);
+	//如果该信号发生了多次，那么就需要多次执行回调函数
 	while (ncalls) {
 		ncalls--;
 		ev->ev_ncalls = ncalls;
@@ -963,11 +971,22 @@ event_process_active_single_queue(struct event_base *base,
 	int count = 0;
 
 	EVUTIL_ASSERT(activeq != NULL);
+	//Libevent在处理内部的那个信号处理event的回调函数时，
+	//其实是在event_process_active_single_queue的一个循环里面。
+	//因为Libevent内部的信号处理event的优先级最高优先级，
+	//并且在前面的将用户信号event插入到队列(即event_queue_insert)，在插入到队列的尾部。
+	//所以无论用户的这个信号event的优先级是多少，都是在Libevent的内部信号处理event的后面。
+	//所以在遍历上面两个函数的里外两个循环时，肯定会执行到用户的信号event。
 
+	//遍历该优先级的所有event，并处理之  
 	for (ev = TAILQ_FIRST(activeq); ev; ev = TAILQ_FIRST(activeq)) {
+		//printf("11111111111111\n");
+		//如果是永久事件，那么只需从active队列中删除。
+		//event_queue_remove后从ev_flags删除EVLIST_ACTIVE,
+		//ev_flags只留EVLIST_INIT | EVLIST_INSERTED
 		if (ev->ev_events & EV_PERSIST)
 			event_queue_remove(base, ev, EVLIST_ACTIVE);
-		else
+		else//不是的话，那么就要把这个event删除掉。
 			event_del_internal(ev);
 		if (!(ev->ev_flags & EVLIST_INTERNAL))
 			++count;
@@ -986,14 +1005,18 @@ event_process_active_single_queue(struct event_base *base,
 
 		switch (ev->ev_closure) {
 		case EV_CLOSURE_SIGNAL:
+			//printf("EV_CLOSURE_SIGNAL\n");
 			event_signal_closure(base, ev);
 			break;
 		case EV_CLOSURE_PERSIST:
+			//printf("EV_CLOSURE_PERSIST\n");
 			event_persist_closure(base, ev);
 			break;
 		default:
 		case EV_CLOSURE_NONE:
+			//printf("EV_CLOSURE_NONE\n");
 			EVBASE_RELEASE_LOCK(base, th_base_lock);
+			//调用用户设置的回调函数。  
 			(*ev->ev_callback)(
 				ev->ev_fd, ev->ev_res, ev->ev_arg);
 			break;
@@ -1054,8 +1077,10 @@ event_process_active(struct event_base *base)
 	/* Caller must hold th_base_lock */
 	struct event_list *activeq = NULL;
 	int i, c = 0;
-
+	//printf("nactivequeues:%d\n", base->nactivequeues);
+	//从高优先级到低优先级遍历优先级数组 
 	for (i = 0; i < base->nactivequeues; ++i) {
+		//printf("nactivequeues:%d\n", base->nactivequeues);
 		if (TAILQ_FIRST(&base->activequeues[i]) != NULL) {
 			base->event_running_priority = i;
 			activeq = &base->activequeues[i];
@@ -1090,6 +1115,16 @@ event_base_get_method(const struct event_base *base)
 	return (base->evsel->name);
 }
 
+//event_base_loop函数内部会进行加锁，
+//为这里要对event_base里面的多个队列进行一些数据操作(增删操作)，
+//此时要用锁来保护队列不被另外一个线程所破坏。
+
+//evsel->dispatch:
+//将调用多路IO复用函数，对event进行监听，
+//并且把满足条件的event放到event_base的激活队列中。
+
+//event_process_active:
+//遍历这个激活队列的所有event，逐个调用对应的回调函数。
 int
 event_base_loop(struct event_base *base, int flags)
 {
@@ -1161,6 +1196,8 @@ event_base_loop(struct event_base *base, int flags)
 
 		clear_time_cache(base);
 
+        //该函数的内部会解锁，然后调用OS提供的的多路IO复用函数。  
+        //这个函数退出后，又会立即加锁。这有点像条件变量。
 		res = evsel->dispatch(base, tv_p);
 
 		if (res == -1) {
@@ -1175,6 +1212,8 @@ event_base_loop(struct event_base *base, int flags)
 		timeout_process(base);
 
 		if (N_ACTIVE_CALLBACKS(base)) {
+			//处理激活列表中的event：
+			//现在已经完成了将event插入到激活队列中。接下来就是遍历激活数组队列，把所有激活的event都处理即可
 			int n = event_process_active(base);
 			if ((flags & EVLOOP_ONCE)
 			    && N_ACTIVE_CALLBACKS(base) == 0
@@ -1271,20 +1310,23 @@ event_debug_unassign(struct event *ev)
 	ev->ev_flags &= ~EVLIST_INIT;
 }
 
-int
-event_priority_set(struct event *ev, int pri)
-{
-	_event_debug_assert_is_setup(ev);
-
-	if (ev->ev_flags & EVLIST_ACTIVE)
-		return (-1);
-	if (pri < 0 || pri >= ev->ev_base->nactivequeues)
-		return (-1);
-
-	ev->ev_pri = pri;
-
-	return (0);
-}
+int  
+event_priority_set(struct event *ev, int pri)  
+{  
+    _event_debug_assert_is_setup(ev);  
+  
+    if (ev->ev_flags & EVLIST_ACTIVE)  
+        return (-1);  
+      
+//优先级不能越界  
+    if (pri < 0 || pri >= ev->ev_base->nactivequeues)  
+        return (-1);  
+  
+    //pri值越小，其优先级就越高。  
+    ev->ev_pri = pri;  
+  
+    return (0);  
+}  
 
 int
 event_add(struct event *ev, const struct timeval *tv)
@@ -1399,10 +1441,14 @@ event_add_internal(struct event *ev, const struct timeval *tv,
 
 	if ((ev->ev_events & (EV_READ|EV_WRITE|EV_SIGNAL)) &&
 	    !(ev->ev_flags & (EVLIST_INSERTED|EVLIST_ACTIVE))) {
-		if (ev->ev_events & (EV_READ|EV_WRITE))
+		if (ev->ev_events & (EV_READ|EV_WRITE)){
+			//printf("evmap_io_add\n");
 			res = evmap_io_add(base, ev->ev_fd, ev);
-		else if (ev->ev_events & EV_SIGNAL)
+		}
+		else if (ev->ev_events & EV_SIGNAL){
+			//printf("evmap_signal_add\n");
 			res = evmap_signal_add(base, (int)ev->ev_fd, ev);
+		}
 		if (res != -1)
 			event_queue_insert(base, ev, EVLIST_INSERTED);
 		if (res == 1) {
@@ -1610,7 +1656,10 @@ event_active_nolock(struct event *ev, int res, short ncalls)
 	EVENT_BASE_ASSERT_LOCKED(base);
 
 	ev->ev_res = res;
-
+	
+	//这将停止处理低优先级的event。一路回退到event_base_loop中。
+	//printf("event_running_priority:%d\n", base->event_running_priority);
+	//printf("ev_pri:%d\n",ev->ev_pri);
 	if (ev->ev_pri < base->event_running_priority)
 		base->event_continue = 1;
 
@@ -1618,13 +1667,14 @@ event_active_nolock(struct event *ev, int res, short ncalls)
 #ifndef _EVENT_DISABLE_THREAD_SUPPORT
 		if (base->current_event == ev && !EVBASE_IN_THREAD(base)) {
 			++base->current_event_waiters;
+			//由于此时是主线程执行，所以并不会进行这个判断里面
 			EVTHREAD_COND_WAIT(base->current_event_cond, base->th_base_lock);
 		}
 #endif
 		ev->ev_ncalls = ncalls;
 		ev->ev_pncalls = NULL;
 	}
-
+	//将ev插入到激活队列 队尾
 	event_queue_insert(base, ev, EVLIST_ACTIVE);
 
 	if (EVBASE_NEED_NOTIFY(base))
@@ -1833,8 +1883,10 @@ insert_common_timeout_inorder(struct common_timeout_list *ctl,
 	    ev_timeout_pos.ev_next_with_common_timeout);
 }
 
-
-
+//这个函数的主要作为是把event加入到对应的队列中。
+//event_new-->event_assign后event->ev_flags是EVLIST_INIT
+//event_add 是把event加入到eventqueue队列,event->ev_flags是EVLIST_INIT|EVLIST_INSERTED
+//poll_dispatch是把event加入到activequeues队列,event->ev_flags是EVLIST_INIT|EVLIST_INSERTED|EVLIST_ACTIVE
 static void
 event_queue_insert(struct event_base *base, struct event *ev, int queue)
 {
@@ -1853,12 +1905,15 @@ event_queue_insert(struct event_base *base, struct event *ev, int queue)
 	if (~ev->ev_flags & EVLIST_INTERNAL)
 		base->event_count++;
 
+	//如果 event_add_internal中调用 queue是 EVLIST_INSERTED
+	//event结构体的ev_flags变量为EVLIST_INIT | EVLIST_INSERTED。
 	ev->ev_flags |= queue;
 	switch (queue) {
 	case EVLIST_INSERTED:
 		TAILQ_INSERT_TAIL(&base->eventqueue, ev, ev_next);
 		break;
 	case EVLIST_ACTIVE:
+		//将event插入到对应对应优先级的激活队列中  
 		base->event_count_active++;
 		TAILQ_INSERT_TAIL(&base->activequeues[ev->ev_pri],
 		    ev,ev_active_next);
@@ -2042,6 +2097,9 @@ evthread_make_base_notifiable(struct event_base *base)
 	evutil_make_socket_nonblocking(base->th_notify_fd[0]);
 
 	base->th_notify_fn = notify;
+
+	//debug
+	//printf("%d\n",base->th_notify_fd[1]);
 
 	/*
 	  Making the second socket nonblocking is a bit subtle, given that we

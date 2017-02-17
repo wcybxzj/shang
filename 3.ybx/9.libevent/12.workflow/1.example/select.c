@@ -120,7 +120,8 @@ select_dispatch(struct event_base *base, struct timeval *tv)
 	struct selectop *sop = base->evbase;
 
 	check_selectop(sop);
-	// 判断是否需要重新调整输出集合的大小（如果event_readset_in的大小大于event_readset_out，
+	//判断是否需要重新调整输出集合的大小
+	//（如果event_readset_in的大小大于event_readset_out，
 	//那么必须调整event_readset_out的大小）
 	if (sop->resize_out_sets) {
 		fd_set *readset_out=NULL, *writeset_out=NULL;
@@ -170,6 +171,8 @@ select_dispatch(struct event_base *base, struct timeval *tv)
 	event_debug(("%s: select reports %d", __func__, res));
 
 	check_selectop(sop);
+  	//得到了select返回的结果后，首先我们知道select的麻烦在于其返回后的O(N)复杂度，
+	//这里从N中随机取一个数开始循环，而不是每次都从0开始  
 	i = random() % nfds;
 	for (j = 0; j < nfds; ++j) {
 		if (++i >= nfds)

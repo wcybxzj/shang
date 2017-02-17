@@ -233,6 +233,10 @@ evmap_io_add(struct event_base *base, evutil_socket_t fd, struct event *ev)
 	GET_IO_SLOT_AND_CTOR(ctx, io, fd, evmap_io, evmap_io_init,
 						 evsel->fdinfo_len);
 
+    //同一个fd可以调用event_new,event_add  
+    //多次。nread、nwrite就是记录有多少次。如果每次event_new的回调函数  
+    //都不一样，那么当fd有可读或者可写时，这些回调函数都是会触发的。  
+    //对一个fd不能event_new、event_add太多次的。后面会进行判断  
 	nread = ctx->nread;
 	nwrite = ctx->nwrite;
 
@@ -242,6 +246,9 @@ evmap_io_add(struct event_base *base, evutil_socket_t fd, struct event *ev)
 		old |= EV_WRITE;
 
 	if (ev->ev_events & EV_READ) {
+        //记录是不是第一次。如果是第一次，那么就说明该fd还没被  
+        //加入到多路IO复用中。即还没被加入到像select、epoll这些  
+        //函数中。那么就要加入。这个在后面可以看到。 
 		if (++nread == 1)
 			res |= EV_READ;
 	}
@@ -262,6 +269,12 @@ evmap_io_add(struct event_base *base, evutil_socket_t fd, struct event *ev)
 		return -1;
 	}
 
+	//代码中有两个计数nread和nwrite，当其值为1时，
+	//就说明是第一次监听对应的事件。
+	//此时，就要把这个fd添加到多路IO复用函数中。
+	//这就完成fd与select、poll、epoll之类的多路IO复用函数的相关联。
+	//这完成对fd监听的第一步。
+	//把fd加入到多路IO复用中。  
 	if (res) {
 		void *extra = ((char*)ctx) + sizeof(struct evmap_io);
 		/* XXX(niels): we cannot mix edge-triggered and
@@ -272,7 +285,8 @@ evmap_io_add(struct event_base *base, evutil_socket_t fd, struct event *ev)
 			return (-1);
 		retval = 1;
 	}
-
+	//nread进行了++。把次数记录下来。
+	//下次对于同一个fd，这个次数就有用了  
 	ctx->nread = (ev_uint16_t) nread;
 	ctx->nwrite = (ev_uint16_t) nwrite;
 	TAILQ_INSERT_TAIL(&ctx->events, ev, ev_io_next);
@@ -346,9 +360,11 @@ evmap_io_active(struct event_base *base, evutil_socket_t fd, short events)
 #ifndef EVMAP_USE_HT
 	EVUTIL_ASSERT(fd < io->nentries);
 #endif
+	//由这个fd找到对应event_map_entry的TAILQ_HEAD
 	GET_IO_SLOT(ctx, io, fd, evmap_io);
 
 	EVUTIL_ASSERT(ctx);
+	//遍历这个队列。将所有与fd相关联的event结构体都处理一遍  
 	TAILQ_FOREACH(ev, &ctx->events, ev_io_next) {
 		if (ev->ev_events & events)
 			event_active_nolock(ev, ev->ev_events & events, 1);
@@ -397,6 +413,7 @@ evmap_signal_add(struct event_base *base, int sig, struct event *ev)
 	    base->evsigsel->fdinfo_len);
 
 	if (TAILQ_EMPTY(&ctx->events)) {
+		//调用得是evsig_add
 		if (evsel->add(base, ev->ev_fd, 0, EV_SIGNAL, NULL)
 		    == -1)
 			return (-1);
@@ -430,6 +447,7 @@ evmap_signal_del(struct event_base *base, int sig, struct event *ev)
 	return (1);
 }
 
+//后两个参数分别是信号值和发生的次数。  
 void
 evmap_signal_active(struct event_base *base, evutil_socket_t sig, int ncalls)
 {
@@ -438,12 +456,23 @@ evmap_signal_active(struct event_base *base, evutil_socket_t sig, int ncalls)
 	struct event *ev;
 
 	EVUTIL_ASSERT(sig < map->nentries);
+	//通过这个fd找到对应的TAILQ_HEAD  
 	GET_SIGNAL_SLOT(ctx, map, sig, evmap_signal);
-
+	//遍历该fd的队列  
 	TAILQ_FOREACH(ev, &ctx->events, ev_signal_next)
 		event_active_nolock(ev, EV_SIGNAL, ncalls);
 }
 
+void *
+evmap_io_get_fdinfo(struct event_io_map *map, evutil_socket_t fd)
+{
+	struct evmap_io *ctx;
+	GET_IO_SLOT(ctx, map, fd, evmap_io);
+	if (ctx)
+		return ((char*)ctx) + sizeof(struct evmap_io);
+	else
+		return NULL;
+}
 
 void
 event_changelist_init(struct event_changelist *changelist)

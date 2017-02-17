@@ -2,8 +2,8 @@
 #include <stdlib.h>
 
 /*
-					char	short	int	 long	float	double	long long	long double
-Linux-64	长度	1		2		4	 8		4		8		8			16
+				char	short	int	 long	float	double	long long	long double
+Linux-64长度	1		2		4	 8		4		8		8			16
 */
 
 

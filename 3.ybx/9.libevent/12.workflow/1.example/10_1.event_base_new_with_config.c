@@ -12,7 +12,9 @@
 void test_for_select()
 {
     struct event_config *cfg = event_config_new();  
-    event_config_require_features(cfg, EV_FEATURE_FDS);  //第二个参数对应select.c中 struct selectops的features
+	//event_config_require_features 对congfig进行筛选
+	//第二个参数对应select.c中 struct selectops的features
+    event_config_require_features(cfg, EV_FEATURE_FDS);
     struct event_base *base = event_base_new_with_config(cfg);  
 	if( base == NULL )  
 	{  

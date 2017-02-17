@@ -110,6 +110,10 @@ int event_base_loop(struct event_base *, int);
 #define EV_PERSIST	0x10
 #define EV_ET       0x20
 
+
+#define evsignal_new(b, x, cb, arg)				\
+		event_new((b), (x), EV_SIGNAL|EV_PERSIST, (cb), (arg))
+
 typedef void (*event_callback_fn)(evutil_socket_t, short, void *);
 
 struct event *event_new(struct event_base *, evutil_socket_t, short, event_callback_fn, void *);

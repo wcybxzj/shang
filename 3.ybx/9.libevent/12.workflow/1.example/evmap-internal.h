@@ -28,5 +28,6 @@ int evmap_signal_del(struct event_base *base, int signum, struct event *ev);
 int evmap_signal_add(struct event_base *base, int signum, struct event *ev);
 void evmap_signal_active(struct event_base *base, evutil_socket_t signum, int ncalls);
 
+void *evmap_io_get_fdinfo(struct event_io_map *ctx, evutil_socket_t fd);
 
 #endif

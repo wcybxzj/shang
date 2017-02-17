@@ -20,7 +20,7 @@ void test2()
 {
 	int a = 0x12345678;
 	char *p = (char *) &a;
-	printf("%d\n", *p);//120
+	printf("%d\n", *p);//0x78->120
 	printf("%c\n", *p);//ascii 120 is 'c'
 }
 
@@ -54,6 +54,8 @@ void test3()
 //signed char范围是 -128到127
 //负数的2进制保存取得方式是取得补码存入
 //例如-1先变成1,转成2进制所有位取反,+1
+//结论：
+//int 在0-127才能保证转化后值不变
 void test4()
 {
 	int b = 0x01ff;
@@ -66,6 +68,11 @@ void test4()
 	b = 255;
 	p2 = (char *) &b;
 	printf("%d\n", b);//255
+	//int 255的内存情况11111111
+	//求在signed char中10进制值是多少
+	//减一11111110取反00000001得到中值1
+	//因为二进制存储中左边第一位原来为1所以是负数
+	//结果-1
 	printf("%d\n", *p2);//-1
 	printf("%c\n", *p2);//非ascii中对应的字符
 
@@ -87,6 +94,10 @@ void test4()
 	b = 128;
 	p2 = (char *) &b;
 	printf("%d\n", b);//128
+	//128的内存二进制情况10000000
+	//求在signed char中10进制值是多少
+	//减一01111111 取反 10000000得到10000000值是128
+	//原来最左边第一个是符号位,结果-128
 	printf("%d\n", *p2);//-128
 	printf("%c\n", *p2);//
 
@@ -101,9 +112,9 @@ i:0, var:0
 i:1, var:127
 i:2, var:-128
 */
-static int pipefd[2];
 void test5()
 {
+	int pipefd[2];
 	int i;
 	int ret;
 	ret = socketpair( PF_UNIX, SOCK_STREAM, 0, pipefd );
@@ -131,6 +142,44 @@ void test5()
 	}
 }
 
+//测试6:效果同测试5
+//./10-0.char\*_int 
+//i:0, var:0
+//i:1, var:127
+//i:2, var:-128
+void test6()
+{
+	int pipefd[2];
+	int i;
+	int ret;
+	ret = socketpair( PF_UNIX, SOCK_STREAM, 0, pipefd );
+	if (ret==-1) {
+		perror("socketpair");
+		exit(1);
+	}
+
+	pid_t pid;
+	pid = fork();
+	if (pid==0) {
+		int var1 =0;
+		int var2 =127;
+		int var3 =128;
+		char c1 = var1;//区别
+		char c2 = var2;//区别
+		char c3 = var3;//区别
+		send( pipefd[1], &c1, 1, 0 );
+		send( pipefd[1], &c2, 1, 0 );
+		send( pipefd[1], &c3, 1, 0 );
+	}else if(pid>0){
+		sleep(1);//让子进程有时间去写
+		char signals[1024];
+		ret = recv(pipefd[0], signals, 1024, 0);
+		for (i = 0; i < ret; i++) {
+			printf("i:%d, var:%d\n", i,signals[i]);
+		}
+	}
+}
+
 int main(int argc, const char *argv[])
 {
 	//test1();
@@ -140,7 +189,9 @@ int main(int argc, const char *argv[])
 	//test3();
 	//printf("==============\n");
 	//test4();
-	printf("==============\n");
-	test5();
+	//printf("==============\n");
+	//test5();
+	//printf("==============\n");
+	test6();
 	return 0;
 }
