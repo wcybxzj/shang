@@ -96,10 +96,22 @@ evsig_cb(evutil_socket_t fd, short what, void *arg)
         //已经socketpair的读端已经设置为非阻塞的。所以不会被阻塞在  
         //recv函数中。这个循环要把socketpair的所有数据都读取出来  
         n = recv(fd, signals, sizeof(signals), 0);  
+		//printf("第一次体会到非阻塞fd的使用 n:%d fd:%d,\n", n, fd);
+		/*
+		这里的fd实际是evsig_init中的
+		evutil_make_socket_nonblocking(base->sig.ev_signal_pair[1]);
+		*/
         if (n == -1) {  
-            int err = evutil_socket_geterror(fd);  
-            if (! EVUTIL_ERR_RW_RETRIABLE(err))  
-                event_sock_err(1, fd, "%s: recv", __func__);  
+			//#define evutil_socket_geterror(sock) (errno)
+            int err = evutil_socket_geterror(fd);// 相当于 int err = errno;
+			//if (errno==EINTR){
+			//	printf("EINTR\n");//系统调用终端需要重读的假错
+			//}else if(errno==EAGAIN){
+			//	printf("EAGAIN\n");//非阻塞没读到内容要求重读的假错
+			//}
+			//不是假错,是真错
+            if (! EVUTIL_ERR_RW_RETRIABLE(err)) // 相当于 if( !((err) == EINTR || (err) == EAGAIN) )
+                event_sock_err(1, fd, "%s: recv", __func__);  //报错+exit
             break;  
         } else if (n == 0) {  
             /* XXX warn? */  
@@ -144,8 +156,8 @@ evsig_init(struct event_base *base)
     base->sig.sh_old = NULL;  
     base->sig.sh_old_max = 0;  
   
-    evutil_make_socket_nonblocking(base->sig.ev_signal_pair[0]);  
-    evutil_make_socket_nonblocking(base->sig.ev_signal_pair[1]);  
+    evutil_make_socket_nonblocking(base->sig.ev_signal_pair[0]);//写  
+    evutil_make_socket_nonblocking(base->sig.ev_signal_pair[1]);//读
   
     //将ev_signal_pair[1]与ev_signal这个event相关联。ev_signal_pair[1]为读端  
     //该函数的作用等同于event_new。

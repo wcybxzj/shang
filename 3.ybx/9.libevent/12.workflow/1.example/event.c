@@ -1186,6 +1186,7 @@ event_base_loop(struct event_base *base, int flags)
 
 		/* If we have no events, we just exit */
 		if (!event_haveevents(base) && !N_ACTIVE_CALLBACKS(base)) {
+			//printf("eventqueue not have nad activequeues not have event\n");
 			event_debug(("%s: no events registered.", __func__));
 			retval = 1;
 			goto done;
@@ -1347,19 +1348,24 @@ event_add(struct event *ev, const struct timeval *tv)
 	return (res);
 }
 
-static int
-evthread_notify_base_default(struct event_base *base)
-{
-	char buf[1];
-	int r;
-	buf[0] = (char) 0;
-#ifdef WIN32
-	r = send(base->th_notify_fd[1], buf, 1, 0);
-#else
-	r = write(base->th_notify_fd[1], buf, 1);
-#endif
-	return (r < 0 && errno != EAGAIN) ? -1 : 0;
-}
+
+static int  
+evthread_notify_base_default(struct event_base *base)  
+{  
+    char buf[1];  
+    int r;  
+    buf[0] = (char) 0;  
+    //通知一下，用来唤醒。写一个字节足矣  
+#ifdef WIN32  
+    r = send(base->th_notify_fd[1], buf, 1, 0);  
+#else  
+    r = write(base->th_notify_fd[1], buf, 1);  
+#endif  
+    //即使errno 等于 EAGAIN也无所谓，因为这是由于通信通道已经塞满了  
+    //这已经能唤醒主线程了。没必要一定要再写入一个字节  
+    return (r < 0 && errno != EAGAIN) ? -1 : 0;  
+}  
+
 
 #if defined(_EVENT_HAVE_EVENTFD) && defined(_EVENT_HAVE_SYS_EVENTFD_H)
 /* Helper callback: wake an event_base from another thread.  This version
@@ -1377,16 +1383,19 @@ evthread_notify_base_eventfd(struct event_base *base)
 }
 #endif
 
-
-
 static int
 evthread_notify_base(struct event_base *base)
 {
+	//确保已经加锁了
 	EVENT_BASE_ASSERT_LOCKED(base);
 	if (!base->th_notify_fn)
 		return -1;
+
+    //写入一个字节，就能使event_base被唤醒。  
+    //如果处于未决状态，就没必要写多一个字节  
 	if (base->is_notify_pending)
 		return 0;
+	//通知处于未决状态，当event_base醒过来就变成已决的了。  
 	base->is_notify_pending = 1;
 	return base->th_notify_fn(base);
 }
@@ -2023,34 +2032,38 @@ evthread_notify_drain_eventfd(evutil_socket_t fd, short what, void *arg)
 }
 #endif
 
-static void
-evthread_notify_drain_default(evutil_socket_t fd, short what, void *arg)
-{
-	unsigned char buf[1024];
-	struct event_base *base = arg;
-#ifdef WIN32
-	while (recv(fd, (char*)buf, sizeof(buf), 0) > 0)
-		;
-#else
-	while (read(fd, (char*)buf, sizeof(buf)) > 0)
-		;
-#endif
-
-	EVBASE_ACQUIRE_LOCK(base, th_base_lock);
-	base->is_notify_pending = 0;
-	EVBASE_RELEASE_LOCK(base, th_base_lock);
-}
+static void  
+evthread_notify_drain_default(evutil_socket_t fd, short what, void *arg)  
+{  
+    unsigned char buf[1024];  
+    struct event_base *base = arg;  
+  
+    //读完fd的所有数据，免得再次被唤醒  
+#ifdef WIN32  
+    while (recv(fd, (char*)buf, sizeof(buf), 0) > 0)  
+        ;  
+#else  
+    while (read(fd, (char*)buf, sizeof(buf)) > 0)  
+        ;  
+#endif  
+  
+    EVBASE_ACQUIRE_LOCK(base, th_base_lock);  
+    //修改之，使得其不再是未决的了。当然这也能让其他线程可以再次唤醒值。参看evthread_notify_base函数  
+    base->is_notify_pending = 0;  
+    EVBASE_RELEASE_LOCK(base, th_base_lock);  
+}  
 
 int
 evthread_make_base_notifiable(struct event_base *base)
 {
+    //默认event回调函数和默认的通知函数  
 	void (*cb)(evutil_socket_t, short, void *) = evthread_notify_drain_default;
 	int (*notify)(struct event_base *) = evthread_notify_base_default;
 
 	/* XXXX grab the lock here? */
 	if (!base)
 		return -1;
-
+	//th_notify_fd[0]被初始化为-1,如果>=0,就说明已经被设置过了 
 	if (base->th_notify_fd[0] >= 0)
 		return 0;
 
@@ -2058,6 +2071,8 @@ evthread_make_base_notifiable(struct event_base *base)
 #ifndef EFD_CLOEXEC
 #define EFD_CLOEXEC 0
 #endif
+    //Libevent优先使用eventfd，但eventfd的通信机制和其他的不一样。所以  
+    //要专门为eventfd创建通知函数和event回调函数
 	base->th_notify_fd[0] = eventfd(0, EFD_CLOEXEC);
 	if (base->th_notify_fd[0] >= 0) {
 		evutil_make_socket_closeonexec(base->th_notify_fd[0]);
@@ -2066,7 +2081,10 @@ evthread_make_base_notifiable(struct event_base *base)
 	}
 #endif
 #if defined(_EVENT_HAVE_PIPE)
+	//<0，说明之前的通知方式没有用上
 	if (base->th_notify_fd[0] < 0) {
+		//有些多路IO复用函数并不支持文件描述符。如果不支持，那么就不能使用这种  
+        //通知方式。有关这个的讨论.查看http://blog.csdn.net/luotuo44/article/details/38443569  
 		if ((base->evsel->features & EV_FEATURE_FDS)) {
 			if (pipe(base->th_notify_fd) < 0) {
 				event_warn("%s: pipe", __func__);
@@ -2094,8 +2112,10 @@ evthread_make_base_notifiable(struct event_base *base)
 		}
 	}
 
+	//无论哪种通信机制，都要使得读端不能阻塞  
 	evutil_make_socket_nonblocking(base->th_notify_fd[0]);
 
+	//设置回调函数 
 	base->th_notify_fn = notify;
 
 	//debug
@@ -2109,13 +2129,19 @@ evthread_make_base_notifiable(struct event_base *base)
 	  the main thread is already either about to wake up and drain it,
 	  or woken up and in the process of draining it.
 	*/
+    //同样为了让写端不阻塞。虽然，如果同时出现大量需要notify的操作，会塞满通信通道。  
+    //本次的notify会没有写入到通信通道中(已经变成非阻塞了)。但这无所谓，因为目的是  
+    //唤醒主线程，通信通道有数据就肯定能唤醒。  
 	if (base->th_notify_fd[1] > 0)
 		evutil_make_socket_nonblocking(base->th_notify_fd[1]);
 
 	/* prepare an event that we can use for wakeup */
+    //该函数的作用等同于event_new。实际上event_new内部也是调用event_assign函数完成工作的  
+    //函数cb作为这个event的回调函数  
 	event_assign(&base->th_notify, base, base->th_notify_fd[0],
 				 EV_READ|EV_PERSIST, cb, base);
 
+	//标明是内部使用的  
 	/* we need to mark this as internal event */
 	base->th_notify.ev_flags |= EVLIST_INTERNAL;
 	event_priority_set(&base->th_notify, 0);

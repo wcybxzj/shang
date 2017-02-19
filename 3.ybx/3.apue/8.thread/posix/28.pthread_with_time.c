@@ -42,8 +42,6 @@ static void* func(void*ptr)
 //目的:看main线程的计时和其他线程之间是否互相干扰
 int main(int argc, const char *argv[])
 {
-
-
     int i, err;
     pthread_t tids[MAX];
 	

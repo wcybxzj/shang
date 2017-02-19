@@ -188,8 +188,8 @@ struct event_base {
 #endif
 	//event_base的一些配置参数
     enum event_base_config_flag flags;
-	//以下用以给工作线程唤醒主线程
-	//若主线程处于唤醒状态，设为true
+	//event_base是否处于通知的未决状态。
+	//即次线程已经通知了，但主线程还没处理这个通知
     int is_notify_pending;
 	//唤醒主线程的双向管道
     evutil_socket_t th_notify_fd[2];
