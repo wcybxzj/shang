@@ -98,10 +98,36 @@ void event_set_log_callback(event_log_cb cb);
 typedef void (*event_fatal_cb)(int err);
 void event_set_fatal_callback(event_fatal_cb cb);
 
+//阻塞直到有一个活跃的event，然后执行完活跃事件的回调就退出。
 #define EVLOOP_ONCE	0x01
+//不阻塞，检查哪个事件准备好，调用优先级最高的那一个，然后退出。
 #define EVLOOP_NONBLOCK	0x02
 
 int event_base_loop(struct event_base *, int);
+
+
+//EV_TIMEOUT:
+//这个标志表示某超时时间流逝后事件成为激活的。
+//构造事件的时候，EV_TIMEOUT标志是被忽略的：
+//可以在添加事件的时候设置超时，也可以不设置。
+//超时发生时，回调函数的what参数将带有这个标志。
+//
+//EV_READ:
+//表示指定的文件描述符已经就绪，可以读取的时候，事件将成为激活的。
+//
+//EV_WRITE:
+//表示指定的文件描述符已经就绪，可以写入的时候，事件将成为激活的。
+//
+//EV_SIGNAL:
+//用于实现信号检测，请看下面的“构造信号事件”节。
+//
+//EV_PERSIST:
+//表示事件是“持久的”，请看下面的“关于事件持久性”节。
+//
+//EV_ET:
+//表示如果底层的event_base后端支持边沿触发事件，则事件应该是边沿触发的。
+//这个标志影响EV_READ和EV_WRITE的语义。
+
 
 #define EV_TIMEOUT	0x01
 #define EV_READ		0x02
@@ -122,6 +148,7 @@ struct event *event_new(struct event_base *, evutil_socket_t, short, event_callb
 int event_assign(struct event *, struct event_base *, evutil_socket_t, short, event_callback_fn, void *);
 int event_add(struct event *ev, const struct timeval *timeout);
 int event_del(struct event *);
+void event_active(struct event *ev, int res, short ncalls);
 
 #define EVENT_MAX_PRIORITIES 256
 int	event_base_priority_init(struct event_base *, int);

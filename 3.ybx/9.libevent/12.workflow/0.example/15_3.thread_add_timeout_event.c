@@ -32,10 +32,17 @@ void* thread_timeout(void *arg)
     char ch;
 	printf("thread_timeout wait for input\n");
     scanf("%c", &ch); //用处是保证main thread中的event_base_dispatch先运行起来
+	//1.这里的event之所以表现成定时效果,每2秒执行一次是因为event没关联任何fd
+	//2.EV_TIMEOUT:
+	//这个标志表示某超时时间流逝后事件成为激活的。
+	//构造事件的时候，EV_TIMEOUT标志是被忽略的：
+	//可以在添加事件的时候设置超时，也可以不设置。
+	//超时发生时，回调函数的what参数将带有这个标志。
     struct event *ev = event_new(base, -1, EV_TIMEOUT | EV_PERSIST,
                                  timeout_cb, NULL);
     struct timeval tv = {2, 0};
     event_add(ev, &tv);
+	printf("定时器event address:%x\n", ev);
 }
 
 void* thread_timeout1(void *arg)
@@ -51,59 +58,6 @@ void sig_cb(int fd, short events, void *arg)
     printf("in the sig_cb\n");  
 }  
 
-void* thread_signal(void *arg)
-{
-    char ch;
-	printf("thread_signal wait for input\n");
-    scanf("%c", &ch); //用处是保证main thread中的event_base_dispatch先运行起来
-    struct event *ev = evsignal_new(base, SIGUSR1, sig_cb, NULL);  
-    event_add(ev, NULL);
-}
-
-//无论是否开启多线程, 弟线程向event_base注册信号event 都会去通知给main线程,信号到来就会执行event对应的回调
-//
-//测试1:
-//终端1:
-//./15_1.evthread_make_base_notifiable_different_event 
-//pid = 8027
-//main event_base_dispatch
-//thread_signal wait for input
-//a
-//in the sig_cb
-//终端2:
-//kill -USR1 8027
-
-//测试2:
-//终端1:
-//./15_1.evthread_make_base_notifiable_different_event y
-//pid = 8030
-//main event_base_dispatch
-//thread_signal wait for input
-//a
-//in the sig_cb
-//终端2:
-//kill -USR1 8030
-void test_sginal()
-{
-	printf("pid = %d\n", getpid());  
-	base = event_base_new();
-	//用处:
-	//就是防止event_base_dispatch执行时候,
-	//子线程还没把event加入event_base造成进程直接退出
-	int pipe_fd[2];
-	pipe(pipe_fd);
-	struct event *ev = event_new(base, pipe_fd[0],
-			EV_READ | EV_PERSIST, pipe_cb, NULL);
-	event_add(ev, NULL);
-
-	pthread_t thread;
-	pthread_create(&thread, NULL, thread_signal, NULL);//使用信号event
-
-	printf("main event_base_dispatch\n");
-
-	event_base_dispatch(base);
-}
-
 //event_base_dispatch先于分线程添加的定时器event运行才需要libevent的多线程机制
 //
 //测试3:
@@ -114,7 +68,7 @@ void test_sginal()
 //main event_base_dispatch
 //a
 
-//测试4(重点):
+//测试4(重点,用这个例子调试笔记中的效果):
 //如果开启多线程, 弟线程向event_base注册定时器event 会去通知给main线程,并且event定时执行
 //./15_1.evthread_make_base_notifiable_different_event y
 //pid = 6818
@@ -133,7 +87,7 @@ void test_timeout()
 	struct event *ev = event_new(base, pipe_fd[0],
 			EV_READ | EV_PERSIST, pipe_cb, NULL);
 	event_add(ev, NULL);
-
+	printf("普通io event address:%x\n", ev);
 	pthread_t thread;
 	pthread_create(&thread, NULL, thread_timeout, NULL);//使用定时器event
 
@@ -178,16 +132,17 @@ void test_timeout1()
 
 //libevent的多线程会开启通知机制
 
-//分线程添加信号event: (实验1和实验2)
+//分线程添加信号event:
+//测试1和测试2:
 //弟线程添加的信号event无论libevent是否开启多线都生效
 
 //分线程添加定时器event:
-//情况1:(实验3和实验4)
+//测试3和测试4:
 //event_base_dispatch先于分线程添加的定时器event运行才需要libevent的多线程机制
-//情况2:(实验5和实验6)
+//测试5和测试6:
 //event_base_dispatch 后于分线程添加的定时器event运行,无需开启libevent多线程
 
-//实验4就是查看libevent多线程通知机制的入口和重点
+//测试4就是查看libevent多线程通知机制的入口和重点
 int main(int argc, char ** argv)
 {
 	if( argc >= 2 && argv[1][0] == 'y')
@@ -195,7 +150,6 @@ int main(int argc, char ** argv)
 
 	test_timeout();
 	//test_timeout1();
-	//test_sginal();
 
 	return 0;
 }

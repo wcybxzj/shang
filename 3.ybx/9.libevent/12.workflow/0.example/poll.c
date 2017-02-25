@@ -138,13 +138,16 @@ poll_dispatch(struct event_base *base, struct timeval *tv)
 
 	if (tv != NULL) {
 		msec = evutil_tv_to_msec(tv);
+		//printf("poll msec:%d\n", msec);
 		if (msec < 0 || msec > INT_MAX)
 			msec = INT_MAX;
 	}
 
 	EVBASE_RELEASE_LOCK(base, th_base_lock);
 
+	//printf("before poll\n");
 	res = poll(event_set, nfds, msec);
+	//printf("after poll\n");
 
 	EVBASE_ACQUIRE_LOCK(base, th_base_lock);
 

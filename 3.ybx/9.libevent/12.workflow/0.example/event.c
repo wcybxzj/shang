@@ -915,12 +915,20 @@ common_timeout_schedule(struct common_timeout_list *ctl,
 	event_add_internal(&ctl->timeout_event, &timeout, 1);
 }
 
-
 /* Closure function invoked when we're activating a persistent event. */
 static inline void
 event_persist_closure(struct event_base *base, struct event *ev)
 {
+	//printf("event_persist_closure\n");
+	//printf("ev:%x\n",ev);
+	//printf("&base->th_notify:%x\n", &base->th_notify);
+	//printf("%d:\n",ev->ev_io_timeout.tv_sec);
+	//printf("%d:\n",ev->ev_io_timeout.tv_usec);
+
 	/* reschedule the persistent event if we have a timeout. */
+    //在event_add_internal函数中，如果是超时event并且有EV_PERSIST，
+	//那么就会把ev_io_timeout设置成 ,用户设置的超时时间(相对时间)。
+	//否则为0。即不进入判断体中。说明这个if只用于处理具有EV_PERSIST属性的超时event 
 	if (ev->ev_io_timeout.tv_sec || ev->ev_io_timeout.tv_usec) {
 		/* If there was a timeout, we want it to run at an interval of
 		 * ev_io_timeout after the last time it was _scheduled_ for,
@@ -931,6 +939,7 @@ event_persist_closure(struct event_base *base, struct event *ev)
 		EVUTIL_ASSERT(is_same_common_timeout(&ev->ev_timeout,
 			&ev->ev_io_timeout));
 		gettime(base, &now);
+
 		if (is_common_timeout(&ev->ev_timeout, base)) {
 			delay = ev->ev_io_timeout;
 			usec_mask = delay.tv_usec & ~MICROSECONDS_MASK;
@@ -942,14 +951,28 @@ event_persist_closure(struct event_base *base, struct event *ev)
 				relative_to = now;
 			}
 		} else {
+			//printf("ev_io_timeout.tv_sec:%d tv_usec:%d\n",ev->ev_io_timeout.tv_sec, ev->ev_io_timeout.tv_usec);
+			//printf("ev_timeout.tv_sec:%d tv_usec:%d\n",ev->ev_timeout.tv_sec, ev->ev_timeout.tv_usec);
+			//delay是用户设置的超时时间。event_add的第二个参数
 			delay = ev->ev_io_timeout;
+
+			//1个设置了超时的事件执行有2种可能，有读写事件或者超时
+			//下面的判断就是着两种情况
 			if (ev->ev_res & EV_TIMEOUT) {
+				//printf("event timeout!\n");
+				//如果是因为超时而激活，那么下次超时就是本次超时的加上delay时间。  
 				relative_to = ev->ev_timeout;
 			} else {
+				//printf("event read or write!\n");
+				//重新计算超时值  
 				relative_to = now;
 			}
 		}
+
 		evutil_timeradd(&relative_to, &delay, &run_at);
+        //无论relative是哪个时间，run_at都不应该小于now。  
+        //如果小于，则说明是用户手动修改了系统时间，使得gettime()函数获取了一个  
+        //之前的时间。比如现在是9点，用户手动调回到7点。
 		if (evutil_timercmp(&run_at, &now, <)) {
 			/* Looks like we missed at least one invocation due to
 			 * a clock jump, not running the event loop for a
@@ -959,11 +982,27 @@ event_persist_closure(struct event_base *base, struct event *ev)
 			evutil_timeradd(&now, &delay, &run_at);
 		}
 		run_at.tv_usec |= usec_mask;
+		//printf("event_add_internal run_at.tv_sec:%d\n", run_at.tv_sec);
+		//printf("event_add_internal run_at.tv_usec:%d\n", run_at.tv_usec);
+		//把这个event再次添加到event_base中。注意，此时第三个参数为1，说明是一个绝对时间
 		event_add_internal(ev, &run_at, 1);
 	}
 	EVBASE_RELEASE_LOCK(base, th_base_lock);
 	(*ev->ev_callback)(ev->ev_fd, ev->ev_res, ev->ev_arg);
 }//end event_persist_closure
+//这段代码的处理流程是：如果用户指定了EV_PERSIST，那么在event_assign中就记录下来。
+//在event_process_active_single_queue函数中会针对永久event进行调用event_persist_closure函数对之进行处理。
+//在event_persist_closure函数中，如果是一般的永久event，那么就直接调用该event的回调函数。
+//如果是超时永久event，那么就需要再次计算新的超时时间，并将这个event再次插入到event_base中。
+
+//这段代码也指明了，如果一个event因可读而被激活，那么其超时时间就要重新计算。
+//而不是之前的那个了。
+//也就是说，如果一个event设置了3秒的超时，但1秒后就可读了，
+//那么下一个超时值，就要重新计算设置，而不是2秒后。
+ 
+ 
+//从前面的源码分析也可以得到：如果一个event监听可读的同时也设置了超时值，并且一直没有数据可读，
+//最后超时了，那么这个event将会被删除掉，不会再等。
 
 
 static int
@@ -1011,11 +1050,14 @@ event_process_active_single_queue(struct event_base *base,
 			//printf("EV_CLOSURE_SIGNAL\n");
 			event_signal_closure(base, ev);
 			break;
+		//这个case只对超时event的EV_PERSIST才有用。IO的没有用  
 		case EV_CLOSURE_PERSIST:
 			//printf("EV_CLOSURE_PERSIST\n");
 			event_persist_closure(base, ev);
 			break;
 		default:
+		//默认是EV_CLOSURE_NONE
+		//没有设置EV_PERSIST的超时event，就只有一次的监听机会 
 		case EV_CLOSURE_NONE:
 			//printf("EV_CLOSURE_NONE\n");
 			EVBASE_RELEASE_LOCK(base, th_base_lock);
@@ -1091,11 +1133,14 @@ event_process_active(struct event_base *base)
 			if (c < 0) {
 				base->event_running_priority = -1;
 				return -1;
-			} else if (c > 0)
+			} else if (c > 0){
 				break; /* Processed a real event; do not
 					* consider lower-priority events */
+			}else{
+				//printf("event_process_active 是内部event\nn");
 			/* If we get here, all of the events we processed
 			 * were internal.  Continue. */
+			}
 		}
 	}
 
@@ -1118,7 +1163,7 @@ event_base_get_method(const struct event_base *base)
 	return (base->evsel->name);
 }
 
-//event_base_loop函数内部会进行加锁，
+//eivent_base_loop函数内部会进行加锁，
 //为这里要对event_base里面的多个队列进行一些数据操作(增删操作)，
 //此时要用锁来保护队列不被另外一个线程所破坏。
 
@@ -1178,8 +1223,13 @@ event_base_loop(struct event_base *base, int flags)
 
 		tv_p = &tv;
 		if (!N_ACTIVE_CALLBACKS(base) && !(flags & EVLOOP_NONBLOCK)) {
+			//printf("first\n");
+			//printf("N_ACTIVE_CALLBACKS && !(flags & EVLOOP_NONBLOCK)\n");
+			//根据时间堆顶的时间计算evsel->dispatch的最大等待时间(超时值最小)  
 			timeout_next(base, &tv_p);
+
 		} else {
+			//printf("second\n");
 			/*
 			 * if we have active events, we just poll new events
 			 * without waiting.
@@ -1202,7 +1252,10 @@ event_base_loop(struct event_base *base, int flags)
 
         //该函数的内部会解锁，然后调用OS提供的的多路IO复用函数。  
         //这个函数退出后，又会立即加锁。这有点像条件变量。
+		//printf("%d\n",tv_p->tv_sec);
+		//printf("%d\n",tv_p->tv_usec);
 		res = evsel->dispatch(base, tv_p);
+		//printf("res:%d\n",res);
 
 		if (res == -1) {
 			event_debug(("%s: dispatch returned unsuccessfully.",
@@ -1213,6 +1266,10 @@ event_base_loop(struct event_base *base, int flags)
 
 		update_time_cache(base);
 
+		//处理超时事件，将超时事件插入到激活链表中
+		//当从多路IO复用函数返回时，就检查时间小根堆，看有多少个event已经超时了。
+		//如果超时了，那就把这个event加入到event_base的激活队列中。
+		//并且把这个超时del(删除)掉，这主要是用于非PERSIST 超时event的
 		timeout_process(base);
 
 		if (N_ACTIVE_CALLBACKS(base)) {
@@ -1332,6 +1389,8 @@ event_priority_set(struct event *ev, int pri)
     return (0);  
 }  
 
+//在调用event_add时设定的超时值是一个时间段(可以认为隔多长时间就触发一次)，
+//相对于现在，即调用event_add的时间， 而不是调用event_base_dispatch的时间。
 int
 event_add(struct event *ev, const struct timeval *tv)
 {
@@ -1407,6 +1466,7 @@ evthread_notify_base(struct event_base *base)
  * except: 1) it requires that we have the lock.  2) if tv_is_absolute is set,
  * we treat tv as an absolute time, not as an interval to add to the current
  * time */
+//在event_add中，会把第三个参数设为0.使得使用的是相对时间  
 static inline int
 event_add_internal(struct event *ev, const struct timeval *tv,
     int tv_is_absolute)
@@ -1433,6 +1493,7 @@ event_add_internal(struct event *ev, const struct timeval *tv,
 	 * prepare for timeout insertion further below, if we get a
 	 * failure on any step, we should not change any state.
 	 */
+	//tv不为NULL,就说明是一个超时event,在小根堆中为其留一个位置 
 	if (tv != NULL && !(ev->ev_flags & EVLIST_TIMEOUT)) {
 		if (min_heap_reserve(&base->timeheap,
 			1 + min_heap_size(&base->timeheap)) == -1)
@@ -1489,6 +1550,10 @@ event_add_internal(struct event *ev, const struct timeval *tv,
 		 *
 		 * If tv_is_absolute, this was already set.
 		 */
+		//用户把这个event设置成EV_PERSIST。即永久event.  
+		//如果没有这样设置的话，那么只会超时一次。设置了，那么就  
+		//可以超时多次。那么就要记录用户设置的超时值。
+		//例:设置一个io时间带超时时间2秒,这个时间就是个相对时间
 		if (ev->ev_closure == EV_CLOSURE_PERSIST && !tv_is_absolute)
 			ev->ev_io_timeout = *tv;
 
@@ -1496,11 +1561,21 @@ event_add_internal(struct event *ev, const struct timeval *tv,
 		 * we already reserved memory above for the case where we
 		 * are not replacing an existing timeout.
 		 */
+		//该event之前被加入到超时队列。用户可以对同一个event调用多次event_add  
+        //并且可以每次都用不同的超时值。 
 		if (ev->ev_flags & EVLIST_TIMEOUT) {
 			//printf("min_heap_elt_is_top+event_queue_remove\n");
 			/* XXX I believe this is needless. */
+            //之前为该event设置的超时值是所有超时中最小的。  
+            //从下面的删除可知，会删除这个最小的超时值。此时多路IO复用函数  
+            //的超时值参数就已经改变了。 
+			//我的理解:
+			//执行event_add_internal的是子线程会去通知主线程修改
+			//IO复用的超时时间 notify=1 使用 evthread_notify_base(base)来通知
 			if (min_heap_elt_is_top(ev))
-				notify = 1;
+				notify = 1;//要通知主线程。可能是次线程为这个event调用本函数
+            //从超时队列中删除这个event。因为下次会再次加入
+            //多次对同一个超时event调用event_add,那么只能保留最后的那个。
 			event_queue_remove(base, ev, EVLIST_TIMEOUT);
 		}else{
 			//printf("debug:not EVLIST_TIMEOUT\n");
@@ -1525,10 +1600,14 @@ event_add_internal(struct event *ev, const struct timeval *tv,
 			event_queue_remove(base, ev, EVLIST_ACTIVE);
 		}
 
+		//获取现在的时间
 		gettime(base, &now);
 
 		common_timeout = is_common_timeout(tv, base);
-		if (tv_is_absolute) {
+        //虽然用户在event_add时只需用一个相对时间，但实际上在Libevent内部  
+        //还是要把这个时间转换成绝对时间。从存储的角度来说，存绝对时间只需  
+        //一个变量。而相对时间则需两个，一个存相对值，另一个存参照物。 
+		if (tv_is_absolute) {//该参数指明时间是一个绝对时间
 			ev->ev_timeout = *tv;
 		} else if (common_timeout) {
 			struct timeval tmp = *tv;
@@ -1538,6 +1617,7 @@ event_add_internal(struct event *ev, const struct timeval *tv,
 			    (tv->tv_usec & ~MICROSECONDS_MASK);
 		} else {
 			//printf("debug:evutil_timeradd\n");
+			//参照时间 + 相对时间  ev_timeout存的是绝对时间 
 			evutil_timeradd(&now, tv, &ev->ev_timeout);
 		}
 
@@ -1545,6 +1625,7 @@ event_add_internal(struct event *ev, const struct timeval *tv,
 			 "event_add: timeout in %d seconds, call %p",
 			 (int)tv->tv_sec, ev->ev_callback));
 
+		//将该超时event插入到超时队列或者时间堆
 		event_queue_insert(base, ev, EVLIST_TIMEOUT);
 		if (common_timeout) {
 			struct common_timeout_list *ctl =
@@ -1557,6 +1638,7 @@ event_add_internal(struct event *ev, const struct timeval *tv,
 			 * was before: if so, we will need to tell the main
 			 * thread to wake up earlier than it would
 			 * otherwise. */
+			//本次插入的超时值，是所有超时中最小的。那么此时就需要通知主线程。
 			if (min_heap_elt_is_top(ev))
 				notify = 1;
 		}
@@ -1565,6 +1647,7 @@ event_add_internal(struct event *ev, const struct timeval *tv,
 	//printf("notify:%d\n", notify);
 
 	/* if we are not in the right thread, we need to wake up the loop */
+	//如果代码逻辑中是需要通知的。并且本线程不是主线程。那么就通知主线程 
 	if (res != -1 && notify && EVBASE_NEED_NOTIFY(base))
 		evthread_notify_base(base);
 
@@ -1617,8 +1700,9 @@ event_del_internal(struct event *ev)
 	//对ev_flags是否合法进行判断
 	//代码:3.bit_op1.c
 	EVUTIL_ASSERT(!(ev->ev_flags & ~EVLIST_ALL));
-
+	/* See if we are just active executing this event in a loop */ 
 	if (ev->ev_events & EV_SIGNAL) {
+		/* Abort loop *///终止循环  
 		if (ev->ev_ncalls && ev->ev_pncalls) {
 			*ev->ev_pncalls = 0;
 		}
@@ -1660,6 +1744,43 @@ event_del_internal(struct event *ev)
 	return (res);
 }// end of event_del_internal()
 
+
+//手动激活event：
+//除了运行event_base_dispatch死等外界条件把event激活外，
+//Libevent还提供了一个API函数event_active， 可以手动地把一个event激活。
+
+//手动激活一个event的原理是：把event插入到激活队列。
+//如果执行激活动作的线程不是主线程，那么还要唤醒主线程，
+//让主线程及时处理激活event，不再睡眠在多路IO复用函数中。
+
+//由于手动激活一个event是直接把这个event插入到激活队列的，
+//所以event的被激活原因(由res参数所指定)可以不是该event监听的事件。
+//比如说该event只监听了EV_READ事件，那么可以调用event_active(ev,EV_SIGNAL, 1);
+//用信号事件激活该event。
+
+//res是激活的原因，是诸如EV_READ EV_TIMEOUT之类的宏.  
+//ncalls只对EV_SIGNAL信号有用，表示信号的次数  
+//因为IO事件不讲究次数，信号才讲究次数 
+void
+event_active(struct event *ev, int res, short ncalls)
+{
+	if (EVUTIL_FAILURE_CHECK(!ev->ev_base)) {
+		event_warnx("%s: event has no event_base set.", __func__);
+		return;
+	}
+
+	EVBASE_ACQUIRE_LOCK(ev->ev_base, th_base_lock);
+
+	_event_debug_assert_is_setup(ev);
+
+	event_active_nolock(ev, res, ncalls);
+
+	EVBASE_RELEASE_LOCK(ev->ev_base, th_base_lock);
+}
+
+//res是激活的原因，是诸如EV_READ EV_TIMEOUT之类的宏.  
+//ncalls只对EV_SIGNAL信号有用，表示信号的次数  
+//因为IO事件不讲究次数，信号才讲究次数 
 void
 event_active_nolock(struct event *ev, int res, short ncalls)
 {
@@ -1668,7 +1789,7 @@ event_active_nolock(struct event *ev, int res, short ncalls)
 	event_debug(("event_active: %p (fd %d), res %d, callback %p",
 		ev, (int)ev->ev_fd, (int)res, ev->ev_callback));
 
-
+	//该event已经是激活状态  
 	/* We get different kinds of events, add them together */
 	if (ev->ev_flags & EVLIST_ACTIVE) {
 		ev->ev_res |= res;
@@ -1679,6 +1800,7 @@ event_active_nolock(struct event *ev, int res, short ncalls)
 
 	EVENT_BASE_ASSERT_LOCKED(base);
 
+	//记录被激活原因。以后会用到 
 	ev->ev_res = res;
 	
 	//这将停止处理低优先级的event。一路回退到event_base_loop中。
@@ -1701,8 +1823,11 @@ event_active_nolock(struct event *ev, int res, short ncalls)
 	//将ev插入到激活队列 队尾
 	event_queue_insert(base, ev, EVLIST_ACTIVE);
 
-	if (EVBASE_NEED_NOTIFY(base))
+	//调用本函数的线程不是主线程的话，就会通知主线程。使得主线程能赶快处理激活event  
+	if (EVBASE_NEED_NOTIFY(base)){
+		printf("多线程模式下,base->tid!=当前执行此操作的tid\n");
 		evthread_notify_base(base);
+	}
 }//end event_active_nolock
 
 static int
@@ -1714,8 +1839,11 @@ timeout_next(struct event_base *base, struct timeval **tv_p)
 	struct timeval *tv = *tv_p;
 	int res = 0;
 
+	//从时间堆顶元素
+    // 堆的首元素具有最小的超时值，这个是小根堆的性质
 	ev = min_heap_top(&base->timeheap);
 
+	//堆中没有元素  
 	if (ev == NULL) {
 		/* if no time-based events are active wait for I/O */
 		*tv_p = NULL;
@@ -1727,11 +1855,16 @@ timeout_next(struct event_base *base, struct timeval **tv_p)
 		goto out;
 	}
 
+    // 如果超时时间<=当前时间，堆顶元素已经超时,不能等待，需要立即返回  
+    // 因为ev_timeout这个时间是由event_add调用时的绝对时间 + 相对时间。所以ev_timeout是  
+    // 绝对时间。可能在调用event_add之后，过了一段时间才调用event_base_diapatch,所以  
+    // 现在可能都过了用户设置的超时时间。
 	if (evutil_timercmp(&ev->ev_timeout, &now, <=)) {
 		evutil_timerclear(tv);
 		goto out;
 	}
 
+	//如果堆顶元素时间-当前时间=回填的超时间(用于poll或者select或者epoll_wait)
 	evutil_timersub(&ev->ev_timeout, &now, tv);
 
 	EVUTIL_ASSERT(tv->tv_sec >= 0);
@@ -1801,34 +1934,50 @@ timeout_correct(struct event_base *base, struct timeval *tv)
 	base->event_tv = *tv;
 }//end of timeout_correct
 
-
-
 /* Activate every event whose timeout has elapsed. */
+//timeout_process函数就是处理超了时的event
+//把超时了的event，放到激活队列中。并且，其激活原因设置为EV_TIMEOUT 
 static void
 timeout_process(struct event_base *base)
 {
 	/* Caller must hold lock. */
 	struct timeval now;
 	struct event *ev;
-
+	//ev->ev_timeout存的是绝对时间  
+	//超时时间比此刻时间大，说明该event还没超时。那么余下的小根堆元素更不用检查了。  
 	if (min_heap_empty(&base->timeheap)) {
+		//printf("min_heap_empty\n");
 		return;
+	}else{
+		//printf("min_heap_not_empty\n");
 	}
 
 	gettime(base, &now);
 
+	//遍历小根堆的元素。之所以不是只取堆顶那一个元素，是因为当主线程调用多路IO复用函数  
+	//进入等待时，次线程可能添加了多个超时值更小的event
 	while ((ev = min_heap_top(&base->timeheap))) {
-		if (evutil_timercmp(&ev->ev_timeout, &now, >))
+		if (evutil_timercmp(&ev->ev_timeout, &now, >)){
+			//printf("time_out break!\n");
 			break;
+		}
 
 		/* delete this event from the I/O queues */
+        //下面说到的del是等同于调用event_del.把event从这个event_base中(所有的队列都)  
+        //删除。event_base不再监听之。  
+        //这里是timeout_process函数。所以对于有超时的event，才会被del掉。  
+        //对于有EV_PERSIST选项的event，在处理激活event的时候，会再次添加进event_base的。  
+        //这样做的一个好处就是，再次添加的时候，又可以重新计算该event的超时时间(绝对时间)。
 		event_del_internal(ev);
 
 		event_debug(("timeout_process: call %p",
 			 ev->ev_callback));
+        //把这个event加入到event_base的激活队列中。  
+        //event_base的激活队列又有该event了。所以如果该event是EV_PERSIST的，是可以  
+        //再次添加进该event_base的  
 		event_active_nolock(ev, EV_TIMEOUT, 1);
 	}
-}
+}//end timeout_process
 
 
 
@@ -1916,6 +2065,13 @@ static void
 event_queue_insert(struct event_base *base, struct event *ev, int queue)
 {
 	EVENT_BASE_ASSERT_LOCKED(base);
+	//printf("event_queue_insert\n");
+	//if (ev->ev_flags & EVLIST_INTERNAL) {
+	//	printf("EVLIST_INTERNAL\n");
+	//}
+	//if (ev->ev_flags & EVLIST_INSERTED) {
+	//	printf("EVLIST_INSERTED\n");
+	//}
 
 	if (ev->ev_flags & queue) {
 		/* Double insertion is possible for active events */
@@ -1948,8 +2104,16 @@ event_queue_insert(struct event_base *base, struct event *ev, int queue)
 			struct common_timeout_list *ctl =
 			    get_common_timeout_list(base, &ev->ev_timeout);
 			insert_common_timeout_inorder(ctl, ev);
-		} else
+		} else{
 			min_heap_push(&base->timeheap, ev);
+				//printf("------------------------\n");
+				//if (ev->ev_flags & EVLIST_INTERNAL){
+				//	printf("EVLIST_INTERNAL\n");
+				//}
+				//if (ev->ev_flags & EVLIST_INSERTED){
+				//	printf("EVLIST_INSERTED\n");
+				//}
+		}
 		break;
 	}
 	default:
