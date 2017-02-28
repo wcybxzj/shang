@@ -58,6 +58,7 @@ struct event {
         TAILQ_ENTRY(event) ev_next_with_common_timeout;
 		//用于最小堆定时器找到定时器位置
 		//仅用于定时事件处理器(event).EV_TIMEOUT类型
+		//实际就是最小堆内部的数组下标
         int min_heap_idx;
     } ev_timeout_pos;
 

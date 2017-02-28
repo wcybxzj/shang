@@ -304,7 +304,7 @@ detect_monotonic(void)
 		return;
 
 	if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
-		use_monotonic = 1;
+		use_monotonic = 1;//系统支持monotonic时间
 
 	use_monotonic_initialized = 1;
 #endif
@@ -328,6 +328,9 @@ gettime(struct event_base *base, struct timeval *tp)
 		return (0);
 	}
 
+	   //如果Libevent所在的系统支持monotonic时间，
+	   ///那么Libevent将使用monotonic时间，
+	   //也就是说Libevent用于获取系统时间的函数gettime将由monotonic提供时间。
 #if defined(_EVENT_HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
 	if (use_monotonic) {
 		struct timespec	ts;
@@ -337,11 +340,13 @@ gettime(struct event_base *base, struct timeval *tp)
 
 		tp->tv_sec = ts.tv_sec;
 		tp->tv_usec = ts.tv_nsec / 1000;
+		//额外的功能 
 		//printf("last_update_clock_diff:%d\n",base->last_updated_clock_diff);
 		if (base->last_updated_clock_diff + CLOCK_SYNC_INTERVAL
 		    < ts.tv_sec) {
 			struct timeval tv;
 			evutil_gettimeofday(&tv,NULL);
+            //tv_clock_diff记录两种时间的时间差  
 			evutil_timersub(&tv, tp, &base->tv_clock_diff);
 			base->last_updated_clock_diff = ts.tv_sec;
 		}
@@ -351,17 +356,23 @@ gettime(struct event_base *base, struct timeval *tp)
 		//printf("not use_monotonic\n");
 	}
 #endif
-
+	//如果所在的系统不支持monotonic时间，那么只能使用evutil_gettimeofday了  
 	return (evutil_gettimeofday(tp, NULL));
 }
+//上面的代码虽然首先是使用cache时间，但实际上event_base结构体的cache时间也是通过调用gettime函数而得到的。
+//上面代码也可以看到：如果所在的系统没有提供monotonic时间，那么就只能使用evutil_gettimeofday这个函数提供的系统时间了。
+//从上面的分析可知，如果Libevent所在的系统支持monotonic时间，那么根本就不用考虑用户手动修改系统时间这坑爹的事情。
+//但如果所在的系统没有支持monotonic时间，那么Libevent就只能使用evutil_gettimeofday获取一个用户能修改的时间。
 
 /** Replace the cached time in 'base' with the current time. */
 static inline void
 update_time_cache(struct event_base *base)
 {
 	base->tv_cache.tv_sec = 0;
-	if (!(base->flags & EVENT_BASE_FLAG_NO_CACHE_TIME))
+	if (!(base->flags & EVENT_BASE_FLAG_NO_CACHE_TIME)){
+		//printf("使用了缓存时间\n");
 	    gettime(base, &base->tv_cache);
+	}
 }
 
 /** Make 'base' have no current cached time. */
@@ -871,6 +882,10 @@ struct event{
 //通用定时器是一个尾队列, 传统定时器是最小堆
 //返回0表示不是通用定时器
 //返回1表示是通用定时器
+
+//用来判断一个给定的struct timeval时间， 是否为common-timeout时间。
+//在event_add_internal函数中会用之作为判断，
+//然后根据判断结果来决定是插入小根堆还是common-timeout，这也就完成了区分。
 static inline int
 is_common_timeout(const struct timeval *tv,
     const struct event_base *base)
@@ -904,6 +919,8 @@ get_common_timeout_list(struct event_base *base, const struct timeval *tv)
 	return base->common_timeout_queues[COMMON_TIMEOUT_IDX(tv)];
 }
 
+//在common_timeout_schedule函数中，我们可以看到，它将一个event插入到小根堆中了。
+//并且也可以看到，代表者不是用户给出的超时event中的一个，而是common_timeout_list结构体的一个event成员。
 /* Add the timeout for the first event in given common timeout list to the
  * event_base's minheap. */
 static void
@@ -911,9 +928,187 @@ common_timeout_schedule(struct common_timeout_list *ctl,
     const struct timeval *now, struct event *head)
 {
 	struct timeval timeout = head->ev_timeout;
+	//清除common-timeout标志 
 	timeout.tv_usec &= MICROSECONDS_MASK;
+    //用common_timeout_list结构体的一个event成员作为超时event调用event_add_internal  
+    //由于已经清除了common-timeout标志，所以这次将插入到小根堆中。  
 	event_add_internal(&ctl->timeout_event, &timeout, 1);
 }
+
+
+/* Callback: invoked when the timeout for a common timeout queue triggers.
+ * This means that (at least) the first event in that queue should be run,
+ * and the timeout should be rescheduled if there are more events. */
+//在回调函数中，会手动把用户的超时event激活。于是，用户的超时event就能被处理了。
+//由于Libevent这个内部超时event的优先级是最高的，所以在接下来就会处理用户的超时event，
+//而无需等到下一轮多路IO复用函数调用返回后。这一点同信号event处理是一样的
+static void
+common_timeout_callback(evutil_socket_t fd, short what, void *arg)
+{
+	struct timeval now;
+	struct common_timeout_list *ctl = arg;
+	struct event_base *base = ctl->base;
+	struct event *ev = NULL;
+	EVBASE_ACQUIRE_LOCK(base, th_base_lock);
+	gettime(base, &now);
+	while (1) {
+		ev = TAILQ_FIRST(&ctl->events);
+		//该超时event还没到超时时间。不要检查其他了。因为是升序的  
+		if (!ev || ev->ev_timeout.tv_sec > now.tv_sec ||
+		    (ev->ev_timeout.tv_sec == now.tv_sec &&
+			(ev->ev_timeout.tv_usec&MICROSECONDS_MASK) > now.tv_usec))
+			break;
+		//一系列的删除操作。包括从这个超时event队列中删除
+		event_del_internal(ev);
+		//手动激活超时event。注意，这个ev是用户的超时event
+		//由于Libevent这个内部超时event的优先级是最高的，所以在接下来就会处理用户的超时event，
+		//而无需等到下一轮多路IO复用函数调用返回后。这一点同信号event是一样的
+		event_active_nolock(ev, EV_TIMEOUT, 1);
+	}
+	//不是NULL，说明该队列还有超时event。将ctl->timeout_event再次加加入到时间堆
+	//那么需要再次common_timeout_schedule，进行监听
+	if (ev)
+		common_timeout_schedule(ctl, &now, ev);
+	EVBASE_RELEASE_LOCK(base, th_base_lock);
+}
+
+#define MAX_COMMON_TIMEOUTS 256
+
+//使用common-timeout:
+//现在来看看怎么使用common-timeout。
+//如果要使用common-timeout，就必须把超时event插入到common_timeout_list的events队列中。
+//又因为其要求具有相同的超时时长，所以要插入的超时event要和某个common_timeout_list结构体有相同的超时时长。
+//所以，我们还是来看一下怎么设置common_timeout_list结构体的超时时长。
+//
+//不是设置。而是向event_base申请一个具有特定时长的common_timeout_list。
+//每申请一个，就会在common_timeout_queues数组中加入一个common_timeout_list元素。
+//可以通过event_base_init_common_timeout申请。
+//申请后，就可以直接调用event_add把超时event插入到common-timeout中。
+//但问题是，common-timeout和小根堆是共存的，event_add又没有第三个参数作为说明，要插入到common-timeout还是小根堆。
+//
+//common-timeout标志： 
+//其实，event_add是根据第二个参数，即超时时长值进行区分的。
+//首先有一个基本事实，对一个struct timeval结构体,成员tv_usec的单位是微秒，所以最大也就是999999,
+//只需低20比特位就能存储了。但成员tv_usec的类型是int或者long，肯定有32比特位。所以，就有高12比特位是空闲的。
+//
+//Libevent就是利用那空闲的12个比特位做文章的。这12比特位是高比特位。
+//Libevent使用最高的4比特位作为标志位，标志它是一个专门用于common-timeout的时间，下文将这个标志称为common-timeout标志。
+//次8比特位用来记录该超时时长在common_timeout_queues数组中的位置，即下标值。
+//这也限制了common_timeout_queues数组的长度，最大为2的8次方，即256。
+
+//申请一个时长为duration的common_timeout_list  
+//该函数将返回一个具有common-timeout标志的时间。
+
+//该函数只是在event_base的common_timeout_queues数组中申请一个特定超时时长的位置。
+//同时该函数也会返回一个struct timeval结构体指针变量，
+//该结构体已经被赋予了common-timeout标志。
+//以后使用该变量作为event_add的第二个参数，就可以把超时event插入到common-timeout中了。
+//不应该也不能自己手动为struct timeval变量加入common-timeout标志。
+
+//该函数中，也给内部的event进行了赋值,设置了回调函数和回调参数。
+//要注意的是回调参数是这个common_timeout_list结构体变量指针。
+//在回调函数中，有了这个指针，就可以访问events变量，即访问到该结构体上的所有超时event。
+//于是就能手动激活这些超时event。
+//在Libevent的官方例子中，得到event_base_init_common_timeout的返回值后，
+//就把它存放到另外一个struct timeval结构体中。而不是直接使用返回值作为event_add的参数。
+
+//那么怎么得到一个具有common-timeout标志的时间呢？
+//其实，还是通过前面说到的event_base_init_common_timeout函数。
+//该函数将返回一个具有common-timeout标志的时间
+const struct timeval *
+event_base_init_common_timeout(struct event_base *base,
+    const struct timeval *duration)
+{
+	int i;
+	struct timeval tv;
+	const struct timeval *result=NULL;
+	struct common_timeout_list *new_ctl;
+
+	EVBASE_ACQUIRE_LOCK(base, th_base_lock);
+
+	//这个时间的微秒位应该进位。用户没有将之进位。比如二进制的103，个位的3应该进位
+	//1000000微秒 已经是1秒了应该进位到tv_sec
+	//这个弄个tv是因为函数参数const *duration是 *duration是只读
+	if (duration->tv_usec > 1000000) {
+		//将之进位，因为下面会用到32中的高位12位
+		//4位决定是否common_timeout  
+		//8位(范围:0-255 ,256个数),表示当前common_timeout_list在二维数组base->common_timeout_queues的那个下标
+		memcpy(&tv, duration, sizeof(struct timeval));
+		if (is_common_timeout(duration, base))
+			tv.tv_usec &= MICROSECONDS_MASK;
+		tv.tv_sec += tv.tv_usec / 1000000;
+		tv.tv_usec %= 1000000;
+		duration = &tv;
+	}
+	for (i = 0; i < base->n_common_timeouts; ++i) {
+		const struct common_timeout_list *ctl =
+		    base->common_timeout_queues[i];
+		//具有相同的duration， 即之前有申请过这个超时时长。那么就不用分配空间。
+		if (duration->tv_sec == ctl->duration.tv_sec &&
+		    duration->tv_usec ==
+		    (ctl->duration.tv_usec & MICROSECONDS_MASK)) {////要&这个宏，才能是正确的时间
+			EVUTIL_ASSERT(is_common_timeout(&ctl->duration, base));
+			result = &ctl->duration;
+			goto done;
+		}
+	}
+
+	//达到了最大申请个数，不能再分配了  
+	if (base->n_common_timeouts == MAX_COMMON_TIMEOUTS) {
+		event_warnx("%s: Too many common timeouts already in use; "
+		    "we only support %d per event_base", __func__,
+		    MAX_COMMON_TIMEOUTS);
+		goto done;
+	}
+
+	//之前分配的空间已经用完了，要重新申请空间	
+	if (base->n_common_timeouts_allocated == base->n_common_timeouts) {
+		int n = base->n_common_timeouts < 16 ? 16 :
+		    base->n_common_timeouts*2;
+		struct common_timeout_list **newqueues =
+		    mm_realloc(base->common_timeout_queues,
+			n*sizeof(struct common_timeout_queue *));
+		if (!newqueues) {
+			event_warn("%s: realloc",__func__);
+			goto done;
+		}
+		base->n_common_timeouts_allocated = n;
+		base->common_timeout_queues = newqueues;
+	}
+
+    //为该超时时长分配一个common_timeout_list结构体  
+	new_ctl = mm_calloc(1, sizeof(struct common_timeout_list));
+	if (!new_ctl) {
+		event_warn("%s: calloc",__func__);
+		goto done;
+	}
+
+    //为这个结构体进行一些设置  
+	TAILQ_INIT(&new_ctl->events);
+	new_ctl->duration.tv_sec = duration->tv_sec;
+	// duration->tv_usec | COMMON_TIMEOUT_MAGIC | //为这个时间加入common-timeout标志  
+	// (base->n_common_timeouts << COMMON_TIMEOUT_IDX_SHIFT);//加入下标值  
+	new_ctl->duration.tv_usec =
+	    duration->tv_usec | COMMON_TIMEOUT_MAGIC |
+	    (base->n_common_timeouts << COMMON_TIMEOUT_IDX_SHIFT);
+	//对timeout_event这个内部event进行赋值。设置回调函数和回调参数。
+	evtimer_assign(&new_ctl->timeout_event, base,
+	    common_timeout_callback, new_ctl);
+	new_ctl->timeout_event.ev_flags |= EVLIST_INTERNAL;//第三种学到对的libevent内部event
+	event_priority_set(&new_ctl->timeout_event, 0);//优先级为最高级 ,插入活动队列的优先级
+	new_ctl->base = base;
+	//放到数组对应的位置上 
+	base->common_timeout_queues[base->n_common_timeouts++] = new_ctl;
+	result = &new_ctl->duration;
+
+done:
+	if (result)
+		EVUTIL_ASSERT(is_common_timeout(result, base));
+
+	EVBASE_RELEASE_LOCK(base, th_base_lock);
+	return result;
+}//end event_base_init_common_timeout
+
 
 /* Closure function invoked when we're activating a persistent event. */
 static inline void
@@ -1194,6 +1389,7 @@ event_base_loop(struct event_base *base, int flags)
 
 	base->running_loop = 1;
 
+	//要使用cache时间，得在配置event_base时，没有加入EVENT_BASE_FLAG_NO_CACHE_TIME选项
 	clear_time_cache(base);
 
 	if (base->sig.ev_signal_added && base->sig.ev_n_signals_added)
@@ -1246,8 +1442,14 @@ event_base_loop(struct event_base *base, int flags)
 		}
 
 		/* update last old time */
+		//保存系统时间。如果有cache，将保存cache时间。
 		gettime(base, &base->event_tv);
 
+        //之所以要在进入dispatch之前清零，是因为进入  
+        //dispatch后，可能会等待一段时间。cache就没有意义了。  
+        //如果第二个线程此时想add一个event到这个event_base里面，
+		//在event_add_internal函数中会调用gettime。如果cache不清零，  
+        //那么将会取这个cache时间。这将取一个不准确的时间。 
 		clear_time_cache(base);
 
         //该函数的内部会解锁，然后调用OS提供的的多路IO复用函数。  
@@ -1264,6 +1466,8 @@ event_base_loop(struct event_base *base, int flags)
 			goto done;
 		}
 
+		//强制更新缓存时间
+		//因为下面的timeout_process和event_process_active都要用到时间
 		update_time_cache(base);
 
 		//处理超时事件，将超时事件插入到激活链表中
@@ -1273,7 +1477,7 @@ event_base_loop(struct event_base *base, int flags)
 		timeout_process(base);
 
 		if (N_ACTIVE_CALLBACKS(base)) {
-			//处理激活列表中的event：
+			//处理激活列表中的event:
 			//现在已经完成了将event插入到激活队列中。接下来就是遍历激活数组队列，把所有激活的event都处理即可
 			int n = event_process_active(base);
 			if ((flags & EVLOOP_ONCE)
@@ -1540,7 +1744,6 @@ event_add_internal(struct event *ev, const struct timeval *tv,
 	 * addition succeeded.
 	 */
 	if (res != -1 && tv != NULL) {
-		//TODO
 		struct timeval now;
 		int common_timeout;
 
@@ -1603,6 +1806,7 @@ event_add_internal(struct event *ev, const struct timeval *tv,
 		//获取现在的时间
 		gettime(base, &now);
 
+		 //判断这个时间是否为common-timeout标志
 		common_timeout = is_common_timeout(tv, base);
         //虽然用户在event_add时只需用一个相对时间，但实际上在Libevent内部  
         //还是要把这个时间转换成绝对时间。从存储的角度来说，存绝对时间只需  
@@ -1611,8 +1815,11 @@ event_add_internal(struct event *ev, const struct timeval *tv,
 			ev->ev_timeout = *tv;
 		} else if (common_timeout) {
 			struct timeval tmp = *tv;
+			//只取真正的时间部分，common-timeout标志位和下标位不要 
 			tmp.tv_usec &= MICROSECONDS_MASK;
+			//转换成绝对时间  
 			evutil_timeradd(&now, &tmp, &ev->ev_timeout);
+			//加入标志位
 			ev->ev_timeout.tv_usec |=
 			    (tv->tv_usec & ~MICROSECONDS_MASK);
 		} else {
@@ -1627,6 +1834,15 @@ event_add_internal(struct event *ev, const struct timeval *tv,
 
 		//将该超时event插入到超时队列或者时间堆
 		event_queue_insert(base, ev, EVLIST_TIMEOUT);
+
+		//common-timeout和小根堆的相互配合:
+		//通用队列代表插入最小堆:
+		//这个代表是 common_timeout_list.timeout_event,单他的时间确实common_timeout的时间
+		//common-timeout是采用一个代表的方式进行工作的。
+		//所以肯定要有一个代表被插入小根堆中
+
+		//判断要插入的这个超时event是否为这个队列的第一个元素。
+		//如果是的话，就说这个特定超时时长队列第一次有超时event要插入。
 		if (common_timeout) {
 			struct common_timeout_list *ctl =
 			    get_common_timeout_list(base, &ev->ev_timeout);
@@ -1891,12 +2107,15 @@ timeout_correct(struct event_base *base, struct timeval *tv)
 	struct timeval off;
 	int i;
 
+	//如果系统支持monotonic时间，那么就不需要校准时间了  
 	if (use_monotonic)
 		return;
 
+	//获取现在的系统时间  
 	/* Check if time is running backwards */
 	gettime(base, tv);
 
+	//tv大于等于event_tv运行记录时间，说明用户没有往回调系统时间。那么不需要处理  
 	if (evutil_timercmp(tv, &base->event_tv, >=)) {
 		base->event_tv = *tv;
 		return;
@@ -1904,8 +2123,13 @@ timeout_correct(struct event_base *base, struct timeval *tv)
 
 	event_debug(("%s: time is running backwards, corrected",
 		    __func__));
+	//off差值，即用户调小了多少
+	//例如:libevent记录了运行在9点, 现在是服务器时间成为了7点
+	//9-7=2
 	evutil_timersub(&base->event_tv, tv, &off);
 
+    //用户已经修改了OS的系统时间。现在需要对小根堆的所有event  
+    //都修改时间。使得之适应新的系统时间  
 	/*
 	 * We can modify the key element of the node without destroying
 	 * the minheap property, because we change every element.
@@ -1913,7 +2137,9 @@ timeout_correct(struct event_base *base, struct timeval *tv)
 	pev = base->timeheap.p;
 	size = base->timeheap.n;
 	for (; size-- > 0; ++pev) {
-		struct timeval *ev_tv = &(**pev).ev_timeout;
+        //前面已经用off保存了，用户调小了多少。现在只需  
+        //将小根堆的所有event的超时时间(绝对时间)都减去这个off即可 
+		struct timeval *ev_tv = &(**pev).ev_timeout;//ev_timeout是绝对时间
 		evutil_timersub(ev_tv, &off, ev_tv);
 	}
 	for (i=0; i<base->n_common_timeouts; ++i) {
@@ -1931,12 +2157,24 @@ timeout_correct(struct event_base *base, struct timeval *tv)
 	}
 
 	/* Now remember what the new time turned out to be. */
+	//保存现在的系统时间。以防用户再次修改系统时间
 	base->event_tv = *tv;
 }//end of timeout_correct
 
-/* Activate every event whose timeout has elapsed. */
+//Libevent用event_base的成员变量event_tv保存用户修改系统时间前的系统时间。
+//如果刚保存完，用户就修改系统时间，这样就能精确地计算出用户往回调了多长时间。
+//但毕竟Libevent是用户态的库，不能做到用户修改系统时间前的一刻保存系统时间。
+//于是Libevent采用多采点的方式，即时不时就保存一次系统时间。
+//所以在event_base_loop函数中的while循环体里面会有gettime(base, &base->event_tv);
+//这是为了能多采点。
+//但这个while循环里面还会执行多路IO复用函数和处理被激活event的回调函数(这个回调函数执行多久也是个未知数)。
+//这两个函数的执行需要的时间可能会比较长，如果用户刚才是在执行完这两个函数之后修改系统时间，
+//那么event_tv保存的时间就不怎么精确了。这也是没有办法的啊！！唉！！
+//===============================================================================
 //timeout_process函数就是处理超了时的event
 //把超时了的event，放到激活队列中。并且，其激活原因设置为EV_TIMEOUT 
+//===============================================================================
+/* Activate every event whose timeout has elapsed. */
 static void
 timeout_process(struct event_base *base)
 {
@@ -2026,12 +2264,25 @@ event_queue_remove(struct event_base *base, struct event *ev, int queue)
 
 
 
+//inorder说明是有序的 数组
 /* Add 'ev' to the common timeout list in 'ev'. */
 static void
 insert_common_timeout_inorder(struct common_timeout_list *ctl,
     struct event *ev)
 {
 	struct event *e;
+
+	//多线程情况下使用尾队列链表的知识点:
+	//虽然有相同超时时长，但超时时间却是 超时时长 + 调用event_add的时间。  
+    //所以是在不同的时间触发超时的。它们根据绝对超时时间，升序排在队列中。  
+    //一般来说，直接插入队尾即可。因为后插入的，绝对超时时间肯定大。  
+    //但由于线程抢占的原因，可能一个线程在evutil_timeradd(&now, &tmp, &ev->ev_timeout);  
+    //执行完，还没来得及插入，就被另外一个线程抢占了。而这个线程也是要插入一个  
+    //common-timeout的超时event。这样就会发生：超时时间小的反而后插入。  
+    //所以要从后面开始遍历队列，寻找一个合适的地方。
+
+	//这个考虑很好，但是在event_add中已经lock->th_base_lock,这个做法是否是多虑
+	
 	/* By all logic, we should just be able to append 'ev' to the end of
 	 * ctl->events, since the timeout on each 'ev' is set to {the common
 	 * timeout} + {the time when we add the event}, and so the events
@@ -2039,6 +2290,9 @@ insert_common_timeout_inorder(struct common_timeout_list *ctl,
 	 * there's some wacky threading issue going on, we do a search from
 	 * the end of 'ev' to find the right insertion point.
 	 */
+	//具体:
+	//倒叙取每个尾队列元素并且还要用要插入的event和取出的event进行比较
+	//达到避免出现时间循序错误的情况
 	TAILQ_FOREACH_REVERSE(e, &ctl->events,
 	    event_list, ev_timeout_pos.ev_next_with_common_timeout) {
 		/* This timercmp is a little sneaky, since both ev and e have
@@ -2047,12 +2301,14 @@ insert_common_timeout_inorder(struct common_timeout_list *ctl,
 		 */
 		EVUTIL_ASSERT(
 			is_same_common_timeout(&e->ev_timeout, &ev->ev_timeout));
+		//保证尾队列按照绝对时间升序排列
 		if (evutil_timercmp(&ev->ev_timeout, &e->ev_timeout, >=)) {
 			TAILQ_INSERT_AFTER(&ctl->events, e, ev,
 			    ev_timeout_pos.ev_next_with_common_timeout);
-			return;
+			return;//插入后就返回  
 		}
 	}
+	//在队列头插入，只会发生在前面的寻找都没有寻找到的情况下
 	TAILQ_INSERT_HEAD(&ctl->events, ev,
 	    ev_timeout_pos.ev_next_with_common_timeout);
 }
@@ -2100,9 +2356,11 @@ event_queue_insert(struct event_base *base, struct event *ev, int queue)
 		    ev,ev_active_next);
 		break;
 	case EVLIST_TIMEOUT: {
+		 //根据时间向event_base获取对应的common_timeout_list
 		if (is_common_timeout(&ev->ev_timeout, base)) {
 			struct common_timeout_list *ctl =
 			    get_common_timeout_list(base, &ev->ev_timeout);
+			//插入到通用超时队列
 			insert_common_timeout_inorder(ctl, ev);
 		} else{
 			min_heap_push(&base->timeheap, ev);

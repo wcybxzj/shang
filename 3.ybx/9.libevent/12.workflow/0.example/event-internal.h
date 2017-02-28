@@ -84,12 +84,16 @@ struct event_signal_map {
     int nentries;
 };
 
-struct common_timeout_list {
-	struct event_list events;
-	struct timeval duration;
-	struct event timeout_event;
-	struct event_base *base;
-};
+//common_timeout_list结构体里面有一个event结构体成员，
+//所以并不是从多个具有相同超时时长的超时event中选择一个作为代表，而是在内部有一个event。
+//common_timeout_list是使用struct  event_list结构体队列来管理event
+struct common_timeout_list {  
+    //超时event队列。将所有具有相同超时时长的超时event放到一个队列里面  
+    struct event_list events;  
+    struct timeval duration;//超时时长  
+    struct event timeout_event;//具有相同超时时长的超时event代表  
+    struct event_base *base;  
+};  
 
 /** Mask used to get the real tv_usec value from a common timeout. */
 #define COMMON_TIMEOUT_MICROSECONDS_MASK       0x000fffff
@@ -143,10 +147,16 @@ struct event_base {
 	//活动事件队列数组的大小，即该event_base一共有多少个不同优先级的活动事件队列
     int nactivequeues;
 	//通用定时器队列
+    //因为可以有多个不同时长的超时event组。故得是数组  
+    //因为数组元素是common_timeout_list指针，所以得是二级指针  
+	//
+	//在实际应用时，可能超时时长为10秒的有1k个超时event，时长为20秒的也有1k个，这就需要一个数组。
+	//数组的每一个元素是common_timeout_list结构体指针。
+	//每一个common_timeout_list结构体就会处理所有具有相同超时时长的超时event。
     struct common_timeout_list **common_timeout_queues;
 	//通用定时器队列中元素个数
     int n_common_timeouts;
-	//通用定时器队列所占空间总大小
+	//已分配的数组元素个数 
     int n_common_timeouts_allocated;
 	//存放延迟回调函数的链表。事件循环每次成功处理完一个活动事件队列中的所有事件之后，就调用一次延迟回调函数
     struct deferred_cb_queue defer_queue;

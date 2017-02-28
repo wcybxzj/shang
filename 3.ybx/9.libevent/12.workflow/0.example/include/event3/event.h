@@ -136,6 +136,8 @@ int event_base_loop(struct event_base *, int);
 #define EV_PERSIST	0x10
 #define EV_ET       0x20
 
+#define evtimer_assign(ev, b, cb, arg) \
+	event_assign((ev), (b), -1, 0, (cb), (arg))
 
 #define evsignal_new(b, x, cb, arg)				\
 		event_new((b), (x), EV_SIGNAL|EV_PERSIST, (cb), (arg))
@@ -153,6 +155,8 @@ void event_active(struct event *ev, int res, short ncalls);
 #define EVENT_MAX_PRIORITIES 256
 int	event_base_priority_init(struct event_base *, int);
 int	event_priority_set(struct event *, int);
+const struct timeval *event_base_init_common_timeout(struct event_base *base,
+    const struct timeval *duration);
 
 #if !defined(_EVENT_DISABLE_MM_REPLACEMENT) || defined(_EVENT_IN_DOXYGEN)
 //自定义内存管理函数借口给用户来设置

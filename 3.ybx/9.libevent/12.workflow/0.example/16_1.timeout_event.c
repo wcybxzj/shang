@@ -109,10 +109,6 @@ void func5()
     event_base_dispatch(base);  
 }
 
-//./16_1.timeout_event 
-//in the cmd_cb5
-//in the cmd_cb5
-//in the cmd_cb5
 int main()  
 {  
 	//func1();
