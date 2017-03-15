@@ -13,7 +13,7 @@
 #include "event-internal.h"
 
 
-#include<pthread.h> //Linux thread
+#include <pthread.h> //Linux thread
 
 struct event_base *base = NULL;
 

@@ -2,10 +2,17 @@
 #include <stdlib.h>
 
 /*
-				char	short	int	 long	float	double	long long	long double
-Linux-64长度	1		2		4	 8		4		8		8			16
+类型				32位系统	64位系统
+char					1			1
+int						4			4
+short					2			2
+long					4			8
+long long				8			8
+float					4			4
+double					8			8
+long double				8			16
+指针类型				4			8
 */
-
 
 /*
 原则A:

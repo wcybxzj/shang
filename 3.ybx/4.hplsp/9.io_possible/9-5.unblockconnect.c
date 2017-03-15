@@ -38,6 +38,7 @@ int unblock_connect(const char*ip, int port, int time){
 	ret = connect(sockfd, (struct sockaddr *) &address, sizeof(address));
 	if (ret == 0) {
 		printf("connect ret == 0\n");
+		printf("connect successful11111111111111\n");
 		fcntl(sockfd, F_SETFL, fdopt);
 		return sockfd;
 	}else if(errno != EINPROGRESS){
@@ -64,6 +65,8 @@ int unblock_connect(const char*ip, int port, int time){
 		printf("no events on sockfd found\n");
 		close(sockfd);
 		return -1;
+	}else{
+		printf("connect successful22222222222\n");
 	}
 
 	//getsockopt

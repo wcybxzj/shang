@@ -151,6 +151,24 @@ int event_assign(struct event *, struct event_base *, evutil_socket_t, short, ev
 int event_add(struct event *ev, const struct timeval *timeout);
 int event_del(struct event *);
 void event_active(struct event *ev, int res, short ncalls);
+int event_pending(const struct event *ev, short events, struct timeval *tv);
+int event_initialized(const struct event *ev);
+
+#define event_get_signal(ev) ((int)event_get_fd(ev))
+
+evutil_socket_t event_get_fd(const struct event *ev);
+
+struct event_base *event_get_base(const struct event *ev);
+
+short event_get_events(const struct event *ev);
+
+event_callback_fn event_get_callback(const struct event *ev);
+
+void *event_get_callback_arg(const struct event *ev);
+
+void event_get_assignment(const struct event *event,
+    struct event_base **base_out, evutil_socket_t *fd_out, short *events_out,
+    event_callback_fn *callback_out, void **arg_out);
 
 #define EVENT_MAX_PRIORITIES 256
 int	event_base_priority_init(struct event_base *, int);
@@ -167,6 +185,8 @@ void event_set_mem_functions(
 #define EVENT_SET_MEM_FUNCTIONS_IMPLEMENTED
 #endif
 
+int event_base_gettimeofday_cached(struct event_base *base,
+    struct timeval *tv);
 
 #ifdef __cplusplus
 }

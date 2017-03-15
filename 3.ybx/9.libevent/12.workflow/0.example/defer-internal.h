@@ -33,9 +33,18 @@ struct deferred_cb_queue {
 #define UNLOCK_DEFERRED_QUEUE(q)					\
 	EVLOCK_UNLOCK((q)->lock, 0)
 
+
+
+void event_deferred_cb_init(struct deferred_cb *, deferred_cb_fn, void *);
+
+void event_deferred_cb_schedule(struct deferred_cb_queue *, struct deferred_cb *);
+
+
 #ifdef __cplusplus
 }
 #endif
 
 void event_deferred_cb_queue_init(struct deferred_cb_queue *);
+struct deferred_cb_queue *event_base_get_deferred_cb_queue(struct event_base *);
+
 #endif/* _EVENT_INTERNAL_H_ */

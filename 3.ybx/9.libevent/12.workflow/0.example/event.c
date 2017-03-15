@@ -364,6 +364,31 @@ gettime(struct event_base *base, struct timeval *tp)
 //从上面的分析可知，如果Libevent所在的系统支持monotonic时间，那么根本就不用考虑用户手动修改系统时间这坑爹的事情。
 //但如果所在的系统没有支持monotonic时间，那么Libevent就只能使用evutil_gettimeofday获取一个用户能修改的时间。
 
+int
+event_base_gettimeofday_cached(struct event_base *base, struct timeval *tv)
+{
+	int r;
+	if (!base) {
+		base = current_base;
+		if (!current_base)
+			return evutil_gettimeofday(tv, NULL);
+	}
+
+	EVBASE_ACQUIRE_LOCK(base, th_base_lock);
+	if (base->tv_cache.tv_sec == 0) {
+		r = evutil_gettimeofday(tv, NULL);
+	} else {
+#if defined(_EVENT_HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
+		evutil_timeradd(&base->tv_cache, &base->tv_clock_diff, tv);
+#else
+		*tv = base->tv_cache;
+#endif
+		r = 0;
+	}
+	EVBASE_RELEASE_LOCK(base, th_base_lock);
+	return r;
+}
+
 /** Replace the cached time in 'base' with the current time. */
 static inline void
 update_time_cache(struct event_base *base)
@@ -399,6 +424,12 @@ event_deferred_cb_queue_init(struct deferred_cb_queue *cb)
 {
 	memset(cb, 0, sizeof(struct deferred_cb_queue));
 	TAILQ_INIT(&cb->deferred_cb_list);
+}
+
+struct deferred_cb_queue *
+event_base_get_deferred_cb_queue(struct event_base *base)
+{
+	return base ? &base->defer_queue : NULL;
 }
 
 /** Return true iff 'method' is the name of a method that 'cfg' tells us to
@@ -935,7 +966,6 @@ common_timeout_schedule(struct common_timeout_list *ctl,
 	event_add_internal(&ctl->timeout_event, &timeout, 1);
 }
 
-
 /* Callback: invoked when the timeout for a common timeout queue triggers.
  * This means that (at least) the first event in that queue should be run,
  * and the timeout should be rescheduled if there are more events. */
@@ -967,8 +997,10 @@ common_timeout_callback(evutil_socket_t fd, short what, void *arg)
 	}
 	//不是NULL，说明该队列还有超时event。将ctl->timeout_event再次加加入到时间堆
 	//那么需要再次common_timeout_schedule，进行监听
-	if (ev)
+	if (ev){
+		printf("删除commont_timeouu_list一个event还有剩余event\n");
 		common_timeout_schedule(ctl, &now, ev);
+	}
 	EVBASE_RELEASE_LOCK(base, th_base_lock);
 }
 
@@ -1593,6 +1625,155 @@ event_priority_set(struct event *ev, int pri)
     return (0);  
 }  
 
+
+//当用户调用event_new创建一个event后，它还没处于未决状态(non-pending)，
+//当用户调用event_add函数，将一个event插入到event_base队列后，就处于未决状态(pending)。
+//如果event监听的事件发生了或者超时了，那么该event就会被激活，处于激活状态。(active)
+//当event的回调函数被调用后，它就不再是激活状态了，但还是处于未决状态。(pending)
+//如果用户调用了event_del或者event_free(该函数内部调用event_del)，那么该event就不再是未决状态了。(non-pending)
+//可以调用event_pending函数来检查event处于哪种事件的未决状态。
+//但是该函数不仅仅会检查event的未决状态，还会检查event的激活状态。
+//名不副实啊！！下面就看一下这个函数吧。
+
+//该函数的作用是检查某个事件(由第二个参数指定)是否处于未决或者激活状态。
+
+//由flags的几个 |= 操作可知，它会把event监听的事件种类都记录下来。
+//并且还会把event被激活的原因(也是一个事件)记录下来。
+//下面会讲到手动激活一个event。所以event可能会被一个没有监听的事件锁激活。
+
+//如果该函数的第三个参数不为NULL，并且用户之前也让这个event监听了超时事件，
+//而且用户在第二个参数中指明了要检查超时事件，
+//那么将第三个参数将被赋值为该event的下次超时时间(绝对时间)。
+
+//event_pending函数的一个作用是可以判断一个event是否已经从event_base中删除了。
+//比如说，某个event监听写事件而加入了event_base，但可能在某个时刻被删除。
+//那么可以用下面的代码判断这个event是否已经被删除了。
+//if( event_pending(ev, EV_WRITE, NULL) == 0 )  
+//    printf("delete\n");  
+//else  
+//    printf("no delete\n");  
+
+
+/*
+ * Checks if a specific event is pending or scheduled.
+ */
+int
+event_pending(const struct event *ev, short event, struct timeval *tv)
+{
+	int flags = 0;
+
+	EVBASE_ACQUIRE_LOCK(ev->ev_base, th_base_lock);
+	_event_debug_assert_is_setup(ev);
+
+	//flags记录用户监听了哪些事件
+	if (ev->ev_flags & EVLIST_INSERTED)
+		flags |= (ev->ev_events & (EV_READ|EV_WRITE|EV_SIGNAL));
+
+    //flags记录event被什么事件激活了.用户可以调用event_active  
+    //手动激活event，并且可以使用之前用户没有监听的事件作为激活原因
+	if (ev->ev_flags & EVLIST_ACTIVE)
+		flags |= ev->ev_res;
+
+    //记录该event是否还有超时属性  
+	if (ev->ev_flags & EVLIST_TIMEOUT)
+		flags |= EV_TIMEOUT;
+
+    //event可以被用户乱设值，然后作为参数。这里为了保证  
+    //其值只能是下面的事件。  
+	event &= (EV_TIMEOUT|EV_READ|EV_WRITE|EV_SIGNAL);
+
+	/* See if there is a timeout that we should report */
+	if (tv != NULL && (flags & event & EV_TIMEOUT)) {
+		struct timeval tmp = ev->ev_timeout;
+		tmp.tv_usec &= MICROSECONDS_MASK;
+#if defined(_EVENT_HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
+		/* correctly remamp to real time */
+		evutil_timeradd(&ev->ev_base->tv_clock_diff, &tmp, tv);
+#else
+		*tv = tmp;
+#endif
+	}
+
+	EVBASE_RELEASE_LOCK(ev->ev_base, th_base_lock);
+
+	return (flags & event);
+}//end event_pending
+
+//event的状态:
+//一个event是可以有多个状态的，
+//比如已初始化状态(initialized)、未决状态(pending)、激活状态(active)。
+//可以用event_initialized函数检测一个event是否处于已初始化状态：
+//
+//可以看到event_initialized只是检查event的ev_flags是否有EVLIST_INIT标志。
+//从之前的博文可以知道，当用户调用event_new后，就会为event加入该标志，
+//所以用event_new创建的even都是处于已初始化状态的。
+int  
+event_initialized(const struct event *ev)  
+{  
+    if (!(ev->ev_flags & EVLIST_INIT))  
+        return 0;  
+  
+    return 1;  
+}
+
+void
+event_get_assignment(const struct event *event, struct event_base **base_out, evutil_socket_t *fd_out, short *events_out, event_callback_fn *callback_out, void **arg_out)
+{
+	_event_debug_assert_is_setup(event);
+
+	if (base_out)
+		*base_out = event->ev_base;
+	if (fd_out)
+		*fd_out = event->ev_fd;
+	if (events_out)
+		*events_out = event->ev_events;
+	if (callback_out)
+		*callback_out = event->ev_callback;
+	if (arg_out)
+		*arg_out = event->ev_arg;
+}
+
+size_t
+event_get_struct_event_size(void)
+{
+	return sizeof(struct event);
+}
+
+evutil_socket_t
+event_get_fd(const struct event *ev)
+{
+	_event_debug_assert_is_setup(ev);
+	return ev->ev_fd;
+}
+
+struct event_base *
+event_get_base(const struct event *ev)
+{
+	_event_debug_assert_is_setup(ev);
+	return ev->ev_base;
+}
+
+short
+event_get_events(const struct event *ev)
+{
+	_event_debug_assert_is_setup(ev);
+	return ev->ev_events;
+}
+
+event_callback_fn
+event_get_callback(const struct event *ev)
+{
+	_event_debug_assert_is_setup(ev);
+	return ev->ev_callback;
+}
+
+void *
+event_get_callback_arg(const struct event *ev)
+{
+	_event_debug_assert_is_setup(ev);
+	return ev->ev_arg;
+}
+
 //在调用event_add时设定的超时值是一个时间段(可以认为隔多长时间就触发一次)，
 //相对于现在，即调用event_add的时间， 而不是调用event_base_dispatch的时间。
 int
@@ -1872,6 +2053,11 @@ event_add_internal(struct event *ev, const struct timeval *tv,
 	return (res);
 }// end of event_add_internal
 
+//虽然要调用三个函数才能删除一个event，不过思路还是挺清晰的。
+//删除的时候要加锁，删除完后要释放内存。从之前的博文也可以知道，一个event是会被加入到各种队列中的。
+//所以将一个event删除，所做的工作主要是：将这个event从各种队列中删除掉。
+//删除一个event这个操作可能不是主线程调用的，这时就可能需要通知主线程。
+//关于通知主线程的原理可以参考博文《evthread_notify_base通知主线程》。
 int
 event_del(struct event *ev)
 {
@@ -1924,7 +2110,12 @@ event_del_internal(struct event *ev)
 		}
 	}
 
-	if (ev->ev_flags & EVLIST_TIMEOUT) {
+    //从超时集合中删除.超时集合可能是小根堆也可能是common-timeout  
+    if (ev->ev_flags & EVLIST_TIMEOUT) {  
+        //删除超时event并不需要通知主线程。如果该event不是最早超时的，  
+        //那肯定不用通知了。如果是的话，那么主线程会醒来。醒来后，  
+        //主线程还是会再次检查超时集合中有哪些超时event超时了。这个被  
+        //删除的超时event自然也检查不出来。主线程只会空手而回。  
 		/* NOTE: We never need to notify the main thread because of a
 		 * deleted timeout event: all that could happen if we don't is
 		 * that the dispatch loop might wake up too early.  But the
@@ -1932,14 +2123,18 @@ event_del_internal(struct event *ev)
 		 * dispatch loop early anyway, so we wouldn't gain anything by
 		 * doing it.
 		 */
-		event_queue_remove(base, ev, EVLIST_TIMEOUT);
-	}
+        event_queue_remove(base, ev, EVLIST_TIMEOUT);  
+    }  
 
+	//该event已经在active队列中了。那么需要在active队列中删除之
 	if (ev->ev_flags & EVLIST_ACTIVE)
 		event_queue_remove(base, ev, EVLIST_ACTIVE);
 
+	//该event已经在注册队列(eventqueue)中了，那么需要在注册队列中删除之 
 	if (ev->ev_flags & EVLIST_INSERTED) {
 		event_queue_remove(base, ev, EVLIST_INSERTED);
+        //此外还要在该fd或者sig队列中删除之。同一个fd可以有多个event。  
+        //所以这里还有一个队列
 		if (ev->ev_events & (EV_READ|EV_WRITE))
 			res = evmap_io_del(base, ev->ev_fd, ev);
 		else
@@ -2045,6 +2240,62 @@ event_active_nolock(struct event *ev, int res, short ncalls)
 		evthread_notify_base(base);
 	}
 }//end event_active_nolock
+
+
+
+void
+event_deferred_cb_init(struct deferred_cb *cb, deferred_cb_fn fn, void *arg)
+{
+	memset(cb, 0, sizeof(struct deferred_cb));
+	cb->cb = fn;
+	cb->arg = arg;
+}
+
+void
+event_deferred_cb_cancel(struct deferred_cb_queue *queue,
+    struct deferred_cb *cb)
+{
+	if (!queue) {
+		if (current_base)
+			queue = &current_base->defer_queue;
+		else
+			return;
+	}
+
+	LOCK_DEFERRED_QUEUE(queue);
+	if (cb->queued) {
+		TAILQ_REMOVE(&queue->deferred_cb_list, cb, cb_next);
+		--queue->active_count;
+		cb->queued = 0;
+	}
+	UNLOCK_DEFERRED_QUEUE(queue);
+}
+
+
+void
+event_deferred_cb_schedule(struct deferred_cb_queue *queue,
+    struct deferred_cb *cb)
+{
+	if (!queue) {
+		if (current_base)
+			queue = &current_base->defer_queue;
+		else
+			return;
+	}
+
+	LOCK_DEFERRED_QUEUE(queue);
+	if (!cb->queued) {
+		cb->queued = 1;
+		TAILQ_INSERT_TAIL(&queue->deferred_cb_list, cb, cb_next);
+		++queue->active_count;
+		if (queue->notify_fn)
+			queue->notify_fn(queue, queue->notify_arg);
+	}
+	UNLOCK_DEFERRED_QUEUE(queue);
+}
+
+
+
 
 static int
 timeout_next(struct event_base *base, struct timeval **tv_p)
