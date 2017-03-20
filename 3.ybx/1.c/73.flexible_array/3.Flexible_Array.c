@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
  
@@ -66,6 +67,52 @@ void test2()
 	return;//gdb设置断点
 }
 
+
+//实现char *当成char arr[0]的用法
+//来自于libevent的buffer.c evbuffer_chain_new
+//结构体仍然使用test2()中的char *，但是也一次malloc来分配空间
+//gdb 3.Flexible_Array
+//(gdb) b 107
+//(gdb) run
+//Breakpoint 1, test3 () at 3.Flexible_Array.c:107
+//107		return;//gdb设置断点
+//(gdb) x /16b thisline 
+//0x601070:	10		0	0	0	0	0	0	0  (thisline->length是10, int 4个字节，int后边是8字节的指针，还要4个字节做内存对齐)
+//0x601078:	-128	16	96	0	0	0	0	0
+//(gdb) x /16d thisline (16d和16b一样)
+//0x601070:	10	0	0	0	0	0	0	0
+//0x601078:	-128	16	96	0	0	0	0	0
+//(gdb) x /16x thisline
+//0x601070:	0x0a	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+//0x601078:	0x80	0x10	0x60	0x00	0x00	0x00	0x00	0x00 (this->contents地址 0x601080)
+//(gdb) x /26d thisline
+//0x601070:	10	0	0	0	0	0	0	0
+//0x601078:	-128	16	96	0	0	0	0	0
+//0x601080:	97	97	97	97	97	97	97	97 (10个a)
+//0x601088:	97	97
+
+void test3()
+{
+	struct line {
+	   int length;
+	   char *contents;
+	};
+	 
+	int this_length=10;
+	struct line *thisline = (struct line *)malloc (sizeof (struct line) + sizeof(char) * this_length);
+	if (thisline==NULL) {
+		perror("malloc");
+		exit(1);
+	}
+
+	memset(thisline, 0, sizeof(struct line));
+	thisline->length = this_length;
+	thisline->contents = (char *)((struct line*)(thisline) + 1);
+	memset(thisline->contents, 'a', this_length);
+	printf("%s\n", thisline->contents);
+	return;//gdb设置断点
+}
+
 //调试程序
 //gdb 3.Flexible_Array
 //(gdb) b 37
@@ -91,5 +138,6 @@ void test2()
 int main(){
 	test1();
 	test2();
+	test3();
 	return 0;
 }
