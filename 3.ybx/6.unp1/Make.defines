@@ -6,6 +6,6 @@ RANLIB = ranlib
 LIBUNP_NAME = ../libunp.a
 
 LIB_OBJS = tcp_connect.o error.o wrapunix.o writen.o readn.o \
-			host_serv.o mylib.o
+			host_serv.o mylib.o str_echo.o readline.o gf_time.o
 
 CLEANFILES = core core.* *.core *.o *.out

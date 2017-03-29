@@ -1,3 +1,4 @@
+./configure  --prefix=/usr/local/libevent make make install  (不一定对)
 ln -s /usr/local/lib/libevent-2.0.so.5 /usr/lib64/libevent-2.0.so.5 
 ln -s /usr/local/lib/libevent_pthreads-2.0.so.5 /usr/lib64/libevent_pthreads-2.0.so.5
 1.easy:简单实用libevent

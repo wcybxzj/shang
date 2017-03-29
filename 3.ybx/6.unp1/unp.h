@@ -88,6 +88,7 @@ typedef void    Sigfunc(int);   /* for signal handlers */
 int my_rand(int range);
 pid_t gettid();
 
+char    *gf_time(void);
 int     tcp_connect(const char *, const char *);
 ssize_t writen(int fd, const void *ptr, size_t n);
 ssize_t readn(int fd, void *ptr, size_t n);
