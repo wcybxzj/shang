@@ -25,6 +25,7 @@ int system_ok(char *cmd)
 	int status;
 	pid_t pid;
 
+	//SIG_IGN：忽略信号的处理程序
 	signal(SIGINT, SIG_IGN);
 	signal(SIGQUIT, SIG_IGN);
 	sigset_t set, oset;

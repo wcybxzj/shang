@@ -19,7 +19,9 @@ static void sysio_func(void *p){
 		perror("open():");
 		exit(-1);
 	}
+	printf("block 在上锁pid:%d\n",getpid());
 	lockf(fd, F_LOCK, 0);
+	printf("unblock 在上锁pid:%d\n",getpid());
 	read(fd, tmp, SIZE);
 	num = atoi(tmp);
 	num++;
@@ -27,7 +29,9 @@ static void sysio_func(void *p){
 	lseek(fd, SEEK_SET, 0);
 	//sleep(1);
 	write(fd, tmp, strlen(tmp));
+	printf("block 在解锁pid:%d\n",getpid());
 	lockf(fd, F_ULOCK, 0);
+	printf("unblock 在解锁pid:%d\n",getpid());
 	close(fd);
 	exit(0);
 }

@@ -34,7 +34,7 @@ received EOF
 终端2:
 ./5-6.oobsend 127.0.0.1 1234 
 */
-//原来代码有问题，增加signal和fcnl信号驱动IO 才成功
+//原来代码有问题，增加signal和fcntl信号驱动IO 才成功
 int main(int argc, char *argv[])
 {
 	if ( argc <= 2 ) {
