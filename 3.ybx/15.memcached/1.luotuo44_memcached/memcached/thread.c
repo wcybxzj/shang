@@ -49,6 +49,35 @@ static void register_thread_initialized(void) {
     pthread_mutex_unlock(&init_lock);
 }
 
+void switch_item_lock_type(enum item_lock_types type) {
+    char buf[1];
+    int i;
+
+    switch (type) {
+        case ITEM_LOCK_GRANULAR:
+            buf[0] = 'l';
+            break;
+        case ITEM_LOCK_GLOBAL:
+            buf[0] = 'g';
+            break;
+        default:
+            fprintf(stderr, "Unknown lock type: %d\n", type);
+            assert(1 == 0);
+            break;
+    }
+
+    pthread_mutex_lock(&init_lock);
+    init_count = 0;
+    for (i = 0; i < settings.num_threads; i++) {
+        if (write(threads[i].notify_send_fd, buf, 1) != 1) {
+            perror("Failed writing to notify pipe");
+            /* TODO: This is a fatal problem. Can it ever happen temporarily? */
+        }
+    }
+    wait_for_thread_registration(settings.num_threads);
+    pthread_mutex_unlock(&init_lock);
+}//end switch_item_lock_type()
+
 static void cq_init(CQ *cq) {  
     pthread_mutex_init(&cq->lock, NULL);  
     cq->head = NULL;  
@@ -232,6 +261,119 @@ static void *worker_libevent(void *arg) {
     event_base_loop(me->base, 0);
     return NULL;
 }
+
+//现在主线程已经通知了选定的worker线程。接下来就是worker线程怎么处理这个通知了。
+//下面看一下worker线程的管道可读事件回调函数thread_libevent_process。
+
+//memcached为每一个连接申请一个conn结构体进行维护。
+//conn_new函数内部会为这个socket fd申请一个event并添加到该worker线程的event_base里面。
+//当客户端发送命令时，worker线程就能监听到。这个conn_new函数前面已经说过了，这里也就不给出代码了。
+
+//在以后，都是worker线程负责这里这个客户端的一切通信，也是worker线程负责完成客户端的命令，包括申请内存存储数据、查询数据、删掉数据。
+//这些苦工都是worker线程完成的，而没有其它线程帮忙。
+//不过大可放心，memcached对于这命令一般都能在常数时间时间复杂度内完成。
+//所以，即使一个worker线程有多个客户端连接，也完全应付得过来。
+
+/*
+ * Processes an incoming "handle a new connection" item. This is called when
+ * input arrives on the libevent wakeup pipe.
+ */
+static void thread_libevent_process(int fd, short which, void *arg) {
+    LIBEVENT_THREAD *me = arg;
+    CQ_ITEM *item;
+    char buf[1];
+
+    if (read(fd, buf, 1) != 1)
+        if (settings.verbose > 0)
+            fprintf(stderr, "Can't read from libevent pipe\n");
+
+    switch (buf[0]) {
+    case 'c':
+	//从CQ队列中读取一个item,因为是pop所以读取后，CQ队列会把这个item从队列中删除  
+    item = cq_pop(me->new_conn_queue);
+
+    if (NULL != item) {
+		//为sfd分配一个conn结构体，并且为这个sfd建立一个event，然后让base监听这个event  
+		//这个sfd的事件回调函数是event_handler  
+        conn *c = conn_new(item->sfd, item->init_state, item->event_flags,
+                           item->read_buffer_size, item->transport, me->base);
+        if (c == NULL) {
+            if (IS_UDP(item->transport)) {
+                fprintf(stderr, "Can't listen for events on UDP socket\n");
+                exit(1);
+            } else {
+                if (settings.verbose > 0) {
+                    fprintf(stderr, "Can't listen for events on fd %d\n",
+                        item->sfd);
+                }
+                close(item->sfd);
+            }
+        } else {
+            c->thread = me;
+        }
+        cqi_free(item);
+    }
+        break;
+    /* we were told to flip the lock type and report in */
+    case 'l':
+    me->item_lock_type = ITEM_LOCK_GRANULAR;
+    register_thread_initialized();
+        break;
+    case 'g':
+    me->item_lock_type = ITEM_LOCK_GLOBAL;
+    register_thread_initialized();
+        break;
+    }
+}//end  thread_libevent_process()
+
+/*
+ * Dispatches a new connection to another thread. This is only ever called
+ * from the main thread, either during initialization (for UDP) or because
+ * of an incoming connection.
+ */
+void dispatch_conn_new(int sfd, enum conn_states init_state, int event_flags,
+                       int read_buffer_size, enum network_transport transport) {
+    CQ_ITEM *item = cqi_new();//申请一个CQ_ITEM
+    char buf[1];
+    if (item == NULL) {
+        close(sfd);
+        /* given that malloc failed this may also fail, but let's try */
+        fprintf(stderr, "Failed to allocate memory for connection object\n");
+        return ;
+    }
+
+    int tid = (last_thread + 1) % settings.num_threads;//轮询的方式选定一个worker线程
+
+    LIBEVENT_THREAD *thread = threads + tid;
+
+    last_thread = tid;
+
+    item->sfd = sfd;
+    item->init_state = init_state;
+    item->event_flags = event_flags;
+    item->read_buffer_size = read_buffer_size;
+    item->transport = transport;
+
+    cq_push(thread->new_conn_queue, item);////把这个item放到选定的worker线程的CQ队列中
+
+    MEMCACHED_CONN_DISPATCH(sfd, thread->thread_id);
+    buf[0] = 'c';
+    if (write(thread->notify_send_fd, buf, 1) != 1) {////通知worker线程，有新客户端连接到来
+        perror("Writing to thread notify pipe");
+    }
+}//end  dispatch_conn_new()
+
+
+//这边的item_*系列的方法，就是Memcached核心存储块的接口  
+item *item_get(const char *key, const size_t nkey) {  
+    item *it;  
+    uint32_t hv;  
+    hv = hash(key, nkey); //对key进行hash,返回一个uint32_t类型的值  
+    item_lock(hv); //块锁，当取数据的时候，不允许其他的操作，保证取数据的原子性  
+    it = do_item_get(key, nkey, hv);  
+    item_unlock(hv);  
+    return it;  
+}  
 
 
 //每一个线程都有一个LIBEVENT_THREAD结构体，现在来看一下具体的代码实现。

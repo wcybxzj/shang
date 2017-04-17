@@ -1,10 +1,85 @@
+#define ITEM_UPDATE_INTERVAL 60
+
+#define POWER_SMALLEST 1  
+#define POWER_LARGEST  200  
+#define CHUNK_ALIGN_BYTES 8  
+#define MAX_NUMBER_OF_SLAB_CLASSES (POWER_LARGEST + 1)  
+
 #define TAIL_REPAIR_TIME_DEFAULT 0
+
+#define ITEM_key(item) (((char*)&((item)->data)) \
+         + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))
+
+#define ITEM_suffix(item) ((char*) &((item)->data) + (item)->nkey + 1 \
+         + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))
+
+#define ITEM_data(item) ((char*) &((item)->data) + (item)->nkey + 1 \
+         + (item)->nsuffix \
+         + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))
+
+#define ITEM_ntotal(item) (sizeof(struct _stritem) + (item)->nkey + 1 \
+         + (item)->nsuffix + (item)->nbytes \
+         + (((item)->it_flags & ITEM_CAS) ? sizeof(uint64_t) : 0))
+
 
 enum protocol {
     ascii_prot = 3, /* arbitrary value. */
     binary_prot,
     negotiating_prot /* Discovering the protocol */
 };
+
+enum item_lock_types {
+    ITEM_LOCK_GRANULAR = 0,
+    ITEM_LOCK_GLOBAL
+};
+
+#define ITEM_LINKED 1 //该item插入到LRU队列了  
+#define ITEM_CAS 2 //该item使用CAS  
+#define ITEM_SLABBED 4 //该item还在slab的空闲队列里面，没有分配出去  
+#define ITEM_FETCHED 8 //该item插入到LRU队列后，被worker线程访问过 
+
+//Item 缓存数据存储的基本单元
+//1. Item是Memcached存储的最小单位
+//2. 每一个缓存都会有自己的一个Item数据结构
+//3. Item主要存储缓存的key、value、key的长度、value的长度、缓存的时间等信息。
+//4. HashTable和LRU链表结构都是依赖Item结构中的元素的。
+typedef struct _stritem {  
+    //记录下一个item的地址,主要用于LRU链和freelist链  
+    struct _stritem *next;  
+    //记录下一个item的地址,主要用于LRU链和freelist链  
+    struct _stritem *prev;  
+    //记录HashTable的下一个Item的地址  
+    struct _stritem *h_next;  
+    //最近访问的时间，只有set/add/replace等操作才会更新这个字段  
+    //当执行flush命令的时候，需要用这个时间和执行flush命令的时间相比较，来判断是否失效  
+    rel_time_t      time;//最后一次访问时间。绝对时间
+    //缓存的过期时间。设置为0的时候，则永久有效。  
+    //如果Memcached不能分配新的item的时候，设置为0的item也有可能被LRU淘汰  
+    rel_time_t      exptime;//过期失效时间，绝对时间
+    //value数据大小  
+    int             nbytes;//本item存放的数据的长度
+    //引用的次数。通过这个引用的次数，可以判断item是否被其它的线程在操作中。  
+    //也可以通过refcount来判断当前的item是否可以被删除，只有refcount -1 = 0的时候才能被删除  
+    unsigned short  refcount;  
+    uint8_t         nsuffix;//后缀长度
+    uint8_t         it_flags;//item属性
+    //slabs_class的ID。  
+    uint8_t         slabs_clsid;//item属于哪个slab_class
+    uint8_t         nkey;//key长度       /* key length, w/terminating null and padding */  
+    /* this odd type prevents type-punning issues when we do 
+     * the little shuffle to save space when not using CAS. */  
+    //数据存储结构  
+    union {  
+        uint64_t cas;  
+        char end;  
+    } data[];  
+    /* if it_flags & ITEM_CAS we have 8 bytes CAS */  
+    /* then null-terminated key */  
+    /* then " flags length\r\n" (no terminating null) */  
+    /* then data with terminating \r\n (no terminating null; it's binary!) */  
+} item;  
+
+
 
 //为worker线程构建CQ队列：
 //主线程又是怎么访问各个worker线程的CQ队列呢？
