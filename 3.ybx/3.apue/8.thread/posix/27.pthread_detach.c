@@ -9,7 +9,7 @@ pid_t gettid()
      return syscall(SYS_gettid);
 }
 
-//所有线程都要基于进程，所有以任何线程exit都是把进程杀死，所有线程也就死了
+//所有线程都要基于进程，所以任何线程exit都是把进程杀死，所有线程也就死了
 
 //main线程:
 //main线程return或者exit 任何线程都会杀死

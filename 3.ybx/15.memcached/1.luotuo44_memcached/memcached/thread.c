@@ -34,7 +34,70 @@ struct conn_queue {
 static CQ_ITEM *cqi_freelist;
 static pthread_mutex_t cqi_freelist_lock;
 
+
+static pthread_mutex_t *item_locks;//指向段锁数组的指针  
+/* size of the item lock hash table */  
+static uint32_t item_lock_count;//段锁的数量  
+static unsigned int item_lock_hashpower;  
+#define hashsize(n) ((unsigned long int)1<<(n))
+#define hashmask(n) (hashsize(n)-1)
+static pthread_mutex_t item_global_lock;//全局锁
+static pthread_key_t item_lock_type_key;//线程私有数据key
+
 static LIBEVENT_THREAD *threads;
+
+
+//refcount_incr(&it->refcount);一般是这样调用的  
+//refcount_decr(&it->refcount); 
+unsigned short refcount_incr(unsigned short *refcount) {
+    unsigned short res;
+    mutex_lock(&atomics_mutex);
+    (*refcount)++;
+    res = *refcount;
+    mutex_unlock(&atomics_mutex);
+    return res;
+}
+
+unsigned short refcount_decr(unsigned short *refcount) {
+    unsigned short res;
+    mutex_lock(&atomics_mutex);
+    (*refcount)--;
+    res = *refcount;
+    mutex_unlock(&atomics_mutex);
+    return res;
+}
+
+void item_lock_global(void) {  
+    mutex_lock(&item_global_lock);  
+}  
+  
+void item_unlock_global(void) {  
+    mutex_unlock(&item_global_lock);  
+}
+
+void item_lock(uint32_t hv) {  
+    //获取线程私有变量  
+    uint8_t *lock_type = pthread_getspecific(item_lock_type_key);  
+    //likely这个宏定义用于代码指令优化  
+    //likely(*lock_type == ITEM_LOCK_GRANULAR)用来告诉编译器  
+    //*lock_type等于ITEM_LOCK_GRANULAR的可能性很大  
+    if (likely(*lock_type == ITEM_LOCK_GRANULAR)) {//使用段级别锁的概率很大  
+        //对某些桶的item加锁,实现了多个bucket对应到一个段级锁!!!!!!!!!! 
+        mutex_lock(&item_locks[hv & hashmask(item_lock_hashpower)]);  
+    } else {  
+        //对所有item加锁  
+        mutex_lock(&item_global_lock);  
+    }  
+}  
+
+void item_unlock(uint32_t hv) {  
+    uint8_t *lock_type = pthread_getspecific(item_lock_type_key);  
+    if (likely(*lock_type == ITEM_LOCK_GRANULAR)) {  
+        mutex_unlock(&item_locks[hv & hashmask(item_lock_hashpower)]);  
+    } else {  
+        mutex_unlock(&item_global_lock);  
+    }  
+}  
 
 static void wait_for_thread_registration(int nthreads) {
     while (init_count < nthreads) {
@@ -365,6 +428,13 @@ void dispatch_conn_new(int sfd, enum conn_states init_state, int event_flags,
 
 
 //这边的item_*系列的方法，就是Memcached核心存储块的接口  
+
+//怎么使用引用计数：
+//当然即使有了引用计数还是需要加锁的。
+//因为在获取item和增加引用计数这一间隔，可能有其他线程把这个item给删除了。
+//所以一般流程是这样：worker线程先加锁，然后获取item，之后增加这item的引用计数，最后释放锁。
+//此时worker线程就占有了这个item，其他worker线程在执行删除操作时必须检测这个item的引用计数是否为0，
+//也就是检查是否还有其他worker线程在使用(引用)这个item
 item *item_get(const char *key, const size_t nkey) {  
     item *it;  
     uint32_t hv;  
@@ -373,6 +443,30 @@ item *item_get(const char *key, const size_t nkey) {
     it = do_item_get(key, nkey, hv);  
     item_unlock(hv);  
     return it;  
+}  
+
+/*
+ * Decrements the reference count on an item and adds it to the freelist if
+ * needed.
+ */
+void item_remove(item *item) {
+    uint32_t hv;
+    hv = hash(ITEM_key(item), item->nkey);
+
+    item_lock(hv);
+    do_item_remove(item);
+    item_unlock(hv);
+}
+
+enum store_item_type store_item(item *item, int comm, conn* c) {  
+    enum store_item_type ret;  
+    uint32_t hv;  
+  
+    hv = hash(ITEM_key(item), item->nkey);  
+    item_lock(hv);  
+    ret = do_store_item(item, comm, c, hv);  
+    item_unlock(hv);  
+    return ret;  
 }  
 
 
@@ -401,6 +495,7 @@ void thread_init(int nthreads, struct event_base *main_base) {
 	pthread_mutex_init(&cqi_freelist_lock, NULL);
 	cqi_freelist = NULL;
 
+	//nthreads是workers线程的数量，由main函数调用时传入来  
 	/* Want a wide lock table, but don't waste memory */
 	if (nthreads < 3) {
 		power = 10;
@@ -416,6 +511,7 @@ void thread_init(int nthreads, struct event_base *main_base) {
 	item_lock_count = hashsize(power);
 	item_lock_hashpower = power;
 
+	//哈希表中段级别的锁。并不是一个桶就对应有一个锁。而是多个桶共用一个锁  
 	item_locks = calloc(item_lock_count, sizeof(pthread_mutex_t));
 	if (! item_locks) {
 		perror("Can't allocate item locks");
@@ -465,4 +561,7 @@ void thread_init(int nthreads, struct event_base *main_base) {
 	pthread_mutex_lock(&init_lock);
 	wait_for_thread_registration(nthreads);
 	pthread_mutex_unlock(&init_lock);
-}
+}//end thread_init
+
+
+

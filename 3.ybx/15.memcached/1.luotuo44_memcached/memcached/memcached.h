@@ -1,3 +1,31 @@
+#define DATA_BUFFER_SIZE 2048
+#define UDP_READ_BUFFER_SIZE 65536
+#define UDP_MAX_PAYLOAD_SIZE 1400
+#define UDP_HEADER_SIZE 8
+#define MAX_SENDBUF_SIZE (256 * 1024 * 1024)
+/* I'm told the max length of a 64-bit num converted to string is 20 bytes.
+ * Plus a few for spaces, \r\n, \0 */
+#define SUFFIX_SIZE 24
+
+/** Initial size of list of items being returned by "get". */
+#define ITEM_LIST_INITIAL 200
+
+/** Initial size of list of CAS suffixes appended to "gets" lines. */
+#define SUFFIX_LIST_INITIAL 20
+
+/** Initial size of the sendmsg() scatter/gather array. */
+#define IOV_LIST_INITIAL 400
+
+/** Initial number of sendmsg() argument structures to allocate. */
+#define MSG_LIST_INITIAL 10
+
+/** High water marks for buffer shrinking */
+#define READ_BUFFER_HIGHWAT 8192
+#define ITEM_LIST_HIGHWAT 400
+#define IOV_LIST_HIGHWAT 600
+#define MSG_LIST_HIGHWAT 100
+
+
 #define ITEM_UPDATE_INTERVAL 60
 
 #define POWER_SMALLEST 1  
@@ -29,8 +57,8 @@ enum protocol {
 };
 
 enum item_lock_types {
-    ITEM_LOCK_GRANULAR = 0,
-    ITEM_LOCK_GLOBAL
+    ITEM_LOCK_GRANULAR = 0, //段级锁
+    ITEM_LOCK_GLOBAL//全局锁
 };
 
 #define ITEM_LINKED 1 //该item插入到LRU队列了  
@@ -79,7 +107,28 @@ typedef struct _stritem {
     /* then data with terminating \r\n (no terminating null; it's binary!) */  
 } item;  
 
+//伪item：
+//memcached为了实现随机访问，使用了一个很巧妙的方法。它在LRU队列尾部插入一个伪item，然后驱动这个伪item向队列头部前进，每次前进一位。
 
+//这个伪item是全局变量，LRU爬虫线程无须从LRU队列头部或者尾部遍历就可以直接访问这个伪item。
+//通过这个伪item的next和prev指针，就可以访问真正的item。
+//于是，LRU爬虫线程无需遍历就可以直接访问LRU队列中间的某一个item。
+
+//这个结构体和item结构体长得很像,是伪item结构体，用于LRU爬虫
+typedef struct {  
+    struct _stritem *next;  
+    struct _stritem *prev;  
+    struct _stritem *h_next;    /* hash chain next */  
+    rel_time_t      time;       /* least recent access */  
+    rel_time_t      exptime;    /* expire time */  
+    int             nbytes;     /* size of data */  
+    unsigned short  refcount;  
+    uint8_t         nsuffix;    /* length of flags-and-length string */  
+    uint8_t         it_flags;   /* ITEM_* above */  
+    uint8_t         slabs_clsid;/* which slab class we're in */  
+    uint8_t         nkey;       /* key length, w/terminating null and padding */  
+    uint32_t        remaining;  /* Max keys to crawl per slab per invocation */  
+} crawler;  
 
 //为worker线程构建CQ队列：
 //主线程又是怎么访问各个worker线程的CQ队列呢？
@@ -105,19 +154,22 @@ typedef struct {
 typedef struct conn conn;
 
 struct conn {
-    int    sfd;
+    int    sfd;//该conn对应的socket fd
     sasl_conn_t *sasl_conn;
     bool authenticated;
     enum conn_states  state;
     enum bin_substates substate;
     rel_time_t last_cmd_time;
-    struct event event;
-    short  ev_flags;
-    short  which;   /** which events were just triggered */
-
+    struct event event;//该conn对应的event
+    short  ev_flags;//event当前监听的事件类型
+    short  which;   /** which events were just triggered */ //触发event回调函数的原因
+	//读缓冲区
     char   *rbuf;   /** buffer to read commands into */
+	//有效数据的开始位置。从rbuf到rcurr之间的数据是已经处理的了，变成无效数据了
     char   *rcurr;  /** but if we parsed some already, this is where we stopped */
+	//读缓冲区的总长度 
     int    rsize;   /** total allocated size of rbuf */
+	//有效数据的长度。初始值为0
     int    rbytes;  /** how much data, starting from rcur, do we have unparsed */
 
     char   *wbuf;
@@ -128,6 +180,7 @@ struct conn {
     enum conn_states  write_and_go;
     void   *write_and_free; /** free this memory after finishing writing */
 
+	//数据直通车  
     char   *ritem;  /** when we read in an item's value, it goes here */
     int    rlbytes;
 
@@ -144,21 +197,34 @@ struct conn {
     /* data for the swallow state */
     int    sbytes;    /* how many bytes to swallow */
 
+    //ensure_iov_space函数会扩大数组长度.下面的msglist数组所使用到的  
+    //iovec结构体数组就是iov指针所指向的。所以当调用ensure_iov_space  
+    //分配新的iovec数组后，需要重新调整msglist数组元素的值。这个调整  
+    //也是在ensure_iov_space函数里面完成的  
     /* data for the mwrite state */
-    struct iovec *iov;
-    int    iovsize;   /* number of elements allocated in iov[] */
-    int    iovused;   /* number of elements used in iov[] */
+    struct iovec *iov;//iovec数组指针  
+    int    iovsize;   /* number of elements allocated in iov[] */ //数组大小  
+    int    iovused;   /* number of elements used in iov[] */    //已经使用的数组元素个数  
 
-    struct msghdr *msglist;
-    int    msgsize;   /* number of elements allocated in msglist[] */
-    int    msgused;   /* number of elements used in msglist[] */
-    int    msgcurr;   /* element in msglist[] being transmitted now */
-    int    msgbytes;  /* number of bytes in current msg */
+    //因为msghdr结构体里面的iovec结构体数组长度是有限制的。所以为了能  
+    //传输更多的数据，只能增加msghdr结构体的个数.add_msghdr函数负责增加  
+    struct msghdr *msglist;//指向msghdr数组  
+    //数组大小  
+    int    msgsize;   /* number of elements allocated in msglist[] */  
+    //已经使用了的msghdr元素个数  
+    int    msgused;   /* number of elements used in msglist[] */  
+    //正在用sendmsg函数传输msghdr数组中的哪一个元素  
+    int    msgcurr;   /* element in msglist[] being transmitted now */  
+    //msgcurr指向的msghdr总共有多少个字节  
+    int    msgbytes;  /* number of bytes in current msg */  
 
-    item   **ilist;   /* list of items to write out */
-    int    isize;
-    item   **icurr;
-    int    ileft;
+
+    //worker线程需要占有这个item，直至把item的数据都写回给客户端了  
+    //故需要一个item指针数组记录本conn占有的item  
+    item   **ilist;   /* list of items to write out */  
+    int    isize;//数组的大小  
+    item   **icurr;//当前使用到的item(在释放占用item时会用到)  
+    int    ileft;//ilist数组中有多少个item需要释放  
 
     char   **suffixlist;
     int    suffixsize;
@@ -191,6 +257,19 @@ struct conn {
     int opaque;
     int keylen;
     conn   *next;     /* Used for generating a list of conn structures */
+	//这个conn属于哪个worker线程 
     LIBEVENT_THREAD *thread; /* Pointer to the thread object serving this connection */
 };// end struct conn{..};
+
+struct slab_rebalance {  
+    //记录要移动的页的信息。slab_start指向页的开始位置。slab_end指向页  
+    //的结束位置。slab_pos则记录当前处理的位置(item)  
+    void *slab_start;  
+    void *slab_end;  
+    void *slab_pos;  
+    int s_clsid; //源slab class的下标索引  
+    int d_clsid; //目标slab class的下标索引  
+    int busy_items; //是否worker线程在引用某个item  
+    uint8_t done;//是否完成了内存页移动  
+};  
 

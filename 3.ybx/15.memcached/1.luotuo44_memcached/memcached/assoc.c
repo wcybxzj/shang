@@ -272,9 +272,13 @@ static void *assoc_maintenance_thread(void *arg) {
 		//上锁  
         /* Lock the cache, and bulk move multiple buckets to the new
          * hash table. */
-        item_lock_global();
+        item_lock_global();//锁上全局级别的锁，全部的item都在全局锁的控制之下  
+        //锁住哈希表里面的item。不然别的线程对哈希表进行增删操作时，会出现  
+        //数据不一致的情况.在item.c的do_item_link和do_item_unlink可以看到  
+        //其内部也会锁住cache_lock锁.  
         mutex_lock(&cache_lock);
 
+		//这里是迁移一个桶的数据到新哈希表
 		//进行item迁移  
         //hash_bulk_move用来控制每次迁移，移动多少个桶的item。默认是一个.  
         //如果expanding为true才会进入循环体，所以迁移线程刚创建的时候，并不会进入循环体 
@@ -319,6 +323,8 @@ static void *assoc_maintenance_thread(void *arg) {
         if (!expanding) {//不需要迁移数据了
             /* finished expanding. tell all threads to use fine-grained(细粒度的) locks */  
             //进入到这里，说明已经不需要迁移数据(停止扩展了)。  
+            //告诉所有的workers线程，访问item时，切换到段级别的锁。  
+            //会阻塞到所有workers线程都切换到段级别的锁
             switch_item_lock_type(ITEM_LOCK_GRANULAR);
             slabs_rebalancer_resume();
             /* We are done expanding.. just wait for next invocation */
@@ -331,6 +337,14 @@ static void *assoc_maintenance_thread(void *arg) {
             /* Before doing anything, tell threads to use a global lock */
             mutex_unlock(&cache_lock);
             slabs_rebalancer_pause();
+            //从maintenance_cond条件变量中醒来，说明又要开始扩展哈希表和迁移数据了。  
+            //迁移线程在迁移一个桶的数据时是锁上全局级别的锁.  
+            //此时workers线程不能使用段级别的锁，而是要使用全局级别的锁，  
+            //所有的workers线程和迁移线程一起，争抢全局级别的锁.  
+            //哪个线程抢到了，才有权利访问item.  
+            //下面一行代码就是通知所有的workers线程，把你们访问item的锁切换  
+            //到全局级别的锁。switch_item_lock_type会通过条件变量休眠等待，  
+            //直到，所有的workers线程都切换到全局级别的锁，才会醒来过  
             switch_item_lock_type(ITEM_LOCK_GLOBAL);
             mutex_lock(&cache_lock);
             assoc_expand();//申请更大的哈希表,并将expanding设置为true
@@ -339,9 +353,6 @@ static void *assoc_maintenance_thread(void *arg) {
     }
     return NULL;
 }//end assoc_maintenance_thread()
-
-
-
 
 //main函数会调用本函数，启动数据迁移线程  
 int start_assoc_maintenance_thread() {  
