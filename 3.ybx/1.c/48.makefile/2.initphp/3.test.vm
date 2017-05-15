@@ -1,0 +1,2 @@
+object = get.o sum.o val.o \
+main.o
