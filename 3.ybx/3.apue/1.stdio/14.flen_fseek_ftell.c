@@ -9,7 +9,7 @@ int main(int argc, const char *argv[])
 		perror("fopen():");
 	}
 
-	fseek(fp, 0, SEEK_END);
+	fseek(fp, 0, SEEK_END);//移动到文件尾
 	file_size = ftell(fp);
 
 	printf("size is %d\n", file_size);
