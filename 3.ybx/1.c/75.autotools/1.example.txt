@@ -1,0 +1,86 @@
+http://www.cnblogs.com/bugutian/p/5560548.html
+
+二、详细介绍
+autoscan:
+扫描源代码以搜寻普通的可移植性问题，比如检查编译器，库，头文件等，生成文件configure.scan,它是configure.ac的一个雏形。
+aclocal:
+根据已经安装的宏，用户定义宏和acinclude.m4文件中的宏将configure.ac文件所需要的宏集中定义到文件
+aclocal.m4中。aclocal是一个perl 脚本程序，它的定义是：“aclocal - create aclocal.m4 by scanning configure.ac”
+automake:
+将Makefile.am中定义的结构建立Makefile.in，然后configure脚本将生成的Makefile.in文件转换
+为Makefile。如果在configure.ac中定义了一些特殊的宏，比如AC_PROG_LIBTOOL，它会调用libtoolize，
+否则它会自己产生config.guess和config.sub
+autoconf:
+将configure.ac中的宏展开，生成configure脚本。这个过程可能要用到aclocal.m4中定义的宏。
+
+三、实例
+yum -y install automake autoconf
+1.创建hello.c hello.h
+2.执行autoscan 生成 autoscan.log configure.scan
+3.aclocal:
+vim configure.scan:进行修改
+mv configure.scan configure.ac
+执行aclocal 生成 aclocal.m4 autom4te.cache autoscan.log
+
+tree
+.
+├── aclocal.m4
+├── autom4te.cache
+│   ├── output.0
+│   ├── requests
+│   └── traces.0
+├── autoscan.log
+├── configure.ac
+├── hello.cpp
+├── hello.h
+└── index.txt
+
+
+4.执行autoconf生成configure
+
+tree
+.
+├── aclocal.m4
+├── autom4te.cache
+│   ├── output.0
+│   ├── output.1
+│   ├── requests
+│   ├── traces.0
+│   └── traces.1
+├── autoscan.log
+├── configure
+├── configure.ac
+├── hello.cpp
+├── hello.h
+└── index.txt
+
+5.autoheader生成了configure.h.in
+
+6.Makefile.am
+Makefile.am这个文件非常重要，定义了一些生成Makefile的规则
+[root@bogon autoconfig]# vim Makefile.am
+[root@bogon autoconfig]# cat Makefile.am
+AUTOMAKE_OPTIONS=foreign
+bin_PROGRAMS=hello
+hello_SOURCES=hello.cpp hello.h
+
+7.automake
+automake --add-missing
+configure.ac:24: installing `./install-sh'
+configure.ac:24: installing `./missing'
+Makefile.am: installing `./depcomp'
+
+此步主要是为了生成Makefile.in，加上--add-missing参数后，会补全缺少的脚本；
+
+[root@bogon autoconfig]# ./configure
+生成 config.asm config.h Makefile
+configure会把一些配置参数配置到Makefile文件里面
+
+[root@bogon autoconfig]# make
+[root@bogon autoconfig]# ./hello
+Hello!
+Bye!
+
+8.打包
+make dist
+生成:hello-1.0.tar.gz

@@ -1,0 +1,103 @@
+http://blog.csdn.net/initphp/article/details/43705765
+
+Makefile.am解读
+1. 可执行文件类型
+可执行文件类型主要是只最终生成的可执行的文件。例如我们上面“c源文件同一目录下Autotools的使用”中的例子。
+
+bin_PROGRAMS: 生成的可执行文件名称。如果生成的可执行文件名称为多个，则可以通过空格的方式分隔。
+			：当运行make install命令的时候，可执行文件会默认安装到linux系统的/usr/local/bin目录下面
+noinst_PROGRAMS：如果make install的时候不想被安装，可以使用noinst_PROGRAMS命令。
+例子：bin_PROGRAMS=hello
+hello_SOURCES:
+编译成可执行文件所依赖的.c源文件。多个源文件之间用空格分隔。hello为可执行文件名称。
+hello_LDADD:
+编译成可执行文件过程中，连接所需的库文件，包括*.so的动态库文件和.a的静态库文件。
+hello_LDFLAGS:
+连接的时候所需库文件的标识
+
+===============================================================================
+===============================================================================
+
+2. 静态库文件类型
+静态库文件类型，一般会将c源码放在不同的文件夹中，并且每个文件夹中都会有各自的Makefile.am文件，并且会被编译成静态链接库 *.a格式的文件。
+如果对静态库和动态库还没有一个概念，可以看我的《Linux c 开发 - 静态库和动态库》
+注意：静态库使用中，需要对configure.ac中加入AC_PROG_RANLIB
+
+noinst_LIBRARIES:
+生成静态库（*.a）或者动态库(*.so)的名称。
+库文件一般以lib*.a或者lib*.so来命名。
+当运行make install的时候，库文件不会被安装到linux默认的/usr/local/lib目录下。
+lib_LIBRARIES:
+当运行make intsall的时候，则会被安装到/usr/local/lib目录下。
+下面的例子：noinst_LIBRARIES=libpro.a
+libpro_a_SOURCES:
+c的源文件，libpro_a即上面的livpro.a。多个文件用空格分开。
+libpro_a_LDADD:
+加载所需的库文件。
+libpro_a_LDFLAGS:
+编译的时候的连接标识。
+
+例如:
+2.example2/src/Makefile.am:(和这个不同)
+noinst_LIBRARIES=libpro.a  #生成的静态库文件名称，noinst加上之后是只编译，不安装到系统中。
+libpro_a_SOURCES=sum.c get.c val.c #这个静态库文件需要用到的源文件。
+libpro_a_LDADD = #加载库文件
+libpro_a_LDFLAGS= #连接的时候所需库文件的标识
+
+===============================================================================
+===============================================================================
+
+3. 头文件
+我们一般需要导入一些*.h的头文件，如果你在Makefile.am中没有标识需要导入的头文件，可能在make
+dist打包的时候出现问题，头文件可能不会被打进包里面。
+[plain] view plain copy print?
+include_HEADERS=../include/common.h ../include/sum.h ../include/get.h
+../include/val.h  #可以将头文件引入
+
+
+4. 数据文件
+data_DATA = data1 data2
+
+
+5. 常用变量
+INCLUDES:链接时所需要的头文件
+LDADD:链接时所需要的库文件
+LDFLASG:链接时所需要的库文件选项标志
+EXTRA_DIST:源程序和一些默认的文件将自动打入tar.gz包,
+其他文件(配置或者测试数据)若要进入tar.gz可以用这个参数指定
+SUBDIRS:在处理本目录前递归处理那些子目录
+
+AUTOMAKE_OPTIONS=foreign #软件等级
+SUBDIRS=src  #先扫描子目录，多个目录用空格隔开
+LIBS = -l pthread -l event
+#因为我们项目中用到了libevent和pthread，这个是动态连接，在编译的时候会自动加上
+-l pthread -l event
+EXTRA_DIST = conf   #打包一些配置文件
+
+
+
+
+6. 安装目录
+我们知道，默认情况下，执行make install命令，则会将文件安装到/usr/local/bin
+/usr/local/include  /usr/local/lib目录下面。
+我们可以通过命令./configure --prefix= 生成Makefile文件的时候，配置make
+install命令执行的时候的文件安装路径。
+
+下面这个例子，我们在执行make install的时候，程序会被安装到/home/test目录下面。
+./configure --prefix=/home/test
+
+执行下面一系列命令：
+./configure --prefix=/home/test
+make
+sudo make install
+cd /home/test
+ls
+bin  include lib
+
+下面这些变量是已经定义好的安装路径的变量。
+用户也可以修改这些变量。例如将bindir修改成$(prefix)/bin2
+bindir = $(prefix)/bin。
+libdir = $(prefix)/lib。
+datadir=$(prefix)/share。
+sysconfdir=$(prefix)/etc。
+includedir=$(prefix)/include。

@@ -1,0 +1,3 @@
+get.o: get.c ../include/get.h
+
+../include/get.h:

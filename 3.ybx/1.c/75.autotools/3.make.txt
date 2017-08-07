@@ -1,0 +1,13 @@
+Make命令详解:
+1. make命令：编译文件。make命令主要通过Makefile文件生成可执行文件。
+2. make clean命令。清楚编译的文件，包括目标文件*.o和可执行文件
+3. make install 命令把目标文件安装到系统中。默认安装到/usr/local/bin目录下面。
+4. make uninstall 命令，把目标文件从系统中卸载。
+5. make dist 命令，打包发布。
+
+如何使用发布的文件：
+1. 下载到“hello-1.0.tar.gz”压缩文档
+2. 使用“ tar -zxvf hello-1.0.tar.gz ”命令解压
+3. 使用 “./configure” 命令，主要是生成Makefile命令，已经一些配置初始化。
+4. 使用 “make” 命令编译源代码文件生成软件包。
+5. 使用“make install ”命令来安装编译后的软件包到系统中。

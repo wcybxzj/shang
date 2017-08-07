@@ -1,0 +1,217 @@
+http://blog.csdn.net/initphp/article/details/43705765
+c源文件不同目录下Autotools的使用
+如果你的入口文件main.c和依赖的文件不是在同一个目录中的，使用Autotools来管理项目的时候会稍微复杂一下。
+在不同的目录下，项目会生成*.a文件的静态连接（静态连接相当于将多个.o目标文件合成一个）。
+最外层的main.c会通过静态连接方式来实现连接。
+
+
+1. 源代码例子
+这个例子中会加入libevent和pthread，让例子稍显复杂，这样可以详细的介绍不同目录下的Autotools的使用。
+我们创建两个目录：
+include/  ：放置.h头文件
+src/ ：放置.c 源文件
+[root@web11 2.example]# tree
+.
+├── include
+│   ├── common.h
+│   ├── get.h
+│   ├── sum.h
+│   └── val.h
+├── index.txt
+├── main.c
+└── src
+├── get.c
+├── sum.c
+└── val.c
+
+2. 创建Makefile.am文件
+创建2个Makefile.am
+example2/src/Makefile.am和example2/Makefile.am
+
+3. 执行Autoscan命令
+第一步，我们需要在我们的项目目录下执行autoscan命令。这个命令主要用于扫描工作目录，并且生成configure.scan文件。
+并且configure.scan需要重命令成configure.ac，然后编辑这个配置，我们才能继续执行后面的命令。
+[root@web11 2.example]# autoscan
+[root@web11 2.example]# ls
+autoscan.log  configure.scan  include  index.txt  main.c  Makefile.am  src
+
+mv configure.scan configure.ac
+修改configure.ac文件，主要添加AC_PROG_RANLIB（生成静态库）；AC_PROG_LIBTOOL （用来生成动态库）
+
+[root@web11 2.example]# tree
+.
+├── autoscan.log
+├── configure.ac
+├── include
+│   ├── common.h
+│   ├── get.h
+│   ├── sum.h
+│   └── val.h
+├── index.txt
+├── main.c
+├── Makefile.am
+└── src
+    ├── get.c
+	├── Makefile.am
+	├── sum.c
+	└── val.c
+
+4. Aclocal命令
+第二步，执行aclocal命令。扫描 configure.ac 文件生成 aclocal.m4文件,
+该文件主要处理本地的宏定义，它根据已经安装的宏、用户定义宏和 acinclude.m4
+文件中的宏将 configure.ac 文件需要的宏集中定义到文件 aclocal.m4 中。
+
+[root@web11 2.example]# aclocal
+[root@web11 2.example]# tree
+.
+├── aclocal.m4
+├── autom4te.cache
+│   ├── output.0
+│   ├── requests
+│   └── traces.0
+├── autoscan.log
+├── configure.ac
+├── include
+│   ├── common.h
+│   ├── get.h
+│   ├── sum.h
+│   └── val.h
+├── index.txt
+├── main.c
+├── Makefile.am
+└── src
+    ├── get.c
+	├── Makefile.am
+	├── sum.c
+	└── val.c
+
+5. Autoconf命令
+第三步，执行autoconf命令。这个命令将 configure.ac 文件中的宏展开，生成configure 脚本。
+这个过程可能要用到aclocal.m4中定义的宏。
+
+[root@web11 2.example]# autoconf
+[root@web11 2.example]# tree
+.
+├── aclocal.m4
+├── autom4te.cache
+│   ├── output.0
+│   ├── output.1
+│   ├── requests
+│   ├── traces.0
+│   └── traces.1
+├── autoscan.log
+├── configure
+├── configure.ac
+├── include
+│   ├── common.h
+│   ├── get.h
+│   ├── sum.h
+│   └── val.h
+├── index.txt
+├── main.c
+├── Makefile.am
+└── src
+	├── get.c
+	├── Makefile.am
+	├── sum.c
+	└── val.c
+
+6. Autoheader命令
+第四步，执行autoheader命令。该命令生成 config.h.in 文件。该命令通常会从 "acconfig.h” 文件中复制用户附加的符号定义。
+该例子中没有附加的符号定义, 所以不需要创建 "acconfig.h” 文件。
+[root@web11 2.example]# autoheader
+[root@web11 2.example]# tree
+.
+├── aclocal.m4
+├── autom4te.cache
+│   ├── output.0
+│   ├── output.1
+│   ├── requests
+│   ├── traces.0
+│   └── traces.1
+├── autoscan.log
+├── config.h.in
+├── configure
+├── configure.ac
+├── include
+│   ├── common.h
+│   ├── get.h
+│   ├── sum.h
+│   └── val.h
+├── index.txt
+├── main.c
+├── Makefile.am
+└── src
+	├── get.c
+	├── Makefile.am
+	├── sum.c
+	└── val.c
+
+7. Automake命令
+第五步，执行automake --add-missing命令。该命令生成 Makefile.in 文件。使用选项 "--add-missing" 可以让 Automake
+自动添加一些必需的脚本文件。如果发现一些文件不存在，可以通过手工 touch命令创建。
+[root@web11 2.example]# touch NEWS README AUTHORS ChangeLog
+[root@web11 2.example]# automake --add-missing
+configure.ac:7: installing `./install-sh'
+configure.ac:7: installing `./missing'
+src/Makefile.am: installing `./depcomp'`
+
+├── autom4te.cache
+│   ├── output.0
+│   ├── output.1
+│   ├── requests
+│   ├── traces.0
+│   └── traces.1
+├── autoscan.log
+├── ChangeLog
+├── config.h.in
+├── configure
+├── configure.ac
+├── depcomp -> /usr/share/automake-1.11/depcomp
+├── include
+│   ├── common.h
+│   ├── get.h
+│   ├── sum.h
+│   └── val.h
+├── index.txt
+├── install-sh -> /usr/share/automake-1.11/install-sh
+├── main.c
+├── Makefile.am
+├── Makefile.in
+├── missing -> /usr/share/automake-1.11/missing
+├── NEWS
+├── README
+└── src
+	├── get.c
+	├── Makefile.am
+	├── Makefile.in
+	├── sum.c
+	└── val.c
+
+8. configure命令
+第六步，执行./configure命令。./congigure主要把 Makefile.in 变成最终的 Makefile 文件。
+configure会把一些配置参数配置到Makefile文件里面。
+
+[root@web11 2.example]# ls
+aclocal.m4      autoscan.log  config.h.in    configure     include     main.c Makefile.in  README
+AUTHORS         ChangeLog     config.log     configure.ac  index.txt   Makefile     missing      src
+autom4te.cache  config.h      config.status  depcomp       install-sh  Makefile.am  NEWS         stamp-h1
+
+
+9. make命令
+第七步，执行make命令。make执行后，会生成hello的可执行文件。
+./hello
+
+
+
+Autotools运行流程
+流程总结：
+1. 执行autoscan命令。这个命令主要用于扫描工作目录，并且生成configure.scan文件。
+2. 修改configure.scan为configure.ac文件，并且修改配置内容。
+3. 执行aclocal命令。扫描 configure.ac 文件生成 aclocal.m4文件。
+4. 执行autoconf命令。这个命令将 configure.ac 文件中的宏展开，生成 configure 脚本。
+5. 执行autoheader命令。该命令生成 config.h.in 文件。
+6. 新增Makefile.am文件，修改配置内容
+7. 执行automake --add-missing命令。该命令生成 Makefile.in 文件。
+8. 执行 ./congigure命令。将Makefile.in命令生成Makefile文件。
+9. 执行make命令。生成可执行文件。
