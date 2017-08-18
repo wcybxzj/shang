@@ -1,0 +1,29 @@
+objects = foo.o bar.o
+
+all: $(objects)
+
+#"$<"表示所有的依赖目标集（foo.c bar.c）
+#"$@"表示目标集（foo.o bar.o）。
+#
+#[root@web11 3.7.static_pattern]# make -f 3.7.static_pattern
+#cc -c  foo.c -o foo.o
+#cc -c  bar.c -o bar.o
+#
+#目标从$object中获取，“%.o”表明要所有以“.o”结尾的目标，也就是“foo.o bar.o”，也就是变量$object集合的模式，
+#依赖模式“%.c”则取模式“%.o”的“%”，也就是“foobar”，并为其加下“.c”的后缀，依赖目标就是“foo.c bar.c”。
+#“$<”表示所有的依赖目标集（也就是“foo.c bar.c”）
+#“$@”表示目标集（foo.o bar.o）。
+
+#下面的规则展开后等价于下面的规则：
+#foo.o : foo.c
+#	$(CC) -c $(CFLAGS) foo.c -o foo.o
+#bar.o : bar.c
+#	$(CC) -c $(CFLAGS) bar.c -o bar.o
+
+#如果我们的“%.o”有几百个，那种我们只要用这种很简单的“静态模式规则”就可以写完一堆规则，实在是太有效率了。
+
+$(objects): %.o: %.c
+	$(CC) -c $(CFLAGS) $< -o $@
+
+clean:
+	rm -rf *.o

@@ -1,0 +1,6 @@
+x = y
+y = z
+a := $($(x))
+
+all:
+	echo $a

@@ -1,0 +1,22 @@
+#Makefile中的第一个目标会被作为其默认目标。
+#我们声明了一个“all”的伪目标，其依赖于其它三个目标。
+#伪目标的特性是，总是被执行的，所以其依赖的那三个目标就总是不如“all”这个目标新。
+#所以，其它三个目标的规则总是会被决议。也就达到了我们一口气生成多个目标的目的。
+#目标也可以成为依赖。所以，伪目标同样也可成为依赖
+
+#touch prog1.c prog2.c prog3.c utils.c sort.c
+
+all : prog1 prog2 prog3
+.PHONY : all clean
+
+prog1 : prog1.o utils.o
+	cc -o prog1 prog1.o utils.o
+
+prog2 : prog2.o
+	cc -o prog2 prog2.o
+
+prog3 : prog3.o sort.o utils.o
+	cc -o prog3 prog3.o sort.o utils.o
+
+clean:
+	rm -rf *.o prog1 prog2 prog3

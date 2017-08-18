@@ -1,0 +1,8 @@
+all:exec1 exec2
+
+exec1:
+	cd /home/www
+	pwd
+
+exec2:
+	cd /home/www; pwd

@@ -1,0 +1,4 @@
+#把subst是函数名
+#将$@中的output删除
+bigoutput:
+	echo $(subst output,,$@)

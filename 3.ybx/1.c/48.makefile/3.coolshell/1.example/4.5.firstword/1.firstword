@@ -1,0 +1,7 @@
+all:test
+
+#firstword 取得 字符串中第一个单词
+test:
+	@echo $(firstword aaa.c bbb.c)
+
+

@@ -1,0 +1,10 @@
+.PHONY:cleanall cleanobj cleandiff
+
+cleanall : cleanobj cleandiff
+	echo 'cleanall'
+
+cleanobj :
+	echo 'cleanobj'
+
+cleandiff :
+	echo 'cleandiff'
