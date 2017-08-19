@@ -17,7 +17,6 @@ C程序编译和连接:
 target... : prerequisites ...
 command
 ...
-...
 
 target:
 可以是一个目标文件，
@@ -396,7 +395,6 @@ make: Leaving directory `/home/hchen/gnu/make'
 
 make "-C"参数来指定make下层Makefile时，“-w”会被自动打开的。
 如果参数中有“-s”（“--slient”）或是“--no-print-directory”，那么，“-w”总是失效的。
-
 
 ###################################################################################
 

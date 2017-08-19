@@ -1,0 +1,9 @@
+objects = main.o foo.o bar.o utils.o
+objects += another.o
+#效果一样
+objects1 = main.o foo.o bar.o utils.o
+objects1 := $(objects1) another.o
+
+all:
+	echo $(objects)
+	echo $(objects1)

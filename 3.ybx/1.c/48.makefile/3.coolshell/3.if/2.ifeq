@@ -1,0 +1,6 @@
+all:test
+
+test:
+ifeq ($(strip $(foo)),)
+	echo "empty"
+endif

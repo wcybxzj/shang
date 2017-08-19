@@ -1,0 +1,20 @@
+bar =
+foo = $(bar)
+ifdef foo
+	frobozz = yes
+else
+	frobozz = no
+endif
+
+foo1 =
+ifdef foo1
+	frobozz1 = yes
+else
+	frobozz1 = no
+endif
+
+all:test
+
+test:
+	echo $(frobozz)
+	echo $(frobozz1)

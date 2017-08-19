@@ -1,0 +1,18 @@
+#touch foo.c bar.c prog.c
+#不管全局的$(CFLAGS)的值是什么，在prog目标，
+#以及其所引发的所有规则中（prog.o foo.o bar.o的规则），$(CFLAGS)的值都是“-g”
+prog : CFLAGS = -g
+prog : prog.o foo.o bar.o
+	$(CC) $(CFLAGS) $^ -o $@
+
+prog.o : prog.c
+	$(CC) $(CFLAGS) -c prog.c -o $@
+
+foo.o : foo.c
+	$(CC) $(CFLAGS) -c  foo.c -o $@
+
+bar.o : bar.c
+	$(CC) $(CFLAGS) -c  bar.c -o $@
+
+clean:
+	rm -rf *.o prog

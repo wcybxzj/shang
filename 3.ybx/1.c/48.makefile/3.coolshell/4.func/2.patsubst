@@ -1,0 +1,7 @@
+objects = foo.o bar.o baz.o
+a = $(objects:.o=.c)
+b = $(patsubst %.o,%.c,$(objects))
+
+all:
+	echo $a
+	echo $b

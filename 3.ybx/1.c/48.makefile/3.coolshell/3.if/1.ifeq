@@ -1,0 +1,13 @@
+objects=foo.c
+all:foo
+
+foo: $(objects)
+ifeq ($(CC),gcc)
+	$(CC) -o foo $(objects) $(libs_for_gcc)
+else
+	$(CC) -o foo $(objects) $(normal_libs)
+endif
+
+clean:
+	rm -rf foo
+
