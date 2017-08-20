@@ -1,0 +1,5 @@
+all:
+	echo $(strip a b c )
+	echo $(findstring a,a b c)
+	echo $(findstring a,b c)
+

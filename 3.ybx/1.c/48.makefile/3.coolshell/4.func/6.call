@@ -1,0 +1,5 @@
+reverse ="saying:" $(1) $(2)
+foo = $(call reverse,a,b)
+
+all:
+	echo $(foo)

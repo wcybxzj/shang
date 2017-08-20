@@ -1,0 +1,5 @@
+def = 123
+all:
+	echo $(origin abc)
+	echo $(origin def)
+	echo $(origin CC)

@@ -1,0 +1,9 @@
+#touch foo.d bar.d
+sources = foo.c bar.c
+ifneq ( $(MAKECMDGOALS),clean)
+	include $(sources:.c=.d)
+endif
+
+
+all:
+	echo $(abc)

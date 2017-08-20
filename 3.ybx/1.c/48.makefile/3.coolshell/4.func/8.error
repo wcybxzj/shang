@@ -1,0 +1,8 @@
+
+ERROR_001="输出自定义错误信息并且结束执行"
+ifdef ERROR_001
+	ERR = $(error $(ERROR_001))
+endif
+
+all: ; $(ERR)
+	echo "never see it"
