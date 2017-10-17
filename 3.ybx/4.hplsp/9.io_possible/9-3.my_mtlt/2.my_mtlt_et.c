@@ -117,93 +117,6 @@ void et_func(int listenfd, int is_block){
 	close( listenfd );
 }
 
-/*
-终端1:
-./9-3.my_mtlt 127.0.0.1 1234
-block recv!!!!!
-unblock recv!!!!!
-ret < 0 EAGAIN read later
-sleep 1
-block recv!!!!!
-unblock recv!!!!!
-get 9 bytes of content: 123456789
-block recv!!!!!
-unblock recv!!!!!
-get 9 bytes of content: 0abcdefhi
-block recv!!!!!
-unblock recv!!!!!
-get 4 bytes of content: jklm
-block recv!!!!!
-unblock recv!!!!!
-ret < 0 EAGAIN read later
-sleep 1
-block recv!!!!!
-unblock recv!!!!!
-ret < 0 EAGAIN read later
-...........略 无限..............
-
-终端2:
-./9-3.client 127.0.0.1 1234 forver
-*/
-
-/*
-终端1:
-./9-3.my_mtlt 127.0.0.1 1234
-block recv!!!!!
-unblock recv!!!!!
-ret < 0 EAGAIN read later
-sleep 1
-block recv!!!!!
-unblock recv!!!!!
-get 9 bytes of content: 123456789
-block recv!!!!!
-unblock recv!!!!!
-get 9 bytes of content: 0abcdefhi
-block recv!!!!!
-unblock recv!!!!!
-get 4 bytes of content: jklm
-block recv!!!!!
-unblock recv!!!!!
-ret == 0 close  connfd
-block recv!!!!!
-unblock recv!!!!!
-ret < 0 close  connfd
-
-终端2:
-./9-3.client 127.0.0.1 1234 noforver
-*/
-void normal_nonblock(int listenfd){
-	struct sockaddr_in client_address;
-	socklen_t client_addrlength = sizeof( client_address );
-	int connfd = accept( listenfd, \
-			( struct sockaddr* )&client_address, \
-			&client_addrlength );
-	setnonblocking(connfd);
-	char buf[BUFFER_SIZE];
-	while (1) {
-		memset( buf, '\0', BUFFER_SIZE );
-		printf("block recv!!!!!\n");
-		int ret = recv( connfd, buf, BUFFER_SIZE-1, 0 );
-		printf("unblock recv!!!!!\n");
-		if ( ret < 0 ) {
-			if ( ( errno == EAGAIN ) || (errno == EWOULDBLOCK ) ) {
-				printf("ret < 0 EAGAIN read later\n");
-				sleep(1);
-				printf("sleep 1\n");
-				continue;
-			}
-			close( connfd );
-			printf("ret < 0 close  connfd\n");
-			break;
-		}else if ( ret == 0 ) {
-			close( connfd );
-			printf("ret == 0 close  connfd\n");
-		}else {
-			printf("get %d bytes of content: %s\n", ret, buf );
-		}
-	}
-}
-
 int main(int argc, char *argv[])
 {
 	if ( argc != 3 ) {
@@ -226,11 +139,8 @@ int main(int argc, char *argv[])
 	ret = bind( listenfd, ( struct sockaddr* )&address, sizeof( address ) );
 	ret = listen( listenfd, 5 );
 
-	/*测试1:*/
-	normal_nonblock(listenfd);
-
 	/*测试2:et + io nonblock ,可能要多次测试才能出EAGAIN*/
-	//et_func(listenfd, NONBLOCK);
+	et_func(listenfd, NONBLOCK);
 
 	/*测试3:et + io block 成功*/
 	//et_func(listenfd, BLOCK);
@@ -280,7 +190,6 @@ int main(int argc, char *argv[])
 	./9-3.client 127.0.0.1 1234 noforver
 	*/
 
-	//-------------------------------------------------
 	//-------------------------------------------------
 
 	/*测试2的数据 client  forver*/
@@ -375,6 +284,7 @@ int main(int argc, char *argv[])
 	终端2:
 	./9-3.client 127.0.0.1 1234 forever
 	*/
+//=================================================================
 
 	/*测试3的数据 client  forver*/
 	/*

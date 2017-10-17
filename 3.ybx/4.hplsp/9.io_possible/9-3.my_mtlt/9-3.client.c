@@ -17,6 +17,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	int i;
 	const char* ip = argv[1];
 	int port = atoi( argv[2] );
 	char *forever = argv[3];
@@ -35,10 +36,16 @@ int main(int argc, char *argv[])
 		exit(-1);
 	}
 
+	//目的是测试服务端accept后,recv会如何返回
+	//结果在测试这里中看到recv监控的是非阻塞io,一直在recv 返回错EAGAIN
+	//for (i = 0; i < 10; i++) {
+	//	printf("after connect sleep 1\n");
+	//	sleep(1);
+	//}
+
 	char *str = "1234567890abcdefhijklm";
 	write(fd, str, strlen(str));
 	if (strcmp(forever,"forever")==0) {
-		int i;
 		for (i = 0; i < 100; i++) {
 			sleep(1);
 			printf("sleep 1\n");

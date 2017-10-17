@@ -1,0 +1,39 @@
+Reids开发与运维
+
+1.5.1　安装Redis
+wget http://download.redis.io/releases/redis-3.0.7.tar.gz
+tar xzf redis-3.0.7.tar.gz
+make
+make install (安装到/usr/local/bin)
+
+redis-server -v
+================================================================
+1.5.2　配置、启动、操作、关闭Redis
+
+1.启动Redis
+有三种方法启动Redis：
+默认配置
+redis-server
+运行配置
+redis-server --port 6380
+配置文件启动
+redis-server /opt/redis/redis.conf
+
+2.Redis命令行客户端
+第一种是交互式方式:
+通过redis-cli-h{host}-p{port}的方式连接到Redis服务，之后所有的操作都是通过交互的方式实现，不需要再执行redis-cli了
+例如：
+redis-cli -h 127.0.0.1 -p 6379
+
+第二种是命令方式 ：用redis-cli-h ip{host}-p{port}{command}就可以直接得到命令的返回结果
+例如：
+redis-cli -h 127.0.0.1 -p 6379 get hello
+
+3.停止Redis服务,还可以指定是否保存后关闭
+redis-cli shutdown
+redis-cli shutdown nosave|save
+
+4.关闭方式可以大致分2类
+客户端:shutdown
+服务端:kill pid (不用 kill -9 否则无法dump RDB和AOF)
+
