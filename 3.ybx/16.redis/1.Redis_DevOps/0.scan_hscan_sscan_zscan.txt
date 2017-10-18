@@ -1,0 +1,41 @@
+http://www.redis.cn/commands/scan.html
+1.scan的基本用法:
+scan 0
+1) "17" //第二次scan要用
+2)  1) "key:12"
+    2) "key:8"
+    3) "key:4"
+    4) "key:14"
+    5) "key:16"
+    6) "key:17"
+
+scan 17
+1) "0" //0说明到头了
+2) 1) "key:5"
+   2) "key:18"
+   3) "key:0"
+   4) "key:2"
+   5) "key:19"
+
+2.COUNT参数:
+指定每次返回的数量
+
+scan 0 COUNT 2
+1) "17" //第二次scan要用
+2)  1) "key:12"
+    2) "key:8"
+
+scan 17 COUNT 3
+1) "0" //0说明到头了
+2) 1) "key:5"
+   2) "key:18"
+   3) "key:0"
+
+
+3.MATCH参数:
+127.0.0.1:6379> scan 0 count 3 MATCH ybx*
+1) "224"
+2) 1) "ybx156"
+   2) "ybx149"
+   3) "ybx128"
+
