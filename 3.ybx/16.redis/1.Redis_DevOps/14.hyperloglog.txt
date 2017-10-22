@@ -1,0 +1,76 @@
+1.添加
+pfadd key element [element … ]
+pfadL用于向HyperLogLog添加元素，如果添加成功返回1
+gLog在内存的占用量上有很大的优势。
+
+2.计算独立个数
+pfcount key [key …]
+
+3.合并
+pfmerge destkey sourcekey [sourcekey ...]
+pfmerge可以求出多个HyperLogLog的并集并赋值给destkey
+
+4.要点
+只为了计算独立总数，不需要获取单条数据。
+可以容忍一定误差率，毕竟HyperLogLog在内存的占用量上有很大的优势。
+===================================================================
+pfadd 2016_03_06:unique:ids "uuid-1" "uuid-2" "uuid-3" "uuid-4"
+(integer) 1
+
+127.0.0.1:6379> pfcount 2016_03_06:unique:ids
+(integer) 4
+
+127.0.0.1:6379> pfadd 2016_03_06:unique:ids "uuid-1" "uuid-2" "uuid-3" "uuid-90"
+(integer) 1
+
+127.0.0.1:6379> pfcount 2016_03_06:unique:ids
+(integer) 5
+
+
+===================================================================
+127.0.0.1:6379> pfadd ybx 123 456
+(integer) 1
+127.0.0.1:6379> PFCOUNT ybx 202016_05_01:unique:ids:set
+(integer) 2
+127.0.0.1:6379> PFCOUNT  202016_05_01:unique:ids:set
+(integer) 0
+127.0.0.1:6379> pfadd wc 456 789 1009
+(integer) 1
+127.0.0.1:6379> PFCOUNT ybx wc
+(integer) 4
+
+===================================================================
+存1w数据
+hyperloglog存1万数据用15KB, set存要用0.6MB
+终端1:
+flushdb
+redis-cli info|grep used_memory_human
+used_memory_human:825.13K
+终端2:
+./14.hyperloglog.sh
+终端1:
+[root@web11 ~]# redis-cli info|grep used_memory_human
+used_memory_human:839.24K
+127.0.0.1:6379> pfcount 2016_05_01:unique:ids
+(integer) 10038  (存在误差 本来1w)
+===================================================================
+终端1:
+flushdb
+redis-cli info|grep used_memory_human
+used_memory_human:825.13K
+终端2:
+./14.hyperloglog.sh
+终端1:
+redis-cli info|grep used_memory_human
+used_memory_human:1.30M
+
+127.0.0.1:6379> scard 2016_05_01:unique:ids:set
+(integer) 10000
+
+===================================================================
+===================================================================
+===================================================================
+===================================================================
+===================================================================
+===================================================================
+===================================================================

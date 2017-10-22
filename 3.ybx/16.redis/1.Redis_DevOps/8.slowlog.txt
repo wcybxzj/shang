@@ -1,0 +1,4 @@
+如果要Redis将配置持久化到本地配置文件，需要执行config rewrite命令
+config set slowlog-log-slower-than 20000
+config set slowlog-max-len 1000
+config rewrite

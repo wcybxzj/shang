@@ -1,0 +1,41 @@
+1.设置值
+setbit key offset value
+设置键的第offset个位的值（从0算起）
+======================================================
+2.获取值
+offset不存在，返回结果也是0
+gitbit key offset
+======================================================
+3.获取Bitmaps指定范围值为1的个数
+bitcount key [start][end]
+
+第1个字节到第3个字节之间值为1的数量
+127.0.0.1:6379> bitcount unique:users:2016-04-05 1 3
+(integer) 3
+======================================================
+4.Bitmaps间的运算
+bitop op destkey key[key....]
+bitop是一个复合操作，它可以做多个Bitmaps的and（交集）、or（并集）、not（非）、xor（异或）操作并将结果保存在destkey中。
+
+下面操作计算出2016-04-04和2016-04-03两天都访问过网站的用户数量，如图3-14所示。
+127.0.0.1:6379> bitop and unique:users:and:2016-04-04_03 unique: users:2016-04-03 unique:users:2016-04-03
+(integer) 2
+127.0.0.1:6379> bitcount unique:users:and:2016-04-04_03
+(integer) 2
+======================================================
+5.计算Bitmaps中第一个值为targetBit的偏移量
+127.0.0.1:6379> setbit ybx 3 1
+(integer) 0
+127.0.0.1:6379> setbit ybx 5 1
+(integer) 0
+127.0.0.1:6379> setbit ybx 7 1
+(integer) 0
+127.0.0.1:6379> setbit ybx 10 1
+(integer) 0
+127.0.0.1:6379> bitpos ybx 1
+(integer) 3
+
+如计算第0个字节到第5个字节之间，第一个值为1的偏移量
+127.0.0.1:6379> bitpos ybx 1 0 5 
+(integer) 3
+======================================================
