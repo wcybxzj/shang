@@ -1,0 +1,8 @@
+git clone https://github.com/huyanping/redis-sentinel
+cd redis-sentinel
+php composer.phar install
+cd examples
+php pool.php
+
+
+
