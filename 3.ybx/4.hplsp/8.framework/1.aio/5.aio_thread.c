@@ -90,18 +90,11 @@ void setup_io(int fd)
 		//printf("===========off:%d============\n",off);
 
 		//方法1:
-		//ret =  aio_error(&my_aiocb);
-		//if(ret == EINPROGRESS ){
-		//	sleep(1);
-		//}
-
-		//方法2:
-		//printf("suspend\n");
-		if (aio_suspend(aiolist, NBUF, NULL) < 0){
-			printf("aio_suspend failed");
-			exit(1);
+		ret =  aio_error(&my_aiocb);
+		if(ret == EINPROGRESS ){
+			sleep(1);
 		}
-		//sleep(1);
+
 
 	}
 	return;

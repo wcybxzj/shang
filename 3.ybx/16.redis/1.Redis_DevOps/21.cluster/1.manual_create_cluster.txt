@@ -1,0 +1,126 @@
+手动创建集群
+
+1.启动6个节点准备做集群
+
+2.节点握手:
+127.0.0.1:6379> CLUSTER MEET 127.0.0.1 6380
+127.0.0.1:6379> CLUSTER MEET 127.0.0.1 6381
+127.0.0.1:6379> CLUSTER MEET 127.0.0.1 6382
+127.0.0.1:6379> CLUSTER MEET 127.0.0.1 6383
+127.0.0.1:6379> CLUSTER MEET 127.0.0.1 6384
+
+3.获取集群节点状态:
+cluster nodes
+cluster info
+
+4.分配槽
+redis-cli -h 127.0.0.1 -p 6379 cluster addslots {0..5461}
+redis-cli -h 127.0.0.1 -p 6380 cluster addslots {5462..10922}
+redis-cli -h 127.0.0.1 -p 6381 cluster addslots {10923..16383}
+
+5.为每个主节点做从节点
+cluster nodes
+faccfe7e49c3ece439b7335609a9d3df707ae445 127.0.0.1:6380 master - 0 1509617357326 0 connected 5462-10922
+ed704af2ab9ab3e984150b32cc161053d800977c 127.0.0.1:6382 master - 0 1509617360353 4 connected
+g7cdd277712902643a7aadc9f3b3276513f32842 127.0.0.1:6384 master - 0 1509617358334 5 connected
+670314ba98295e3f4e92f028d5aedb9efd2d8d80 127.0.0.1:6379 myself,master - 0 0 1 connected 0-5461
+3fac046aefb9fde0b5e394e11b2b5b085debf2b1 127.0.0.1:6381 master - 0 1509617359342 2 connected 10923-16383
+ace332b3124c43dda1bafd0a0cd1638ba3ff3371 127.0.0.1:6383 master - 0 1509617356319 3 connected
+
+6.给主节点设置从库
+6379的从库6382
+6380的从库6383
+6381的从库6384
+redis-cli -h 127.0.0.1 -p 6382 cluster replicate 670314ba98295e3f4e92f028d5aedb9efd2d8d80
+redis-cli -h 127.0.0.1 -p 6383 cluster replicate faccfe7e49c3ece439b7335609a9d3df707ae445
+redis-cli -h 127.0.0.1 -p 6384 cluster replicate 3fac046aefb9fde0b5e394e11b2b5b085debf2b1
+
+[root@web11 ~]# redis-cli -h 127.0.0.1 -p 6384 cluster nodes
+3fac046aefb9fde0b5e394e11b2b5b085debf2b1 127.0.0.1:6381 master - 0 1509617915698 2 connected 10923-16383
+faccfe7e49c3ece439b7335609a9d3df707ae445 127.0.0.1:6380 master - 0 1509617917717 0 connected 5462-10922
+670314ba98295e3f4e92f028d5aedb9efd2d8d80 127.0.0.1:6379 master - 0 1509617916708 1 connected 0-5461
+ed704af2ab9ab3e984150b32cc161053d800977c 127.0.0.1:6382 slave 670314ba98295e3f4e92f028d5aedb9efd2d8d80 0 1509617916204 4 connected
+47cdd277712902643a7aadc9f3b3276513f32842 127.0.0.1:6384 myself,slave 3fac046aefb9fde0b5e394e11b2b5b085debf2b1 0 0 5 connected
+ace332b3124c43dda1bafd0a0cd1638ba3ff3371 127.0.0.1:6383 slave faccfe7e49c3ece439b7335609a9d3df707ae445 0 1509617918725 3 connected
+
+
+==============================================================================================================
+集群扩容命令:
+1）对目标节点发送
+cluster setslot {slot} importing {sourceNodeId}命令，让目标节点准备导入槽的数据。
+2）对源节点发送
+cluster setslot {slot} migrating {targetNodeId}命令，让源节点准备迁出槽的数据。
+3）源节点循环执行
+cluster getkeysinslot {slot} {count}命令，获取count个属于槽{slot}的键。
+4）在源节点上执行 migrate {targetIp} {targetPorta }"" 0 {timeout} keys {keys...}命令，
+把获取的键通过流水线（pipeline）机制批量迁移到目标节点，
+批量迁移版本的migrate命令在Redis3.0.6以上版本提供，之前的migrate命令只能单个键迁移。对于大量key的场景，
+批量键迁移将极大降低节点之间网络IO次数。
+5）重复执行步骤3）和步骤4）直到槽下所有的键值数据迁移到目标节点。
+6）向集群内所有主节点发送
+cluster setslot {slot} node {targetNodeId} 命令，通知槽分配给目标节点。
+为了保证槽节点映射变更及时传播，需要遍历发送给所有主节点更新被迁移的槽指向新节点。
+
+
+==============================================================================================================
+访问集群节点如果数据不存在会自动跳转到有此数据的实例
+redis-cli -c
+
+获取key所在的槽
+cluster keyslot ybx100
+
+redis-trib.rb rebalance命令检查节点之间槽的均衡性。命令如下：
+# redis-trib.rb rebalance 127.0.0.1:6380
+==============================================================================================================
+强制让几个可以保存到同一个slot来让批处理命令(例如:mset,mget)和pipeline可以工作(page 308)
+原理就是{}里的东西才在hash取值范围，所以可以让下面两个不一样的值强制存到一个slot
+127.0.0.1:6381> set key{ybx}1 1111
+(error) MOVED 5198 127.0.0.1:6379
+127.0.0.1:6379> set key{ybx}1 111
+OK
+127.0.0.1:6379> set key{ybx}2 222
+OK
+
+==============================================================================================================
+查看槽的分配情况
+127.0.0.1:6380> CLUSTER slots
+1) 1) (integer) 0  //开始槽
+   2) (integer) 5460 //结束曹伟
+   3) 1) "127.0.0.1" //主节点
+      2) (integer) 6379
+      3) "d133ee674a6e52056dde2e33a7017b4f6bfb8448"
+   4) 1) "127.0.0.1"//从节点
+      2) (integer) 6382
+      3) "7b8db921c424635ee10d44e0c927ca29266bbfd9"
+
+==============================================================================================================
+10.7.5　集群读写分离
+readonly命令:
+当需要使用从节点分担主节点读压力时，可以使用命令打开客户端连接只读状态。
+readonly命令是连接级别生效，因此每次新建连接时都需要执行readonly开启只读状态。
+
+readwrite命令:
+可以关闭连接只读状态。
+
+slave-read-only配置参数:
+在集群模式下无效
+
+cluster slaves {nodeId}命令:
+返回nodeId对应主节点下所有从节点信息，数据格式同cluster nodes
+
+==============================================================================================================
+10.7.6　手动故障转移
+cluster failover:
+从节点上执行进行手动故障转义
+
+cluster failover force:
+用于当主节点宕机且无法自动完成故障转移情况。从节点接到cluster failoverforce请求时，
+从节点直接发起选举，不再跟主节点确认复制偏移量（从节点复制延迟的数据会丢失），当从节点选举成功后替换为新的主节点并广播集群配置。
+
+cluster failover takeover:
+用于集群内超过一半以上主节点故障的场景，因为从节点无法收到半数以上主节点投票，所以无法完成选举过程。
+可以执行cluster failover takeover强制转移，接到命令的从节点不再进行选举流程而是直接更新本地配置纪元并替换主节点。
+takeover故障转移由于没有通过领导者选举发起故障转移，会导致配置纪元存在冲突的可能。
+当冲突发生时，集群会以nodeId字典序更大的一方配置为准。因此要小心集群分区后，手动执行takeover导致的集群冲突问题。如图10-47所示。
+
+

@@ -1,0 +1,14 @@
+redis-cli --bigkeys可以命令统计bigkey的分布
+
+
+判断一个key是否为bigkey，只需要执行debug object key查看serializedlength属性即可，它表示key对应的value序列化之后的字节数，
+127.0.0.1:6379> debug object key
+Value at:0x7fc06c1b1430 refcount:1
+encoding:raw serializedlength:1256350
+lru:11686193 lru_seconds_idle:20
+看到encoding是raw，也就是字符串类型，
+
+serializedlength不代表真实的字节大小，它返回对象使用RDB编码序列化后的长度，
+对于排查bigkey有一定辅助作用，因为不是每种数据结构都有类似strlen这样的方法。
+
+

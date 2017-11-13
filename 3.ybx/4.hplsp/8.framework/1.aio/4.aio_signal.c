@@ -12,6 +12,7 @@
 #define FNAME "1.txt"
 #define BUF_SIZE 4096
 #define NBUF 10
+
 void aio_completion_handler( int signo, siginfo_t *info, void *context )
 {
 	int ret;
@@ -69,7 +70,7 @@ void setup_io(int fd)
 	}
 
 	while (off < sbuf.st_size) {
-		bzero((char *)my_aiocb.aio_buf, BUF_SIZE+1); 
+		bzero((char *)my_aiocb.aio_buf, BUF_SIZE+1);
 		my_aiocb.aio_offset = off;
 		off+=BUF_SIZE;
 		ret = aio_read( &my_aiocb );
@@ -79,43 +80,42 @@ void setup_io(int fd)
 		}
 
 		//业务代码
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
-		//printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
+		printf("===========off:%d============\n",off);
 
 		//方法1:
-		//ret =  aio_error(&my_aiocb);
-		//if(ret == EINPROGRESS ){
-		//	sleep(1);
-		//}
-
-		//方法2:
-		//printf("suspend\n");
-		if (aio_suspend(aiolist, NBUF, NULL) < 0){
-			printf("aio_suspend failed");
-			exit(1);
+		ret =  aio_error(&my_aiocb);
+		if(ret == EINPROGRESS ){
+			sleep(1);
 		}
-		//sleep(1);
 
+		//方法2:不太好写 没写
+		////printf("suspend\n");
+		//if (aio_suspend(aiolist, NBUF, NULL) < 0){
+		//	printf("aio_suspend failed");
+		//	exit(1);
+		//}
+		////sleep(1);
 	}
 	return;
 }
@@ -130,7 +130,7 @@ int main(int argc, const char *argv[])
 
 	setup_io(fd);
 
-	pause();
+	//pause();
 
 	return 0;
 }

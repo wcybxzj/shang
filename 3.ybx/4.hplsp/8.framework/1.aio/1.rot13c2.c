@@ -25,17 +25,17 @@ struct buf bufs[NBUF];
 unsigned char
 translate(unsigned char c)
 {
-    if (isalpha(c)) {
-	        if (c >= 'n')
-	            c -= 13; 
-	        else if (c >= 'a')
-	            c += 13; 
-	        else if (c >= 'N')
-	            c -= 13; 
-	        else
-	            c += 13; 
-	    }   
-    return(c);
+	if (isalpha(c)) {
+		if (c >= 'n')
+			c -= 13;
+		else if (c >= 'a')
+			c += 13;
+		else if (c >= 'N')
+			c -= 13;
+		else
+			c += 13;
+	}
+	return(c);
 }
 
 //源码来自APUE
@@ -59,6 +59,7 @@ int main(int argc, char* argv[])
 		printf("can't create %s", argv[2]);
 		exit(1);
 	}
+	//获取输入文件的信息
 	if (fstat(ifd, &sbuf) < 0){
 		printf("fstat failed");
 		exit(1);
@@ -76,98 +77,96 @@ int main(int argc, char* argv[])
 	for (;;) {
 		for (i = 0; i < NBUF; i++) {
 			switch (bufs[i].op) {
-			case UNUSED:
-				//printf("read i:%d\n", i);
-				/*
-				 * Read from the input file if more data
-				 * remains unread.
-				 */
-				if (off < sbuf.st_size) {
-					bufs[i].op = READ_PENDING;
-					bufs[i].aiocb.aio_fildes = ifd;
-					bufs[i].aiocb.aio_offset = off;
-					off += BSZ;
-					if (off >= sbuf.st_size)
-						bufs[i].last = 1;
-					bufs[i].aiocb.aio_nbytes = BSZ;
-					if (aio_read(&bufs[i].aiocb) < 0){
-						printf("aio_read failed");
+				case UNUSED:
+					//printf("read i:%d\n", i);
+					/*
+					 * Read from the input file if more data
+					 * remains unread.
+					 */
+					if (off < sbuf.st_size) {
+						bufs[i].op = READ_PENDING;
+						bufs[i].aiocb.aio_fildes = ifd;
+						bufs[i].aiocb.aio_offset = off;
+						off += BSZ;
+						if (off >= sbuf.st_size)
+							bufs[i].last = 1;
+						bufs[i].aiocb.aio_nbytes = BSZ;
+						if (aio_read(&bufs[i].aiocb) < 0){
+							printf("aio_read failed");
+							exit(1);
+						}
+						aiolist[i] = &bufs[i].aiocb;
+						numop++;
+					}
+					break;
+				case READ_PENDING:
+					//printf("write i:%d\n", i);
+					if ((err = aio_error(&bufs[i].aiocb)) == EINPROGRESS)
+						continue;
+					if (err != 0) {
+						if (err == -1){
+							printf("aio_error failed");
+							exit(1);
+						}
+						else{
+							printf("read failed");
+							exit(1);
+						}
+					}
+					/*
+					 * A read is complete; translate the buffer
+					 * and write it.
+					 */
+					if ((n = aio_return(&bufs[i].aiocb)) < 0){
+						printf("aio_return failed");
 						exit(1);
 					}
-					aiolist[i] = &bufs[i].aiocb;
-					numop++;
-				}
-				break;
+					if (n != BSZ && !bufs[i].last){
+						printf("short read (%d/%d)", n, BSZ);
+						exit(1);
+					}
+					for (j = 0; j < n; j++)
+						bufs[i].data[j] = translate(bufs[i].data[j]);
+					bufs[i].op = WRITE_PENDING;
+					bufs[i].aiocb.aio_fildes = ofd;
+					bufs[i].aiocb.aio_nbytes = n;
+					if (aio_write(&bufs[i].aiocb) < 0){
+						printf("aio_write failed");
+						exit(1);
+					}
+					/* retain our spot in aiolist */
+					break;
 
-			case READ_PENDING:
-				//printf("write i:%d\n", i);
-				if ((err = aio_error(&bufs[i].aiocb)) == EINPROGRESS)
-					continue;
-				if (err != 0) {
-					if (err == -1){
-						printf("aio_error failed");
-						exit(1);
+				case WRITE_PENDING:
+					//printf("unsed i:%d\n", i);
+					if ((err = aio_error(&bufs[i].aiocb)) == EINPROGRESS)
+						continue;
+					if (err != 0) {
+						if (err == -1){
+							printf("aio_error failed");
+							exit(1);
+						}
+						else{
+							printf("write failed");
+							exit(1);
+						}
 					}
-					else{
-						printf("read failed");
-						exit(1);
-					}
-				}
 
-				/*
-				 * A read is complete; translate the buffer
-				 * and write it.
-				 */
-				if ((n = aio_return(&bufs[i].aiocb)) < 0){
-					printf("aio_return failed");
-					exit(1);
-				}
-				if (n != BSZ && !bufs[i].last){
-					printf("short read (%d/%d)", n, BSZ);
-					exit(1);
-				}
-				for (j = 0; j < n; j++)
-					bufs[i].data[j] = translate(bufs[i].data[j]);
-				bufs[i].op = WRITE_PENDING;
-				bufs[i].aiocb.aio_fildes = ofd;
-				bufs[i].aiocb.aio_nbytes = n;
-				if (aio_write(&bufs[i].aiocb) < 0){
-					printf("aio_write failed");
-					exit(1);
-				}
-				/* retain our spot in aiolist */
-				break;
-
-			case WRITE_PENDING:
-				//printf("unsed i:%d\n", i);
-				if ((err = aio_error(&bufs[i].aiocb)) == EINPROGRESS)
-					continue;
-				if (err != 0) {
-					if (err == -1){
-						printf("aio_error failed");
+					/*
+					 * A write is complete; mark the buffer as unused.
+					 */
+					if ((n = aio_return(&bufs[i].aiocb)) < 0){
+						printf("aio_return failed");
 						exit(1);
 					}
-					else{
-						printf("write failed");
+					if (n != bufs[i].aiocb.aio_nbytes){
+						printf("short write (%d/%d)", n, BSZ);
 						exit(1);
 					}
-				}
-
-				/*
-				 * A write is complete; mark the buffer as unused.
-				 */
-				if ((n = aio_return(&bufs[i].aiocb)) < 0){
-					printf("aio_return failed");
-					exit(1);
-				}
-				if (n != bufs[i].aiocb.aio_nbytes){
-					printf("short write (%d/%d)", n, BSZ);
-					exit(1);
-				}
-				aiolist[i] = NULL;
-				bufs[i].op = UNUSED;
-				numop--;
-				break;
+					aiolist[i] = NULL;
+					bufs[i].op = UNUSED;
+					numop--;
+					break;
 			}
 		}
 		if (numop == 0) {
