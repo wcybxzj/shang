@@ -1,0 +1,17 @@
+0.basic.c:可以使用阻塞后者非阻塞来进行信号量的处理
+具体去看代码 sf_arr[0].sem_flg = IPC_NOWAIT;
+================================================
+使用方法:
+[root@web11 2.sem]# ./0.basic
+semid is 622609
+display semarr:index:0 value:5 index:1 value:5
+display semarr:index:0 value:5 index:1 value:5
+pid:9651, ppid:1 block
+3 ,5
+pid:9651, ppid:1 unblock
+pid:9650, ppid:1 block  (看到阻塞)
+10 ,5
+pid :9650,semop() error is EIDRM
+================================================
+ipcs 可以看进程间通信的情况
+ipcrm -s 622609 删除这个信号量省的上面的进程一直阻塞着麻烦

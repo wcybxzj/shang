@@ -83,6 +83,7 @@ int fork_test_stdio(){
 		perror("semget():");
 		exit(-1);
 	}
+	printf("semid:%d\n", semid);
 
 	if(semctl(semid, 0,SETVAL, 1) < 0){
 		perror("semctl()");
@@ -98,7 +99,12 @@ int fork_test_stdio(){
 	for (i = 0; i < NUM; i++) {
 		wait(NULL);
 	}
-	semctl(semid, 0, IPC_RMID);
+	//利用这个时间可以ipcs看下这个sem
+	printf("sleep 10\n");
+	sleep(10);
+
+	//semctl(semid, 0, IPC_RMID,1);
+	semctl(semid, 0, IPC_RMID);//两者都可以
 }
 
 //测试目的:
