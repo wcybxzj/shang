@@ -1,0 +1,70 @@
+SIGPIPE的研究
+http://www.cppblog.com/elva/archive/2008/09/10/61544.html
+
+=========================================================
+
+测试1 忽略SIGPIPE信号，writen之前，对方关闭接受进程
+代码:
+signal(SIGPIPE, SIG_IGN);
+//signal(SIGPIPE, processSignal);
+
+本机服务端：
+nc -l  1234
+
+本机客户端:
+./client 127.0.0.1 1234
+Begin send 40960 data
+Begin Writen 40960
+Already write 40960, left 0, errno=0
+Begin send 40960 data
+Begin Writen 40960
+Already write 40960, left 0, errno=0
+执行到上步停止服务端,client会继续显示:
+Begin send 40960 data
+Begin Writen 40960
+writen error: Broken pipe(32)
+结论:可见write之前，对方socket中断，发送端write会返回-1,errno号为EPIPE(32)
+
+=========================================================
+测试2 catch SIGPIPE信号，writen之前，对方关闭接受进程
+修改客户端代码，catch sigpipe信号
+//signal(SIGPIPE, SIG_IGN);
+signal(SIGPIPE, processSignal);
+
+
+本机服务端：
+nc -l 1234
+
+本机客户端:
+make client
+./client 127.0.0.1 1234
+Begin send 40960 data
+Begin Writen 40960
+Already write 40960, left 0, errno=0
+Begin send 40960 data
+Begin Writen 40960
+Already write 40960, left 0, errno=0
+执行到上步停止服务端,client会继续显示:
+Begin send 40960 data
+Begin Writen 40960
+Signal is 13
+writen error: Broken pipe(32)
+结论:可见write之前，对方socket中断，发送端write时，会先调用SIGPIPE响应函数，然后write返回-1,errno号为EPIPE(32)
+=========================================================
+测试3 writen过程中，对方关闭接受进程 (可能要出errno=104要测试几次)
+
+为了方便操作，加大1次write的数据量，修改MAXBUF为4096000
+
+本机服务端：
+nc -l 1234
+
+本机客户端:
+make client
+./client 30000 > /tmp/123
+Begin send 4096000 data
+Begin Writen 4096000
+执行到上步停止服务端,client会继续显示:
+Already write 589821, left 3506179, errno=0
+Begin Writen 3506179
+writen error: Connection reset by peer(104)
+=========================================================
