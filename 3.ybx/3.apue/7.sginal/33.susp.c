@@ -1,10 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <string.h>
+
 void int_handler(int s){
 	write(1, "!",1);
 }
 
+void user1_handler(int s){
+	char *str = "user1";
+	write(1, str, strlen(str));
+}
 
 //1.在内部循环中不响应信号，在外部循环中响应
 //2.玩命Ctrl+C，也只能响应一次因为信号pending位是位图只能保存一次信号
@@ -17,6 +23,10 @@ void star()
 	sigprocmask(SIG_UNBLOCK, &set, &saveset);//模块化思维,备份当前所有信号屏蔽字
 	int i, j;
 	signal(SIGINT, int_handler);
+	//signal(SIGUSR1, user1_handler);
+
+	printf("pid:%d\n",getpid());
+
 	sigprocmask(SIG_BLOCK, &set, &oset);
 	for (j = 0; j < 1000; j++) {
 		for (i = 0; i < 5; i++) {

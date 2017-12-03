@@ -41,7 +41,9 @@ struct或者union的成员，第一个成员在偏移0的位置，之后的每�
 //OFFSET中 &和-> 是右结合性,->先运行
 //  ((char *)&( ((struct *)0)->member ) - (char *)0)
 #define PRINT_D(intValue)     printf(#intValue" is %d\n", (intValue))
-#define OFFSET(struct,member)  ((char *)&((struct *)0)->member - (char *)0)
+//多余写最后那个-(char *)0
+//#define OFFSET(struct,member)  ((char *)&((struct *)0)->member - (char *)0)
+#define OFFSET(struct,member)  ((char *)&((struct *)0)->member)
 
 void test1()
 {
@@ -293,7 +295,7 @@ int main(int argc, const char *argv[])
 	printf("long long	:%d\n",	sizeof(long long));
 	printf("long double :%d\n",	sizeof(long double));
 	printf("===============================================\n");
-	//test1();
+	test1();
 	test2();
 	printf("===============================================\n");
 }

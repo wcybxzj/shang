@@ -6,6 +6,13 @@
 
 #define STRSIZE		1024
 
+/*
+[root@web11 4.sys]# ./5.mydate -y 4
+2017
+[root@web11 4.sys]# ./5.mydate -a
+./5.mydate: invalid option -- 'a'
+不能识别的选项是:a
+*/
 int main(int argc,char **argv)
 {
 	time_t stamp;
@@ -46,12 +53,12 @@ int main(int argc,char **argv)
 					strncat(fmtstr,"%y ",STRSIZE);
 				else if(strcmp(optarg,"4") == 0)
 					strncat(fmtstr,"%Y ",STRSIZE);
-				else 
+				else
 					fprintf(stderr,"Invalid argument of -y\n");
 				break;
 
 			case 'm':
-				strncat(fmtstr,"%m ",STRSIZE);	
+				strncat(fmtstr,"%m ",STRSIZE);
 				break;
 
 			case 'd':
@@ -76,21 +83,27 @@ int main(int argc,char **argv)
 				strncat(fmtstr,"%S ",STRSIZE);
 				break;
 
-			default:
-				//			fprintf(stderr,"Invalid argument.");
-				//			_exit(1);
-				//			abort();
-				break;	
+			//有了这个就不用下面default了
+			//并且optopt会指向导致出错的选项字符串
+			case '?':
+					fprintf(stderr,"不能识别的选项是:%c",optopt);
+					break;
+
+			//default:
+			//	//			fprintf(stderr,"Invalid argument.");
+			//	//			_exit(1);
+			//	//			abort();
+			//	break;
 		}
 
 	}
 
 	strncat(fmtstr,"\n",STRSIZE);
-	strftime(timestr,STRSIZE,fmtstr,tm);	
+	strftime(timestr,STRSIZE,fmtstr,tm);
 	fputs(timestr,fp);
 
 	if(fp != stdout)
-		fclose(fp);	
+		fclose(fp);
 
 	exit(0);
 }

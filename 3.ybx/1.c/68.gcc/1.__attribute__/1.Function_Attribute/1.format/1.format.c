@@ -9,9 +9,9 @@ static void err_doit(const char *fmt, va_list ap){
 
 	errno_save = errno;
 
-	vsnprintf(buf, sizeof(buf), fmt, ap);
+	vsnprintf(buf, sizeof(buf)-1, fmt, ap);
 	n = strlen(buf);
-	snprintf(buf+n, sizeof(buf)-n, \
+	snprintf(buf+n, sizeof(buf)-n-1, \
 			": %s", strerror(errno_save));
 
 	fprintf(stderr, "%s", buf);

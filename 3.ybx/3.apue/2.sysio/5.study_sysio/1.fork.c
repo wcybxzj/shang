@@ -9,7 +9,8 @@
 #define SIZE 30
 #define FNAME "/etc/services"
 
-void test_sysio_inner_struct();
+void test_sysio_inner_struct1();
+void test_sysio_inner_struct2();
 void test_sysio_fd_arr();
 
 //http://blog.csdn.net/ordeder/article/details/21716639
@@ -18,13 +19,14 @@ void test_sysio_fd_arr();
 //2.内部结构体是共享的
 int main(int argc, const char *argv[])
 {
-	test_sysio_inner_struct();
+	//test_sysio_inner_struct1();
+	test_sysio_inner_struct2();
 	//test_sysio_fd_arr();
 	return 0;
 }
 
 /*
-父子进程文件表项是共享的，文件表项中有pos文件偏移量
+父子进程文件表项是共享的，文件表项中有pos文件偏移量,在父子进程都倚靠这个pos来获取数据
 现在的情况是父子进程在交替读取同一文件的不同部分
 ./2.fork_fd 
 >>parent pid:6496, buf:# /etc/services:
@@ -36,7 +38,7 @@ f:rvices, Internet style# IANA<<>>child pid:6497, buf:ed 2009-11-10
 # Network se<<>>parent pid:6496, buf: services version: last updat<<>>par
 ent pid:6496, buf:t is presently the policy of <<>>parent pid:6496, buf:known^C
 */
-void test_sysio_inner_struct()
+void test_sysio_inner_struct1()
 {
 	pid_t pid;
 	int i, fd;
@@ -66,6 +68,36 @@ void test_sysio_inner_struct()
 	wait(NULL);
 	close(fd);
 }
+
+//证明APUE8.3函数fork, page184的内容
+//基本和test_sysio_inner_struct1()一样
+//父子进程共享文件表项,并且里面有pos,所以在父子在堆同一个fd进行写入的时候也不会出错
+void test_sysio_inner_struct2()
+{
+	pid_t pid;
+	int i;
+
+	char *str1 ="parent";
+	char *str2 ="child";
+
+	pid =  fork();
+	if (pid==0) {
+		for (i = 0; i < 10; i++) {
+			printf("%s",str2);
+			fflush(NULL);
+			sleep(1);
+		}
+		exit(0);
+	}
+
+	for (i = 0; i < 10; i++) {
+		printf("%s",str1);
+		fflush(NULL);
+		sleep(1);
+	}
+	wait(NULL);
+}
+
 
 /*
  * 说明父子进程文件描述符数组是相互独立的

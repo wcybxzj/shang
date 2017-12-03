@@ -106,6 +106,8 @@ static void rely(int sfd, int dfd){
 	}	
 }
 
+//虚拟机进入/dev/tty11 ctrl+Alt+f11
+//回去ctrl_alt+f1
 int main(void){
 	int i;
 	int fd1, fd2;
