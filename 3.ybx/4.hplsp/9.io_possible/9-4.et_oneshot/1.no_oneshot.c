@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 /*
 //情况1:(没问题)
 //客户端1次输入多长的数据, server创建1个线程,对connfd的事件都能在一个线程中多次recv来读取全,
-//如果server EAGAIN后线程退出,如果客户端再发数据 server再次创建新线程来响应
+//如果子线程EAGAIN后线程退出,如果客户端再发数据 server再次创建新线程来响应
 
 终端1:
 两个线程对1个fd的两次长输入分别相应

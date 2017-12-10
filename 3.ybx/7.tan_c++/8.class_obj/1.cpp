@@ -22,5 +22,8 @@ int main(int argc, const char *argv[])
 {
 	Student s1;
 	s1.display();
+
+	Student *p1 = new Student;
+	p1->display();
 	return 0;
 }

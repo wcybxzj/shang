@@ -47,9 +47,13 @@ int main(int argc, const char *argv[])
 	for (i = 0; i < 3 ; i++) {
 		stud[i].total();
 	}
+	cout<<"============================"<<endl;
 	cout<<"average:"<<Student::average()<<endl;
+	cout<<"============================"<<endl;
 	cout<<"average:"<<stud[0].average()<<endl;
+	cout<<"============================"<<endl;
 	cout<<"average:"<<stud[1].average()<<endl;
+	cout<<"============================"<<endl;
 	cout<<"average:"<<stud[2].average()<<endl;
 
 	return 0;

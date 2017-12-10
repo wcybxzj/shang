@@ -34,6 +34,7 @@ int main(int argc, const char *argv[])
 {
 	pid_t pid;
 	signal(SIGINT, func);
+	signal(SIGUSR1, func);
 	pid  = fork();
 	if (pid<0) {
 		printf("fork() error\n");

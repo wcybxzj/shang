@@ -4,6 +4,9 @@
 //杰作2016
 //源代码有功能缺陷 http header host后无法解析，此代码更正
 //并且完善功能成为一个可以任意查看文件的http server
+//
+//./http_server 192.168.91.11 1234
+//
 //http://192.168.91.11:1234/index.html  200
 //http://192.168.91.11:1234/index2.html 200
 //http://192.168.91.11:1234/index3.html 404
@@ -37,10 +40,10 @@ int main( int argc, char* argv[] )
 
 	int val=1;
 	if(setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR,\
-				&val, sizeof(val)) < 0){ 
+				&val, sizeof(val)) < 0){
 		perror("setsockopt()");
 		exit(0);
-	}   
+	}
 
 	int ret = bind( listenfd, ( struct sockaddr* )&address, sizeof( address ) );
 	assert( ret != -1 );
@@ -58,11 +61,12 @@ int main( int argc, char* argv[] )
 	struct iovec iv[2];
 
 recv:
-	//printf("while 1\n");
+	printf("while 1 !!!\n");
 	while (1) {
 		socklen_t client_addrlength = sizeof( client_address );
 		fd = accept( listenfd, ( struct sockaddr* )&client_address, \
 				&client_addrlength );
+		printf("accept is done!\n");
 		if( fd < 0 )
 		{
 			printf( "errno is: %d\n", errno );
