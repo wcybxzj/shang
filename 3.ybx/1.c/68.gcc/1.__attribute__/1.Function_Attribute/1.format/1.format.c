@@ -42,6 +42,8 @@ void myprint(const char *fmt, ...){
 //通过__attribute__format 给自定义函数myprint增加和printf一样的
 
 //测试2:不使用attribute 给myprint在编译时候不报错,执行时候报错
+//
+//http://blog.csdn.net/huangjh2017/article/details/76944564
 int main(int argc, const char *argv[])
 {
 	printf("%s\n",12313);
