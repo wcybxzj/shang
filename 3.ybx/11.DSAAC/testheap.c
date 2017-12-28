@@ -10,10 +10,12 @@ int main(int argc, const char *argv[])
 
 	int i,j;
 	for (i = 0,j = MAXSIZE/2; i < MAXSIZE; i++, j = (j+71)%MAXSIZE) {
-		printf("inset j:%d\n", j);
+		printf("要插入的值是:%d\n", j);
 		Insert(j, H);
 	}
-
+	for (i = 0; i <= H->size; i++) {
+		printf("%d\n",H->arr[i]);
+	}
 	int tmp;
 	while (!IsEmpty(H)) {
 		tmp = DeleteMin(H);

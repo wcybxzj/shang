@@ -20,6 +20,7 @@
 
 void main(int argn ,char *argv)
 {
+	//unsigned 的意思是unsigned int
     struct test {
         unsigned a:10;
         unsigned b:10;
@@ -31,6 +32,11 @@ void main(int argn ,char *argv)
     data.b=0x111;
     data.c=0x7;
     data.d=0x8;
+
+	//0.
+	printf("%d\n",sizeof(unsigned));//4
+	printf("%d\n",sizeof(data));//4
+	printf("==========================================\n");
 
     //1.位域可以使用指针获取值,但是不能对位域取地址
     pData=&data;

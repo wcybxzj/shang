@@ -5,11 +5,6 @@
 #define MIN_PQ_CAPACITY (10) //容量下限
 #define MIN_DATA (-32767)
 
-struct HeapStruct {
-	int capacity;//容量
-	int size;//当前个数
-	ElementType * arr;
-};
 
 PriorityQueue
 Init(int capacity){
@@ -51,9 +46,12 @@ Insert(ElementType val, PriorityQueue H)
 		exit(1);
 	}
 	for (i = ++H->size; val < H->arr[i/2]; i/=2) {
+		//printf("for(): i:%d , %d\n",i,H->arr[i/2]);
 		H->arr[i] = H->arr[i/2];
 	}
+	//printf("i:%d,val:%d\n",i,val);
 	H->arr[i] = val;
+	//printf("====================\n");
 }
 
 ElementType

@@ -7,14 +7,25 @@
 #include "adlist.h"
 #include "dict.h"
 
+void test_sds();
 void test_sdssplitlen();
 
 int main(int argc, const char *argv[])
 {
-	test_sdssplitlen();
+	test_sds();
+	//test_sdssplitlen();
 	return 0;
 }
 
+void test_sds(){
+	char *str= "abcdefhijklmnopqrstuvwxyz1234567890abcdefghij";
+	printf("%d\n",strlen(str));//45
+	printf("当前reids内存用量:%d\n", zmalloc_used_memory());//0
+	sds sds_obj = sdsnew(str);
+	printf("当前reids内存用量:%d\n", zmalloc_used_memory());//64
+	char *str2= "haha";
+	sds_obj = sdscatlen(sds_obj, str2, strlen(str2));
+}
 
 /*
 [root@web11 0.example]# ./main

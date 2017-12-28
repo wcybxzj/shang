@@ -57,7 +57,15 @@ void zlibc_free(void *ptr) {
 } while(0)
 
 #endif
-
+/*
+ 例如:
+ 申请的18字节但是因为内存对外对齐要看机器对齐方式
+ 64位是按照8字节对齐,所以18字节实际占用24
+ update_zmalloc_stat_sub(18)
+ if(18&7){
+	18+=8-2 //24
+ }
+ */
 #define update_zmalloc_stat_alloc(__n) do { \
     size_t _n = (__n); \
     if (_n&(sizeof(long)-1)) _n += sizeof(long)-(_n&(sizeof(long)-1)); \
@@ -92,13 +100,16 @@ static void zmalloc_default_oom(size_t size) {
 static void (*zmalloc_oom_handler)(size_t) = zmalloc_default_oom;
 
 void *zmalloc(size_t size) {
+	//printf("PREFIX_SIZE:%d\n",PREFIX_SIZE);//8 因为size_t在64位系统是long singed int
     void *ptr = malloc(size+PREFIX_SIZE);
+	//printf("%d\n",size+PREFIX_SIZE);//
 
     if (!ptr) zmalloc_oom_handler(size);
 #ifdef HAVE_MALLOC_SIZE
     update_zmalloc_stat_alloc(zmalloc_size(ptr));
     return ptr;
 #else
+	//使用malloc要自己来进行更新内存长度的更新
     *((size_t*)ptr) = size;
     update_zmalloc_stat_alloc(size+PREFIX_SIZE);
     return (char*)ptr+PREFIX_SIZE;

@@ -3,6 +3,11 @@
 
 typedef int ElementType;
 struct HeapStruct;//在testheap.c中定义
+struct HeapStruct {
+	int capacity;//容量
+	int size;//当前个数
+	ElementType * arr;
+};
 
 typedef struct HeapStruct *PriorityQueue;
 PriorityQueue Init(int max);
