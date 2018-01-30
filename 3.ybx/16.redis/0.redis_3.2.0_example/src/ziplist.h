@@ -102,3 +102,4 @@ unsigned char *ziplistFind(unsigned char *p, unsigned char *vstr, unsigned int v
 unsigned int ziplistLen(unsigned char *zl);
 size_t ziplistBlobLen(unsigned char *zl);
 zlentry zipEntry(unsigned char *p);
+//int64_t zipLoadInteger(unsigned char *p, unsigned char encoding);

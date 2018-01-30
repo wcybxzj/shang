@@ -25,27 +25,6 @@
 
 int zslValueGteMin(double value, zrangespec *spec);
 
-struct redisServer server; /* server global state */
-
-/* Return the UNIX time in microseconds */
-long long ustime(void) {
-    struct timeval tv;
-    long long ust;
-
-    gettimeofday(&tv, NULL);
-    ust = ((long long)tv.tv_sec)*1000000;
-    ust += tv.tv_usec;
-    return ust;
-}
-
-/* Return the UNIX time in milliseconds */
-mstime_t mstime(void) {
-    return ustime()/1000;
-}
-
-unsigned int getLRUClock(void) {
-    return (mstime()/LRU_CLOCK_RESOLUTION) & LRU_CLOCK_MAX;
-}
 
 typedef struct _USER {
 	int age;
@@ -64,7 +43,6 @@ void insert(zskiplist * zsl)
 {
 	//插入
 	int i;
-	server.hz = CONFIG_DEFAULT_HZ;
 	USER users[MAXNUM];
 	users[0].name = "ly";
 	users[0].age= 30;
@@ -72,7 +50,7 @@ void insert(zskiplist * zsl)
 	users[1].age= 33;
 	users[2].name = "ybx";
 	users[2].age= 31;
-	users[3].name = "ypq";
+	users[3].name = "ypq";//可以换成yjm
 	users[3].age= 88;
 	users[4].name = "yjm";
 	users[4].age= 14;
@@ -86,6 +64,18 @@ void insert(zskiplist * zsl)
 			printf("insert ok\n");
 		}
 	}
+
+	////再次插入上边5个对象说明可以插入完全相同的对象
+	//for (i = 0; i < MAXNUM; i++) {
+	//	robj * obj = createStringObject(users[i].name,strlen(users[i].name));
+	//	zskiplistNode * p = zslInsert(zsl, users[i].age, obj);
+	//	if (p==NULL) {
+	//		printf("insert fail\n");
+	//	}else{
+	//		printf("insert ok\n");
+	//	}
+	//}
+
 
 }
 
@@ -141,23 +131,13 @@ void test_zslRandomLevel()
 {
 	int i;
 	int tmp;
-	for (i = 0; i <10000000; i++) {
-		tmp = zslRandomLevel();
+	for (i = 0; i <10; i++) {
+		//tmp = zslRandomLevel();
+		tmp = ybx_zslRandomLevel();
 		printf("%d\n",tmp);
 	}
 }
 
-/*
-redis> ZADD myzset 1 "one"
-(integer) 1
-redis> ZADD myzset 2 "two"
-(integer) 1
-redis> ZADD myzset 3 "three"
-(integer) 1
-redis> ZRANGEBYSCORE myzset 1 2
-1) "one"
-2) "two"
-*/
 //主要参考:genericZrangebyscoreCommand() 和zslFirstInRange()
 //测试:给出范围获取信息
 void ZRANGEBYSCORE(zskiplist *zsl)
@@ -237,7 +217,6 @@ void test_zrank(zskiplist *zsl)
 	num = zslGetRank(zsl ,age, obj);
 	printf("num:%d\n",num);
 
-
 	name = "wc";
 	age= 33;
 	obj = createStringObject(name,strlen(name));
@@ -250,26 +229,30 @@ void test_zrank(zskiplist *zsl)
 	obj = createStringObject(name,strlen(name));
 	num = zslGetRank(zsl ,age, obj);
 	printf("num:%d\n",num);
-
 }
 
 int main(int argc, const char *argv[])
 {
 
-	//test_zslRandomLevel();
+	initServerConfig();
+	createSharedObjects();
+	//测试1:
+	test_zslRandomLevel();
+	exit(0);
 
 	zskiplist * zsl= zslCreate();
 	insert(zsl);
-	//foreach(zsl);
-	//ZRANGEBYSCORE(zsl);
 
-	//printf("==============================\n");
+	//foreach(zsl);
+
+	printf("===============================\n");
+	//ZRANGEBYSCORE(zsl);
+	printf("==============================\n");
 	//foreach(zsl);
 	//test_zslDelete(zsl);
 	//foreach(zsl);
 
 	test_zrank(zsl);
-
 	return 0;
 }
 

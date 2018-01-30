@@ -27,15 +27,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Exported API */
-void bioInit(void);
-void bioCreateBackgroundJob(int type, void *arg1, void *arg2, void *arg3);
-unsigned long long bioPendingJobsOfType(int type);
-void bioWaitPendingJobsLE(int type, unsigned long long num);
-time_t bioOlderJobOfType(int type);
-void bioKillThreads(void);
+#define SLOWLOG_ENTRY_MAX_ARGC 32
+#define SLOWLOG_ENTRY_MAX_STRING 128
 
-/* Background job opcodes */
-#define BIO_CLOSE_FILE    0 /* Deferred close(2) syscall. */
-#define BIO_AOF_FSYNC     1 /* Deferred AOF fsync. */
-#define BIO_NUM_OPS       2
+/* This structure defines an entry inside the slow log list */
+typedef struct slowlogEntry {
+    robj **argv;
+    int argc;
+    long long id;       /* Unique entry identifier. */
+    long long duration; /* Time spent by the query, in nanoseconds. */
+    time_t time;        /* Unix time at which the query was executed. */
+} slowlogEntry;
+
+/* Exported API */
+void slowlogInit(void);
+void slowlogPushEntryIfNeeded(robj **argv, int argc, long long duration);
+
+/* Exported commands */
+void slowlogCommand(client *c);

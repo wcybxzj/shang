@@ -25,6 +25,11 @@ void test_sds(){
 	printf("当前reids内存用量:%d\n", zmalloc_used_memory());//64
 	char *str2= "haha";
 	sds_obj = sdscatlen(sds_obj, str2, strlen(str2));
+	printf("%s\n",sds_obj);
+
+	sdsrange(sds_obj,0,10);
+	printf("%s\n",sds_obj);
+
 }
 
 /*

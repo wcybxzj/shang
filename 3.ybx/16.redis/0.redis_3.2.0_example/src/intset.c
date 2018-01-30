@@ -196,7 +196,7 @@ intset *intsetAdd(intset *is, int64_t value, uint8_t *success) {
 }
 
 
-/* Determine whether a value belongs to this set 
+/* Determine whether a value belongs to this set
  *
  * 检查给定值 value 是否集合中的元素。
  *
@@ -205,7 +205,6 @@ intset *intsetAdd(intset *is, int64_t value, uint8_t *success) {
  * T = O(log N)
  */
 uint8_t intsetFind(intset *is, int64_t value) {
-
     // 计算 value 的编码
     uint8_t valenc = _intsetValueEncoding(value);
 
@@ -235,3 +234,18 @@ intset *intsetRemove(intset *is, int64_t value, int *success) {
     return is;
 }
 
+
+/* Sets the value to the value at the given position. When this position is
+ * out of range the function returns 0, when in range it returns 1. */
+uint8_t intsetGet(intset *is, uint32_t pos, int64_t *value) {
+    if (pos < intrev32ifbe(is->length)) {
+        *value = _intsetGet(is,pos);
+        return 1;
+    }
+    return 0;
+}
+
+/* Return intset length */
+uint32_t intsetLen(intset *is) {    //返回集合的元素个数
+    return intrev32ifbe(is->length);    //返回length成员
+}

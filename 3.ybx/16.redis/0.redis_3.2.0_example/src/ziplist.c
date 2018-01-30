@@ -316,7 +316,7 @@ static void zipSaveInteger(unsigned char *p, int64_t value, unsigned char encodi
 }
 
 /* Read integer encoded as 'encoding' from 'p' */
-static int64_t zipLoadInteger(unsigned char *p, unsigned char encoding) {
+int64_t zipLoadInteger(unsigned char *p, unsigned char encoding) {
     int16_t i16;
     int32_t i32;
     int64_t i64, ret = 0;
