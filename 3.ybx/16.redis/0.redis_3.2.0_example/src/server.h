@@ -2086,6 +2086,10 @@ void daemonize(void);
 void initServer(void);
 void linuxMemoryWarnings(void);
 
+void beforeSleep(struct aeEventLoop *eventLoop);
+
+//=============================================================================
+
 void init();
 
 char *genstr(char *prefix, int i);

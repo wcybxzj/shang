@@ -424,3 +424,8 @@ void aeMain(aeEventLoop *eventLoop) {
 		aeProcessEvents(eventLoop, AE_ALL_EVENTS);
 	}
 }
+
+// 设置处理事件之前的函数
+void aeSetBeforeSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *beforesleep) {
+    eventLoop->beforesleep = beforesleep;
+}

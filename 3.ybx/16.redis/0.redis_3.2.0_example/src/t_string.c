@@ -60,7 +60,7 @@ void setGenericCommand(client *c, int flags, robj *key, robj *val, robj *expire,
     //    "exre",key,c->db->id);
 
     //设置成功，则向客户端发送ok_reply
-	printf("%s\n",shared.ok->ptr);
+	//printf("%s\n",shared.ok->ptr);
     addReply(c, ok_reply ? ok_reply : shared.ok);
 }
 
@@ -127,9 +127,27 @@ void setCommand(client *c) {
     setGenericCommand(c,flags,c->argv[1],c->argv[2],expire,unit,NULL,NULL);
 }
 
+//GET 命令的底层实现
+int getGenericCommand(client *c) {
+    robj *o;
 
+    //lookupKeyReadOrReply函数是为执行读操作而返回key的值对象，找到返回该对象，找不到会发送信息给client
+    //如果key不存在直接，返回0表示GET命令执行成功
+    if ((o = lookupKeyReadOrReply(c,c->argv[1],shared.nullbulk)) == NULL)
+        return C_OK;
 
-
-void getCommand(client *c) {
-	//TODO
+    //如果key的值的编码类型不是字符串对象
+    if (o->type != OBJ_STRING) {
+        addReply(c,shared.wrongtypeerr);    //返回类型错误的信息给client，返回-1表示GET命令执行失败
+        return C_ERR;
+    } else {
+        addReplyBulk(c,o);  //返回之前找到的对象作为回复给client，返回0表示GET命令执行成功
+        return C_OK;
+    }
 }
+
+//调用getGenericCommand实现GET命令
+void getCommand(client *c) {
+    getGenericCommand(c);
+}
+

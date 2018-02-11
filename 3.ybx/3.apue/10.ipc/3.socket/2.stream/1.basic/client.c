@@ -63,6 +63,7 @@ int main(int argc, const char *argv[])
 
 	if(connect(sd, (void *)&saddr, sizeof(saddr)) < 0){
 		perror("connect()");
+		printf("err:%s\n",strerror(errno));
 		exit(-2);
 	}
 

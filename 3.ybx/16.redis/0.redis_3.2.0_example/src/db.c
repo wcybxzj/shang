@@ -39,12 +39,59 @@ robj *lookupKey(redisDb *db, robj *key, int flags) {
     }
 }
 
+// 以读操作取出key的值对象，没找到返回NULL
+// 调用该函数的副作用如下：
+// 1.如果一个键的到达过期时间TTL，该键被设置为过期的
+// 2.键的使用时间信息被更新
+// 3.全局键 hits/misses 状态被更新
+// 注意：如果键在逻辑上已经过期但是仍然存在，函数返回NULL
+robj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
+    robj *val;
+
+    // 如果键已经过期且被删除
+    if (expireIfNeeded(db,key) == 1) {
+        /* Key expired. If we are in the context of a master, expireIfNeeded()
+         * returns 0 only when the key does not exist at all, so it's save
+         * to return NULL ASAP. */
+        // 键已过期，如果是主节点环境，表示key已经绝对被删除，如果是从节点，
+        if (server.masterhost == NULL) return NULL;
+
+        // 如果我们在从节点环境， expireIfNeeded()函数不会删除过期的键，它返回的仅仅是键是否被删除的逻辑值
+        // 过期的键由主节点负责，为了保证主从节点数据的一致
+        if (server.current_client &&
+            server.current_client != server.master &&
+            server.current_client->cmd &&
+            server.current_client->cmd->flags & CMD_READONLY)
+        {
+            return NULL;
+        }
+    }
+    // 键没有过期，则返回键的值对象
+    val = lookupKey(db,key,flags);
+    // 更新 是否命中 的信息
+    if (val == NULL)
+        server.stat_keyspace_misses++;
+    else
+        server.stat_keyspace_hits++;
+    return val;
+}
+
+// 以读操作取出key的值对象，会更新是否命中的信息
+robj *lookupKeyRead(redisDb *db, robj *key) {
+    return lookupKeyReadWithFlags(db,key,LOOKUP_NONE);
+}
+
 // 以写操作取出key的值对象，不更新是否命中的信息
 robj *lookupKeyWrite(redisDb *db, robj *key) {
     expireIfNeeded(db,key);
     return lookupKey(db,key,LOOKUP_NONE);
 }
 
+robj *lookupKeyReadOrReply(client *c, robj *key, robj *reply) {
+    robj *o = lookupKeyRead(c->db, key);
+    if (!o) addReply(c,reply);
+    return o;
+}
 
 // 讲key-val键值对添加到数据库中，该函数的调用者负责增加key-val的引用计数
 void dbAdd(redisDb *db, robj *key, robj *val) {

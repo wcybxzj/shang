@@ -121,6 +121,8 @@ REDIS_STATIC quicklistNode *quicklistCreateNode(void) {
     return node;
 }
 
+/* Return cached quicklist count */
+unsigned int quicklistCount(quicklist *ql) { return ql->count; }
 
 /* Free entire quicklist. */
 //释放整个quicklist

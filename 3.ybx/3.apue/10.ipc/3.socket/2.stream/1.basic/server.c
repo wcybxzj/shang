@@ -16,6 +16,7 @@
 int worker(int newsd){
 	char str[IP_SIZE]={'\0'};
 	int len;
+	int ret;
 
 
 	//问题:
@@ -30,9 +31,14 @@ int worker(int newsd){
 
 	printf("=====len:%d======\n", len);
 	printf(FMT_STAMP, str);
-	if(send(newsd, str, len, 0) < 0){
+
+	ret = send(newsd, str, len, 0);
+
+	if(ret < 0){
 		perror("send()");
 		exit(-3);
+	}else{
+		printf("send ok");
 	}
 
 

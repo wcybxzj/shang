@@ -221,8 +221,6 @@ robj *dupLastObjectIfNeeded(list *reply) {
     return listNodeValue(ln);
 }
 
-
-
 /* -----------------------------------------------------------------------------
  * Low level functions to add more data to output buffers.
  * -------------------------------------------------------------------------- */
@@ -422,6 +420,90 @@ void addReplyErrorFormat(client *c, const char *fmt, ...) {
     }
     addReplyErrorLength(c,s,sdslen(s));
     sdsfree(s);
+}
+
+/* Add a long long as integer reply or bulk len / multi bulk count.
+ * Basically this is used to output <prefix><long long><crlf>. */
+// 添加一个longlong作为整型回复或回复的长度，格式：<prefix><long long><crlf>
+void addReplyLongLongWithPrefix(client *c, long long ll, char prefix) {
+    char buf[128];
+    int len;
+
+    /* Things like $3\r\n or *2\r\n are emitted very often by the protocol
+     * so we have a few shared objects to use if the integer is small
+     * like it is most of the times. */
+    // *2\r\n，前缀是'*'，ll小于共享的长度，则添加多条回复
+    if (prefix == '*' && ll < OBJ_SHARED_BULKHDR_LEN && ll >= 0) {
+        addReply(c,shared.mbulkhdr[ll]);
+        return;
+    // $3\r\n，前缀是'$'，ll小于共享的长度，则添加一条回复
+    } else if (prefix == '$' && ll < OBJ_SHARED_BULKHDR_LEN && ll >= 0) {
+        addReply(c,shared.bulkhdr[ll]);
+        return;
+    }
+
+    // 超过共享的长度，则自己构建一条回复添加到client中
+    buf[0] = prefix;
+    len = ll2string(buf+1,sizeof(buf)-1,ll);
+    buf[len+1] = '\r';
+    buf[len+2] = '\n';
+    addReplyString(c,buf,len+3);
+}
+
+void addReplyLongLong(client *c, long long ll) {
+    if (ll == 0)
+        addReply(c,shared.czero);
+    else if (ll == 1)
+        addReply(c,shared.cone);
+    else
+        addReplyLongLongWithPrefix(c,ll,':');
+}
+
+void addReplyMultiBulkLen(client *c, long length) {
+    if (length < OBJ_SHARED_BULKHDR_LEN)
+        addReply(c,shared.mbulkhdr[length]);
+    else
+        addReplyLongLongWithPrefix(c,length,'*');
+}
+
+/* Create the length prefix of a bulk reply, example: $2234 */
+// 创建一个回复的前缀长度，例如：$2234
+void addReplyBulkLen(client *c, robj *obj) {
+    size_t len;
+
+    // 解码成字符串对象，获取长度
+    if (sdsEncodedObject(obj)) {
+        len = sdslen(obj->ptr);
+    // 整数值
+    } else {
+        long n = (long)obj->ptr;
+
+        /* Compute how many bytes will take this integer as a radix 10 string */
+        // 计算出整数有多少位
+        len = 1;
+        // 负数还要加上负号
+        if (n < 0) {
+            len++;
+            n = -n;
+        }
+        while((n = n/10) != 0) {
+            len++;
+        }
+    }
+
+    // 添加一个有前缀的整数回复
+    if (len < OBJ_SHARED_BULKHDR_LEN)
+        addReply(c,shared.bulkhdr[len]);
+    else
+        addReplyLongLongWithPrefix(c,len,'$');
+}//end of addReplyBulkLen()
+
+/* Add a Redis Object as a bulk reply */
+// 添加一个对象回复
+void addReplyBulk(client *c, robj *obj) {
+    addReplyBulkLen(c,obj);
+    addReply(c,obj);
+    addReply(c,shared.crlf);
 }
 
 /* -----------------------------------------------------------------------------
@@ -1359,6 +1441,37 @@ sds catClientInfoString(sds s, client *client) {
         events,
         client->lastcmd ? client->lastcmd->name : "NULL");
 }//end of catClientInfoString()
+
+
+/* Rewrite the command vector of the client. All the new objects ref count
+ * is incremented. The old command vector is freed, and the old objects
+ * ref count is decremented. */
+void rewriteClientCommandVector(client *c, int argc, ...) {
+    va_list ap;
+    int j;
+    robj **argv; /* The new argument vector */
+
+    argv = zmalloc(sizeof(robj*)*argc);
+    va_start(ap,argc);
+    for (j = 0; j < argc; j++) {
+        robj *a;
+
+        a = va_arg(ap, robj*);
+        argv[j] = a;
+        incrRefCount(a);
+    }
+    /* We free the objects in the original vector at the end, so we are
+     * sure that if the same objects are reused in the new vector the
+     * refcount gets incremented before it gets decremented. */
+    for (j = 0; j < c->argc; j++) decrRefCount(c->argv[j]);
+    zfree(c->argv);
+    /* Replace argv and argc with our new versions. */
+    c->argv = argv;
+    c->argc = argc;
+    c->cmd = lookupCommandOrOriginal(c->argv[0]->ptr);
+    serverAssertWithInfo(c,NULL,c->cmd != NULL);
+    va_end(ap);
+}//end of rewriteClientCommandVector()
 
 // 检查client的输出缓冲区是否到达限制，到达限制则进行标记
 int checkClientOutputBufferLimits(client *c) {

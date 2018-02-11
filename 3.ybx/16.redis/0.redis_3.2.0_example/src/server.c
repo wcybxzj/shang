@@ -120,7 +120,9 @@ F：快速执行的命令。时间复杂度为O(1) or O(log(N))的命令只要�
 // long long calls：记录命令被执行的总次数
 struct redisCommand redisCommandTable[] = {
 	{"get",getCommand,2,"rF",0,NULL,1,1,1,0,0},
-	{"set",setCommand,-3,"wm",0,NULL,1,1,1,0,0}
+	{"set",setCommand,-3,"wm",0,NULL,1,1,1,0,0},
+	{"lpush",lpushCommand,-3,"wmF",0,NULL,1,1,1,0,0},
+	{"brpop",brpopCommand,-3,"ws",0,NULL,1,-2,1,0,0},
 };
 
 
@@ -186,6 +188,20 @@ void serverLog(int level, const char *fmt, ...) {
 	va_end(ap);
 
 	serverLogRaw(level,msg);
+}
+
+
+
+/* Log a fixed message without printf-alike capabilities, in a way that is
+ * safe to call from a signal handler.
+ *
+ * We actually use this only for signals that are not fatal from the point
+ * of view of Redis. Signals that are going to kill the server anyway and
+ * where we need printf-alike features are served by serverLog(). */
+//  写信号处理的日志
+void serverLogFromHandler(int level, const char *msg) {
+	UNUSED(level);
+	printf("%s\n",msg);
 }
 
 /* Return the UNIX time in microseconds */
@@ -416,26 +432,101 @@ unsigned int getLRUClock(void) {
 	return (mstime()/LRU_CLOCK_RESOLUTION) & LRU_CLOCK_MAX;
 }
 
+
+
+
+/* Check for timeouts. Returns non-zero if the client was terminated.
+ * The function gets the current time in milliseconds as argument since
+ * it gets called multiple times in a loop, so calling gettimeofday() for
+ * each iteration would be costly without any actual gain. */
+int clientsCronHandleTimeout(client *c, mstime_t now_ms) {
+
+    return 0;
+}//end of int clientsCronHandleTimeout(client *c, mstime_t now_ms);
+
+
+#define CLIENTS_CRON_MIN_ITERATIONS 5
+void clientsCron(void) {
+    /* Make sure to process at least numclients/server.hz of clients
+     * per call. Since this function is called server.hz times per second
+     * we are sure that in the worst case we process all the clients in 1
+     * second. */
+    int numclients = listLength(server.clients);
+    int iterations = numclients/server.hz;
+    mstime_t now = mstime();
+
+    /* Process at least a few clients while we are at it, even if we need
+     * to process less than CLIENTS_CRON_MIN_ITERATIONS to meet our contract
+     * of processing each client once per second. */
+    if (iterations < CLIENTS_CRON_MIN_ITERATIONS)
+        iterations = (numclients < CLIENTS_CRON_MIN_ITERATIONS) ?
+                     numclients : CLIENTS_CRON_MIN_ITERATIONS;
+
+    while(listLength(server.clients) && iterations--) {
+        client *c;
+        listNode *head;
+
+        /* Rotate the list, take the current head, process.
+         * This way if the client must be removed from the list it's the
+         * first element and we don't incur into O(N) computation. */
+        listRotate(server.clients);
+        head = listFirst(server.clients);
+        c = listNodeValue(head);
+        /* The following functions do different service checks on the client.
+         * The protocol is that they return non-zero if the client was
+         * terminated. */
+        if (clientsCronHandleTimeout(c,now)) continue;
+        //if (clientsCronResizeQueryBuffer(c)) continue;
+    }
+}
+
+
+
+
+
 void updateCachedTime(void) {
     server.unixtime = time(NULL);
     server.mstime = mstime();
 }
 
-
 int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
     int j;
+	UNUSED(j);
     UNUSED(eventLoop);
     UNUSED(id);
     UNUSED(clientData);
 
-//TODO
+    /* Update the time cache. */
+    // 设置服务器的时间缓存
+    updateCachedTime();
 
+    server.lruclock = getLRUClock();
+
+    /* Record the max memory used since the server was started. */
+    if (zmalloc_used_memory() > server.stat_peak_memory)
+        server.stat_peak_memory = zmalloc_used_memory();
+
+    /* Sample the RSS here since this is a relatively slow call. */
+    server.resident_set_size = zmalloc_get_rss();
+
+    /* We received a SIGTERM, shutting down here in a safe way, as it is
+     * not ok doing so inside the signal handler. */
+    if (server.shutdown_asap) {
+        if (prepareForShutdown(SHUTDOWN_NOFLAGS) == C_OK) exit(0);
+        serverLog(LL_WARNING,"SIGTERM received but errors trying to shut down the server, check the logs for more information");
+        server.shutdown_asap = 0;
+    }
+
+	/* Show some info about non-empty databases */
+
+    /* Show information about connected clients */
+
+    /* We need to do a few operations on clients asynchronously. */
+    clientsCron();
 
     // 返回周期，默认为100ms
     return 1000/server.hz;
 }
-
-
 
 // 在Redis进入事件循环之前被调用
 void beforeSleep(struct aeEventLoop *eventLoop) {
@@ -954,7 +1045,7 @@ void initServer(void) {
 
 	signal(SIGHUP, SIG_IGN);
 	signal(SIGPIPE, SIG_IGN);
-	//setupSignalHandlers();
+	setupSignalHandlers();
 
 	//if (server.syslog_enabled) {
 	//	openlog(server.syslog_ident, LOG_PID | LOG_NDELAY | LOG_NOWAIT,
@@ -1070,8 +1161,6 @@ void initServer(void) {
 	//    }
 	//}
 
-
-
 	/* 32 bit instances are limited to 4GB of address space, so if there is
 	 * no explicit limit in the user provided configuration we set a limit
 	 * at 3 GB using maxmemory with 'noeviction' policy'. This avoids
@@ -1150,6 +1239,31 @@ void redisOpArrayInit(redisOpArray *oa) {
 // 根据name查找返回对应的命令
 struct redisCommand *lookupCommand(sds name) {
     return dictFetchValue(server.commands, name);
+}
+
+/* Lookup the command in the current table, if not found also check in
+ * the original table containing the original command names unaffected by
+ * redis.conf rename-command statement.
+ *
+ * 从当前命令表 server.commands 中查找给定名字，
+ * 如果没找到的话，就尝试从 server.orig_commands 中查找未被改名的原始名字
+ * 原始表中的命令名不受 redis.conf 中命令改名的影响
+ *
+ * This is used by functions rewriting the argument vector such as
+ * rewriteClientCommandVector() in order to set client->cmd pointer
+ * correctly even if the command was renamed. 
+ *
+ * 这个函数可以在命令被更名之后，仍然在重写命令时得出正确的名字。
+ */
+struct redisCommand *lookupCommandOrOriginal(sds name) {
+
+    // 查找当前表
+    struct redisCommand *cmd = dictFetchValue(server.commands, name);
+
+    // 如果有需要的话，查找原始表
+    if (!cmd) cmd = dictFetchValue(server.orig_commands,name);
+
+    return cmd;
 }
 
 // call()是Redis执行命令的核心
@@ -1531,12 +1645,115 @@ int processCommand(client *c) {
         call(c,CMD_CALL_FULL);
         // 保存写全局的复制偏移量
         c->woff = server.master_repl_offset;
-        //// 如果因为BLPOP而阻塞的命令已经准备好，则处理client的阻塞状态
-        //if (listLength(server.ready_keys))
-        //    handleClientsBlockedOnLists();
+        // 如果因为BLPOP而阻塞的命令已经准备好，则处理client的阻塞状态
+        if (listLength(server.ready_keys))
+            handleClientsBlockedOnLists();
     //}
     return C_OK;
 }//end of processCommand()
+
+/*================================== Shutdown =============================== */
+
+/* Close listening sockets. Also unlink the unix domain socket if
+ * unlink_unix_socket is non-zero. */
+// 关闭监听的连接
+void closeListeningSockets(int unlink_unix_socket) {
+    int j;
+
+    // 关闭所有的fd
+    for (j = 0; j < server.ipfd_count; j++) close(server.ipfd[j]);
+    // 释放Unix本地连接的fd
+    if (server.sofd != -1) close(server.sofd);
+    // 开启了集群模式
+    if (server.cluster_enabled)
+        // 关闭所有集群的fd
+        for (j = 0; j < server.cfd_count; j++) close(server.cfd[j]);
+    // 删除Unix socket的文件
+    if (unlink_unix_socket && server.unixsocket) {
+        serverLog(LL_NOTICE,"Removing the unix socket file.");
+        unlink(server.unixsocket); /* don't care if this fails */
+    }
+}
+
+// 关闭服务器的准备工作
+int prepareForShutdown(int flags) {
+    int save = flags & SHUTDOWN_SAVE;
+    int nosave = flags & SHUTDOWN_NOSAVE;
+
+    serverLog(LL_WARNING,"User requested shutdown...");
+
+    ///* Kill all the Lua debugger forked sessions. */
+    //// 杀死所有的lua的创建的会话
+    //ldbKillForkedSessions();
+
+    ///* Kill the saving child if there is a background saving in progress.
+    //   We want to avoid race conditions, for instance our saving child may
+    //   overwrite the synchronous saving did by SHUTDOWN. */
+    //// 如果执行RDB，那么杀死子进程，删除RDB文件
+    //if (server.rdb_child_pid != -1) {
+    //    serverLog(LL_WARNING,"There is a child saving an .rdb. Killing it!");
+    //    kill(server.rdb_child_pid,SIGUSR1);
+    //    rdbRemoveTempFile(server.rdb_child_pid);
+    //}
+
+    //// 如果正在处于AOF操作状态
+    //if (server.aof_state != AOF_OFF) {
+    //    /* Kill the AOF saving child as the AOF we already have may be longer
+    //     * but contains the full dataset anyway. */
+    //    // 杀死正在进行AOF的子进程
+    //    if (server.aof_child_pid != -1) {
+    //        /* If we have AOF enabled but haven't written the AOF yet, don't
+    //         * shutdown or else the dataset will be lost. */
+    //        if (server.aof_state == AOF_WAIT_REWRITE) {
+    //            serverLog(LL_WARNING, "Writing initial AOF, can't exit.");
+    //            return C_ERR;
+    //        }
+    //        serverLog(LL_WARNING,
+    //            "There is a child rewriting the AOF. Killing it!");
+    //        kill(server.aof_child_pid,SIGUSR1);
+    //    }
+    //    /* Append only file: fsync() the AOF and exit */
+    //    serverLog(LL_NOTICE,"Calling fsync() on the AOF file.");
+    //    aof_fsync(server.aof_fd);
+    //}
+
+    ///* Create a new RDB file before exiting. */
+    //// 如果制定了退出前保存RDB文件
+    //if ((server.saveparamslen > 0 && !nosave) || save) {
+    //    serverLog(LL_NOTICE,"Saving the final RDB snapshot before exiting.");
+    //    /* Snapshotting. Perform a SYNC SAVE and exit */
+    //    // 将数据库保存在磁盘上
+    //    if (rdbSave(server.rdb_filename) != C_OK) {
+    //        /* Ooops.. error saving! The best we can do is to continue
+    //         * operating. Note that if there was a background saving process,
+    //         * in the next cron() Redis will be notified that the background
+    //         * saving aborted, handling special stuff like slaves pending for
+    //         * synchronization... */
+    //        serverLog(LL_WARNING,"Error trying to save the DB, can't exit.");
+    //        return C_ERR;
+    //    }
+    //}
+
+    ///* Remove the pid file if possible and needed. */
+    //// 删除pidfile文件
+    //if (server.daemonize || server.pidfile) {
+    //    serverLog(LL_NOTICE,"Removing the pid file.");
+    //    unlink(server.pidfile);
+    //}
+
+    ///* Best effort flush of slave output buffers, so that we hopefully
+    // * send them pending writes. */
+    //// 不进入事件循环的情况下，刷新所有的输出缓冲区数据
+    //flushSlavesOutputBuffers();
+
+    /* Close the listening sockets. Apparently this allows faster restarts. */
+    // 关闭所有监听的连接
+    closeListeningSockets(1);
+    serverLog(LL_WARNING,"%s is now ready to exit, bye bye...",
+        server.sentinel_mode ? "Sentinel" : "Redis");
+    return C_OK;
+}
+
 
 /*====================== Hash table type implementation  ==================== */
 
@@ -1647,6 +1864,58 @@ void daemonize(void) {
 	}
 }
 
+// shutdown信号的处理
+static void sigShutdownHandler(int sig) {
+    char *msg;
+
+    switch (sig) {
+    case SIGINT:
+        msg = "Received SIGINT scheduling shutdown...";
+        break;
+    case SIGTERM:
+        msg = "Received SIGTERM scheduling shutdown...";
+        break;
+    default:
+        msg = "Received shutdown signal, scheduling shutdown...";
+    };
+
+    /* SIGINT is often delivered via Ctrl+C in an interactive session.
+     * If we receive the signal the second time, we interpret this as
+     * the user really wanting to quit ASAP without waiting to persist
+     * on disk. */
+    if (server.shutdown_asap && sig == SIGINT) {
+        serverLogFromHandler(LL_WARNING, "You insist... exiting now.");
+        //rdbRemoveTempFile(getpid());
+        exit(1); /* Exit with an error since this was not a clean shutdown. */
+    } else if (server.loading) {
+        exit(0);
+    }
+
+    serverLogFromHandler(LL_WARNING, msg);
+    server.shutdown_asap = 1;
+}
+
+// 设置信号处理方式
+void setupSignalHandlers(void) {
+    struct sigaction act;
+
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+    act.sa_handler = sigShutdownHandler;
+    sigaction(SIGTERM, &act, NULL);
+    sigaction(SIGINT, &act, NULL);
+
+//#ifdef HAVE_BACKTRACE
+//    sigemptyset(&act.sa_mask);
+//    act.sa_flags = SA_NODEFER | SA_RESETHAND | SA_SIGINFO;
+//    act.sa_sigaction = sigsegvHandler;
+//    sigaction(SIGSEGV, &act, NULL);
+//    sigaction(SIGBUS, &act, NULL);
+//    sigaction(SIGFPE, &act, NULL);
+//    sigaction(SIGILL, &act, NULL);
+//#endif
+    return;
+}//end of setupSignalHandlers()
 
 /* Returns 1 if there is --sentinel among the arguments or if
  *  * argv[0] is exactly "redis-sentinel". */

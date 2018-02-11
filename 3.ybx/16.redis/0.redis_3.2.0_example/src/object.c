@@ -125,6 +125,14 @@ void freeStringObject(robj *o) {
     }
 }
 
+void freeListObject(robj *o) {
+    if (o->encoding == OBJ_ENCODING_QUICKLIST) {
+        quicklistRelease(o->ptr);
+    } else {
+        serverPanic("Unknown list encoding type");
+    }
+}
+
 //释放集合对象ptr指向的对象
 void freeSetObject(robj *o) {
     switch (o->encoding) {
@@ -165,11 +173,10 @@ void decrRefCount(robj *o) {
     if (o->refcount == 1) {
         switch(o->type) {
         case OBJ_STRING: freeStringObject(o); break;
-        //case OBJ_LIST: freeListObject(o); break;
+        case OBJ_LIST: freeListObject(o); break;
         case OBJ_SET: freeSetObject(o); break;
         case OBJ_ZSET: freeZsetObject(o); break;
         //case OBJ_HASH: freeHashObject(o); break;
-        //default: serverPanic("Unknown object type"); break;
         default: serverPanic("Unknown object type"); break;//为了方便改的
         }
         zfree(o);
@@ -416,4 +423,31 @@ int getLongLongFromObject(robj *o, long long *target) {
 	if (target) *target = value;        //将值存到传入参数中，返回0成功
 	return C_OK;
 }
+
+
+/*
+ * 尝试从对象 o 中取出整数值，
+ * 或者尝试将对象 o 中的值转换为整数值，
+ * 并将这个得出的整数值保存到 *target 。
+ *
+ * 如果取出/转换成功的话，返回 REDIS_OK 。
+ * 否则，返回 REDIS_ERR ，并向客户端发送一条出错回复。
+ *
+ * T = O(N)
+ */
+int getLongLongFromObjectOrReply(client *c, robj *o, long long *target, const char *msg) {
+    long long value;
+    if (getLongLongFromObject(o, &value) != C_OK) {
+        if (msg != NULL) {
+            addReplyError(c,(char*)msg);
+        } else {
+            addReplyError(c,"value is not an integer or out of range");
+        }
+        return C_ERR;
+    }
+    *target = value;
+    return C_OK;
+}
+
+
 
