@@ -407,38 +407,25 @@ size_t stringObjectLen(robj *o) {
     }
 }
 
-//从对象中将字符串值转换为long long并存储在target中
 int getLongLongFromObject(robj *o, long long *target) {
-	long long value;
-	if (o == NULL) {    //对象不存在
-		value = 0;
-	} else {
-		serverAssertWithInfo(NULL,o,o->type == OBJ_STRING);
-		//assert(o->type == OBJ_STRING);
-		//如果是字符串编码的两种类型
-		if (sdsEncodedObject(o)) {
-			//转换失败发送-1，成功保存值到value中
-			if (string2ll(o->ptr,sdslen(o->ptr),&value) == 0) return C_ERR;
-		} else if (o->encoding == OBJ_ENCODING_INT) {   //整型编码
-			value = (long)o->ptr;                       //保存整数值
-		} else {
-			serverPanic("Unknown string encoding");
-		}
-	}
-	if (target) *target = value;        //将值存到传入参数中，返回0成功
-	return C_OK;
+    long long value;
+
+    if (o == NULL) {
+        value = 0;
+    } else {
+        serverAssertWithInfo(NULL,o,o->type == OBJ_STRING);
+        if (sdsEncodedObject(o)) {
+            if (string2ll(o->ptr,sdslen(o->ptr),&value) == 0) return C_ERR;
+        } else if (o->encoding == OBJ_ENCODING_INT) {
+            value = (long)o->ptr;
+        } else {
+            serverPanic("Unknown string encoding");
+        }
+    }
+    if (target) *target = value;
+    return C_OK;
 }
 
-/*
- * 尝试从对象 o 中取出整数值，
- * 或者尝试将对象 o 中的值转换为整数值，
- * 并将这个得出的整数值保存到 *target 。
- *
- * 如果取出/转换成功的话，返回 REDIS_OK 。
- * 否则，返回 REDIS_ERR ，并向客户端发送一条出错回复。
- *
- * T = O(N)
- */
 int getLongLongFromObjectOrReply(client *c, robj *o, long long *target, const char *msg) {
     long long value;
     if (getLongLongFromObject(o, &value) != C_OK) {
@@ -468,3 +455,4 @@ int getLongFromObjectOrReply(client *c, robj *o, long *target, const char *msg) 
     *target = value;
     return C_OK;
 }
+

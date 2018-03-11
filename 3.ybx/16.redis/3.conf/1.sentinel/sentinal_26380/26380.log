@@ -1,0 +1,425 @@
+                _._                                                  
+           _.-``__ ''-._                                             
+      _.-``    `.  `_.  ''-._           Redis 3.2.0 (00000000/0) 64 bit
+  .-`` .-```.  ```\/    _.,_ ''-._                                   
+ (    '      ,       .-`  | `,    )     Running in sentinel mode
+ |`-._`-...-` __...-.``-._|'` _.-'|     Port: 26380
+ |    `-._   `._    /     _.-'    |     PID: 7065
+  `-._    `-._  `-./  _.-'    _.-'                                   
+ |`-._`-._    `-.__.-'    _.-'_.-'|                                  
+ |    `-._`-._        _.-'_.-'    |           http://redis.io        
+  `-._    `-._`-.__.-'_.-'    _.-'                                   
+ |`-._`-._    `-.__.-'    _.-'_.-'|                                  
+ |    `-._`-._        _.-'_.-'    |                                  
+  `-._    `-._`-.__.-'_.-'    _.-'                                   
+      `-._    `-.__.-'    _.-'                                       
+          `-._        _.-'                                           
+              `-.__.-'                                               
+
+7065:X 31 Oct 11:47:33.394 # Sentinel ID is bb0f07453a5beb3bfd285a17fa8b5e68acfbad82
+7065:X 31 Oct 11:47:33.394 # +monitor master mymaster 127.0.0.1 6379 quorum 2
+7065:X 31 Oct 11:47:33.396 * +slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+7065:X 31 Oct 11:47:33.401 * +slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6379
+7065:X 31 Oct 11:47:34.442 * +sentinel sentinel cd1cfb38dc24cc63620221e9d8347d9ecfeab921 127.0.0.1 26379 @ mymaster 127.0.0.1 6379
+7065:X 31 Oct 11:47:51.561 * +sentinel sentinel 8d124a014d025c1274e974c109b75a2787ae846e 127.0.0.1 26381 @ mymaster 127.0.0.1 6379
+7065:signal-handler (1509421761) Received SIGINT scheduling shutdown...
+7065:X 31 Oct 11:49:21.998 # User requested shutdown...
+7065:X 31 Oct 11:49:21.999 # Sentinel is now ready to exit, bye bye...
+                _._                                                  
+           _.-``__ ''-._                                             
+      _.-``    `.  `_.  ''-._           Redis 3.2.0 (00000000/0) 64 bit
+  .-`` .-```.  ```\/    _.,_ ''-._                                   
+ (    '      ,       .-`  | `,    )     Running in sentinel mode
+ |`-._`-...-` __...-.``-._|'` _.-'|     Port: 26380
+ |    `-._   `._    /     _.-'    |     PID: 7191
+  `-._    `-._  `-./  _.-'    _.-'                                   
+ |`-._`-._    `-.__.-'    _.-'_.-'|                                  
+ |    `-._`-._        _.-'_.-'    |           http://redis.io        
+  `-._    `-._`-.__.-'_.-'    _.-'                                   
+ |`-._`-._    `-.__.-'    _.-'_.-'|                                  
+ |    `-._`-._        _.-'_.-'    |                                  
+  `-._    `-._`-.__.-'_.-'    _.-'                                   
+      `-._    `-.__.-'    _.-'                                       
+          `-._        _.-'                                           
+              `-.__.-'                                               
+
+7191:X 31 Oct 11:50:04.991 # Sentinel ID is bb0f07453a5beb3bfd285a17fa8b5e68acfbad82
+7191:X 31 Oct 11:50:04.991 # +monitor master mymaster 127.0.0.1 6379 quorum 2
+7191:X 31 Oct 12:07:01.039 # +sdown sentinel 8d124a014d025c1274e974c109b75a2787ae846e 127.0.0.1 26381 @ mymaster 127.0.0.1 6379
+7191:X 31 Oct 12:40:03.100 # +sdown sentinel cd1cfb38dc24cc63620221e9d8347d9ecfeab921 127.0.0.1 26379 @ mymaster 127.0.0.1 6379
+7191:signal-handler (1509424849) Received SIGINT scheduling shutdown...
+7191:X 31 Oct 12:40:49.857 # User requested shutdown...
+7191:X 31 Oct 12:40:49.858 # Sentinel is now ready to exit, bye bye...
+                _._                                                  
+           _.-``__ ''-._                                             
+      _.-``    `.  `_.  ''-._           Redis 3.2.0 (00000000/0) 64 bit
+  .-`` .-```.  ```\/    _.,_ ''-._                                   
+ (    '      ,       .-`  | `,    )     Running in sentinel mode
+ |`-._`-...-` __...-.``-._|'` _.-'|     Port: 26380
+ |    `-._   `._    /     _.-'    |     PID: 8031
+  `-._    `-._  `-./  _.-'    _.-'                                   
+ |`-._`-._    `-.__.-'    _.-'_.-'|                                  
+ |    `-._`-._        _.-'_.-'    |           http://redis.io        
+  `-._    `-._`-.__.-'_.-'    _.-'                                   
+ |`-._`-._    `-.__.-'    _.-'_.-'|                                  
+ |    `-._`-._        _.-'_.-'    |                                  
+  `-._    `-._`-.__.-'_.-'    _.-'                                   
+      `-._    `-.__.-'    _.-'                                       
+          `-._        _.-'                                           
+              `-.__.-'                                               
+
+8031:X 31 Oct 12:50:06.922 # Sentinel ID is bb0f07453a5beb3bfd285a17fa8b5e68acfbad82
+8031:X 31 Oct 12:50:06.922 # +monitor master mymaster 127.0.0.1 6379 quorum 2
+8031:X 31 Oct 12:50:07.958 * +sentinel-invalid-addr sentinel cd1cfb38dc24cc63620221e9d8347d9ecfeab921 127.0.0.1 26379 @ mymaster 127.0.0.1 6379
+8031:X 31 Oct 12:50:07.959 * +sentinel sentinel b4766dc8e15d5447a726a4d21f6612ce47095479 127.0.0.1 26379 @ mymaster 127.0.0.1 6379
+8031:X 31 Oct 12:50:37.933 # +sdown sentinel cd1cfb38dc24cc63620221e9d8347d9ecfeab921 127.0.0.1 0 @ mymaster 127.0.0.1 6379
+8031:X 31 Oct 13:01:24.739 # +new-epoch 1
+8031:X 31 Oct 13:01:25.629 # +config-update-from sentinel b4766dc8e15d5447a726a4d21f6612ce47095479 127.0.0.1 26379 @ mymaster 127.0.0.1 6379
+8031:X 31 Oct 13:01:25.630 # +switch-master mymaster 127.0.0.1 6379 127.0.0.1 6381
+8031:X 31 Oct 13:01:25.678 * +slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6381
+8031:X 31 Oct 13:01:25.678 * +slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+8031:X 31 Oct 13:01:35.730 * +convert-to-slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+8031:X 31 Oct 15:40:28.078 # Executing user requested FAILOVER of 'mymaster'
+8031:X 31 Oct 15:40:28.078 # +new-epoch 2
+8031:X 31 Oct 15:40:28.078 # +try-failover master mymaster 127.0.0.1 6381
+8031:X 31 Oct 15:40:28.427 # +vote-for-leader bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 2
+8031:X 31 Oct 15:40:28.428 # +elected-leader master mymaster 127.0.0.1 6381
+8031:X 31 Oct 15:40:28.428 # +failover-state-select-slave master mymaster 127.0.0.1 6381
+8031:X 31 Oct 15:40:28.519 # +selected-slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+8031:X 31 Oct 15:40:28.519 * +failover-state-send-slaveof-noone slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+8031:X 31 Oct 15:40:28.596 * +failover-state-wait-promotion slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+8031:X 31 Oct 15:40:29.513 # +promoted-slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+8031:X 31 Oct 15:40:29.513 # +failover-state-reconf-slaves master mymaster 127.0.0.1 6381
+8031:X 31 Oct 15:40:29.581 * +slave-reconf-sent slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6381
+8031:X 31 Oct 15:40:30.541 * +slave-reconf-inprog slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6381
+8031:X 31 Oct 15:40:30.541 * +slave-reconf-done slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6381
+8031:X 31 Oct 15:40:30.640 # +failover-end master mymaster 127.0.0.1 6381
+8031:X 31 Oct 15:40:30.640 # +switch-master mymaster 127.0.0.1 6381 127.0.0.1 6379
+8031:X 31 Oct 15:40:30.642 * +slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+8031:X 31 Oct 15:40:30.642 * +slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6379
+8031:X 31 Oct 17:31:55.509 # Executing user requested FAILOVER of 'mymaster'
+8031:X 31 Oct 17:31:55.510 # +new-epoch 3
+8031:X 31 Oct 17:31:55.510 # +try-failover master mymaster 127.0.0.1 6379
+8031:X 31 Oct 17:31:55.535 # +vote-for-leader bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 3
+8031:X 31 Oct 17:31:55.535 # +elected-leader master mymaster 127.0.0.1 6379
+8031:X 31 Oct 17:31:55.535 # +failover-state-select-slave master mymaster 127.0.0.1 6379
+8031:X 31 Oct 17:31:55.618 # +selected-slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6379
+8031:X 31 Oct 17:31:55.619 * +failover-state-send-slaveof-noone slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6379
+8031:X 31 Oct 17:31:55.690 * +failover-state-wait-promotion slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6379
+8031:X 31 Oct 17:31:56.550 # +promoted-slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6379
+8031:X 31 Oct 17:31:56.550 # +failover-state-reconf-slaves master mymaster 127.0.0.1 6379
+8031:X 31 Oct 17:31:56.602 * +slave-reconf-sent slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+8031:X 31 Oct 17:31:57.570 * +slave-reconf-inprog slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+8031:X 31 Oct 17:31:57.570 * +slave-reconf-done slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+8031:X 31 Oct 17:31:57.653 # +failover-end master mymaster 127.0.0.1 6379
+8031:X 31 Oct 17:31:57.653 # +switch-master mymaster 127.0.0.1 6379 127.0.0.1 6381
+8031:X 31 Oct 17:31:57.655 * +slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6381
+8031:X 31 Oct 17:31:57.655 * +slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+8031:signal-handler (1509447914) Received SIGTERM scheduling shutdown...
+8031:X 31 Oct 19:05:14.380 # User requested shutdown...
+8031:X 31 Oct 19:05:14.380 # Sentinel is now ready to exit, bye bye...
+                _._                                                  
+           _.-``__ ''-._                                             
+      _.-``    `.  `_.  ''-._           Redis 3.2.0 (00000000/0) 64 bit
+  .-`` .-```.  ```\/    _.,_ ''-._                                   
+ (    '      ,       .-`  | `,    )     Running in sentinel mode
+ |`-._`-...-` __...-.``-._|'` _.-'|     Port: 26380
+ |    `-._   `._    /     _.-'    |     PID: 8290
+  `-._    `-._  `-./  _.-'    _.-'                                   
+ |`-._`-._    `-.__.-'    _.-'_.-'|                                  
+ |    `-._`-._        _.-'_.-'    |           http://redis.io        
+  `-._    `-._`-.__.-'_.-'    _.-'                                   
+ |`-._`-._    `-.__.-'    _.-'_.-'|                                  
+ |    `-._`-._        _.-'_.-'    |                                  
+  `-._    `-._`-.__.-'_.-'    _.-'                                   
+      `-._    `-.__.-'    _.-'                                       
+          `-._        _.-'                                           
+              `-.__.-'                                               
+
+8290:X 01 Nov 14:14:38.531 # Sentinel ID is bb0f07453a5beb3bfd285a17fa8b5e68acfbad82
+8290:X 01 Nov 14:14:38.531 # +monitor master mymaster 127.0.0.1 6381 quorum 2
+8290:X 01 Nov 14:15:08.543 # +sdown sentinel cd1cfb38dc24cc63620221e9d8347d9ecfeab921 127.0.0.1 0 @ mymaster 127.0.0.1 6381
+8290:X 01 Nov 14:17:05.848 # +new-epoch 4
+8290:X 01 Nov 14:17:05.848 # +config-update-from sentinel b4766dc8e15d5447a726a4d21f6612ce47095479 127.0.0.1 26379 @ mymaster 127.0.0.1 6381
+8290:X 01 Nov 14:17:05.848 # +switch-master mymaster 127.0.0.1 6381 127.0.0.1 6379
+8290:X 01 Nov 14:17:05.868 * +slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+8290:X 01 Nov 14:17:05.868 * +slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6379
+8290:X 01 Nov 14:19:47.709 # +sdown master mymaster 127.0.0.1 6379
+8290:X 01 Nov 14:19:48.381 # +new-epoch 5
+8290:X 01 Nov 14:19:48.385 # +vote-for-leader 8d124a014d025c1274e974c109b75a2787ae846e 5
+8290:X 01 Nov 14:19:48.866 # +odown master mymaster 127.0.0.1 6379 #quorum 3/2
+8290:X 01 Nov 14:19:48.866 # Next failover delay: I will not start a failover before Wed Nov  1 14:25:48 2017
+8290:X 01 Nov 14:25:48.943 # +new-epoch 6
+8290:X 01 Nov 14:25:48.943 # +try-failover master mymaster 127.0.0.1 6379
+8290:X 01 Nov 14:25:49.180 # +vote-for-leader bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 6
+8290:X 01 Nov 14:25:49.181 # b4766dc8e15d5447a726a4d21f6612ce47095479 voted for b4766dc8e15d5447a726a4d21f6612ce47095479 6
+8290:X 01 Nov 14:25:49.181 # 8d124a014d025c1274e974c109b75a2787ae846e voted for 8d124a014d025c1274e974c109b75a2787ae846e 6
+8290:X 01 Nov 14:25:59.665 # -failover-abort-not-elected master mymaster 127.0.0.1 6379
+8290:X 01 Nov 14:25:59.722 # Next failover delay: I will not start a failover before Wed Nov  1 14:31:49 2017
+8290:X 01 Nov 14:31:49.411 # +new-epoch 7
+8290:X 01 Nov 14:31:49.417 # +vote-for-leader b4766dc8e15d5447a726a4d21f6612ce47095479 7
+8290:X 01 Nov 14:31:49.478 # Next failover delay: I will not start a failover before Wed Nov  1 14:37:49 2017
+8290:X 01 Nov 14:31:50.594 # +config-update-from sentinel b4766dc8e15d5447a726a4d21f6612ce47095479 127.0.0.1 26379 @ mymaster 127.0.0.1 6379
+8290:X 01 Nov 14:31:50.594 # +switch-master mymaster 127.0.0.1 6379 127.0.0.1 6380
+8290:X 01 Nov 14:31:50.595 * +slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 14:31:50.596 * +slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 14:32:20.601 # +sdown slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 14:32:22.106 # +sdown master mymaster 127.0.0.1 6380
+8290:X 01 Nov 14:32:22.175 # +odown master mymaster 127.0.0.1 6380 #quorum 2/2
+8290:X 01 Nov 14:32:22.175 # +new-epoch 8
+8290:X 01 Nov 14:32:22.176 # +try-failover master mymaster 127.0.0.1 6380
+8290:X 01 Nov 14:32:22.181 # +vote-for-leader bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 8
+8290:X 01 Nov 14:32:22.192 # 8d124a014d025c1274e974c109b75a2787ae846e voted for bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 8
+8290:X 01 Nov 14:32:22.193 # b4766dc8e15d5447a726a4d21f6612ce47095479 voted for bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 8
+8290:X 01 Nov 14:32:22.268 # +elected-leader master mymaster 127.0.0.1 6380
+8290:X 01 Nov 14:32:22.268 # +failover-state-select-slave master mymaster 127.0.0.1 6380
+8290:X 01 Nov 14:32:22.325 # +selected-slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 14:32:22.326 * +failover-state-send-slaveof-noone slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 14:32:22.709 # -sdown master mymaster 127.0.0.1 6380
+8290:X 01 Nov 14:32:22.709 # -odown master mymaster 127.0.0.1 6380
+8290:X 01 Nov 14:32:22.709 * +failover-state-wait-promotion slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 14:32:23.216 # +promoted-slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 14:32:23.217 # +failover-state-reconf-slaves master mymaster 127.0.0.1 6380
+8290:X 01 Nov 14:32:23.275 # +failover-end master mymaster 127.0.0.1 6380
+8290:X 01 Nov 14:32:23.276 # +switch-master mymaster 127.0.0.1 6380 127.0.0.1 6381
+8290:X 01 Nov 14:32:23.277 * +slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+8290:X 01 Nov 14:32:23.278 * +slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6381
+8290:X 01 Nov 14:32:53.349 # +sdown slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+8290:X 01 Nov 14:33:26.063 # +new-epoch 9
+8290:X 01 Nov 14:33:26.774 # +config-update-from sentinel b4766dc8e15d5447a726a4d21f6612ce47095479 127.0.0.1 26379 @ mymaster 127.0.0.1 6381
+8290:X 01 Nov 14:33:26.774 # +switch-master mymaster 127.0.0.1 6381 127.0.0.1 6380
+8290:X 01 Nov 14:33:26.775 * +slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 14:33:26.775 * +slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 14:33:56.824 # +sdown slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 15:38:47.419 # -sdown slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 15:39:18.188 # +sdown slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 15:39:18.604 # -sdown slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 15:57:53.533 # +sdown master mymaster 127.0.0.1 6380
+8290:X 01 Nov 15:57:54.017 # +new-epoch 10
+8290:X 01 Nov 15:57:54.022 # +vote-for-leader b4766dc8e15d5447a726a4d21f6612ce47095479 10
+8290:X 01 Nov 15:57:54.628 # +odown master mymaster 127.0.0.1 6380 #quorum 2/2
+8290:X 01 Nov 15:57:54.629 # Next failover delay: I will not start a failover before Wed Nov  1 16:03:54 2017
+8290:X 01 Nov 15:57:55.188 # +config-update-from sentinel b4766dc8e15d5447a726a4d21f6612ce47095479 127.0.0.1 26379 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 15:57:55.188 # +switch-master mymaster 127.0.0.1 6380 127.0.0.1 6381
+8290:X 01 Nov 15:57:55.190 * +slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+8290:X 01 Nov 15:57:55.190 * +slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6381
+8290:X 01 Nov 16:02:24.865 # +set master mymaster 127.0.0.1 6381 failover-timeout 60000
+8290:X 01 Nov 16:05:35.850 # +sdown master mymaster 127.0.0.1 6381
+8290:X 01 Nov 16:05:44.970 # +new-epoch 11
+8290:X 01 Nov 16:05:44.972 # +vote-for-leader 8d124a014d025c1274e974c109b75a2787ae846e 11
+8290:X 01 Nov 16:05:45.240 # +odown master mymaster 127.0.0.1 6381 #quorum 2/2
+8290:X 01 Nov 16:05:45.241 # Next failover delay: I will not start a failover before Wed Nov  1 16:07:45 2017
+8290:X 01 Nov 16:05:46.083 # +config-update-from sentinel 8d124a014d025c1274e974c109b75a2787ae846e 127.0.0.1 26381 @ mymaster 127.0.0.1 6381
+8290:X 01 Nov 16:05:46.083 # +switch-master mymaster 127.0.0.1 6381 127.0.0.1 6379
+8290:X 01 Nov 16:05:46.084 * +slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+8290:X 01 Nov 16:05:46.084 * +slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6379
+8290:X 01 Nov 16:06:06.475 # +new-epoch 12
+8290:X 01 Nov 16:06:07.499 # +config-update-from sentinel b4766dc8e15d5447a726a4d21f6612ce47095479 127.0.0.1 26379 @ mymaster 127.0.0.1 6379
+8290:X 01 Nov 16:06:07.500 # +switch-master mymaster 127.0.0.1 6379 127.0.0.1 6380
+8290:X 01 Nov 16:06:07.501 * +slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 16:06:07.501 * +slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 16:08:19.008 # +new-epoch 13
+8290:X 01 Nov 16:08:19.918 # +config-update-from sentinel b4766dc8e15d5447a726a4d21f6612ce47095479 127.0.0.1 26379 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 16:08:19.923 # +switch-master mymaster 127.0.0.1 6380 127.0.0.1 6379
+8290:X 01 Nov 16:08:19.924 * +slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6379
+8290:X 01 Nov 16:08:19.924 * +slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+8290:X 01 Nov 16:08:38.503 # +new-epoch 14
+8290:X 01 Nov 16:08:39.572 # +config-update-from sentinel b4766dc8e15d5447a726a4d21f6612ce47095479 127.0.0.1 26379 @ mymaster 127.0.0.1 6379
+8290:X 01 Nov 16:08:39.572 # +switch-master mymaster 127.0.0.1 6379 127.0.0.1 6380
+8290:X 01 Nov 16:08:39.573 * +slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 16:08:39.574 * +slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 16:08:49.623 * +convert-to-slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 16:10:22.409 # +sdown slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 16:18:31.625 # -sdown slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 16:49:43.205 # +new-epoch 15
+8290:X 01 Nov 16:49:44.121 # +config-update-from sentinel b4766dc8e15d5447a726a4d21f6612ce47095479 127.0.0.1 26379 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 16:49:44.121 # +switch-master mymaster 127.0.0.1 6380 127.0.0.1 6381
+8290:X 01 Nov 16:49:44.122 * +slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+8290:X 01 Nov 16:49:44.122 * +slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6381
+8290:X 01 Nov 16:49:54.220 * +convert-to-slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6381
+8290:X 01 Nov 16:50:46.059 # +new-epoch 16
+8290:X 01 Nov 16:50:46.586 # +config-update-from sentinel b4766dc8e15d5447a726a4d21f6612ce47095479 127.0.0.1 26379 @ mymaster 127.0.0.1 6381
+8290:X 01 Nov 16:50:46.586 # +switch-master mymaster 127.0.0.1 6381 127.0.0.1 6380
+8290:X 01 Nov 16:50:46.587 * +slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 16:50:46.588 * +slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 16:50:56.662 * +convert-to-slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 17:06:54.483 # +sdown master mymaster 127.0.0.1 6380
+8290:X 01 Nov 17:06:54.546 # +odown master mymaster 127.0.0.1 6380 #quorum 2/2
+8290:X 01 Nov 17:06:54.546 # +new-epoch 17
+8290:X 01 Nov 17:06:54.546 # +try-failover master mymaster 127.0.0.1 6380
+8290:X 01 Nov 17:06:54.879 # +vote-for-leader bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 17
+8290:X 01 Nov 17:06:54.898 # b4766dc8e15d5447a726a4d21f6612ce47095479 voted for b4766dc8e15d5447a726a4d21f6612ce47095479 17
+8290:X 01 Nov 17:06:54.907 # 8d124a014d025c1274e974c109b75a2787ae846e voted for bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 17
+8290:X 01 Nov 17:07:05.244 # -failover-abort-not-elected master mymaster 127.0.0.1 6380
+8290:X 01 Nov 17:07:05.316 # Next failover delay: I will not start a failover before Wed Nov  1 17:08:55 2017
+8290:X 01 Nov 17:08:55.226 # +new-epoch 18
+8290:X 01 Nov 17:08:55.226 # +try-failover master mymaster 127.0.0.1 6380
+8290:X 01 Nov 17:08:55.434 # +vote-for-leader bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 18
+8290:X 01 Nov 17:08:55.456 # b4766dc8e15d5447a726a4d21f6612ce47095479 voted for b4766dc8e15d5447a726a4d21f6612ce47095479 18
+8290:X 01 Nov 17:08:55.474 # 8d124a014d025c1274e974c109b75a2787ae846e voted for b4766dc8e15d5447a726a4d21f6612ce47095479 18
+8290:X 01 Nov 17:08:57.558 # +config-update-from sentinel b4766dc8e15d5447a726a4d21f6612ce47095479 127.0.0.1 26379 @ mymaster 127.0.0.1 6380
+8290:X 01 Nov 17:08:57.562 # +switch-master mymaster 127.0.0.1 6380 127.0.0.1 6379
+8290:X 01 Nov 17:08:57.563 * +slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6379
+8290:X 01 Nov 17:08:57.563 * +slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+8290:X 01 Nov 17:09:27.576 # +sdown slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+8290:X 01 Nov 17:52:30.906 # -sdown slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+8290:X 01 Nov 17:53:01.130 # +sdown slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+8290:X 01 Nov 17:53:02.054 # -sdown slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+8290:X 01 Nov 17:53:32.073 # +sdown slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+8290:X 01 Nov 17:53:32.237 # -sdown slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+8290:X 01 Nov 18:01:46.714 # +sdown master mymaster 127.0.0.1 6379
+8290:X 01 Nov 18:01:46.768 # +odown master mymaster 127.0.0.1 6379 #quorum 3/2
+8290:X 01 Nov 18:01:46.768 # +new-epoch 19
+8290:X 01 Nov 18:01:46.768 # +try-failover master mymaster 127.0.0.1 6379
+8290:X 01 Nov 18:01:47.065 # +vote-for-leader bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 19
+8290:X 01 Nov 18:01:47.089 # 8d124a014d025c1274e974c109b75a2787ae846e voted for 8d124a014d025c1274e974c109b75a2787ae846e 19
+8290:X 01 Nov 18:01:47.090 # b4766dc8e15d5447a726a4d21f6612ce47095479 voted for 8d124a014d025c1274e974c109b75a2787ae846e 19
+8290:X 01 Nov 18:01:57.804 # -failover-abort-not-elected master mymaster 127.0.0.1 6379
+8290:X 01 Nov 18:01:57.860 # Next failover delay: I will not start a failover before Wed Nov  1 18:03:47 2017
+8290:X 01 Nov 18:03:47.774 # +new-epoch 20
+8290:X 01 Nov 18:03:47.779 # +vote-for-leader b4766dc8e15d5447a726a4d21f6612ce47095479 20
+8290:X 01 Nov 18:03:47.845 # Next failover delay: I will not start a failover before Wed Nov  1 18:05:48 2017
+8290:X 01 Nov 18:03:48.442 # +config-update-from sentinel b4766dc8e15d5447a726a4d21f6612ce47095479 127.0.0.1 26379 @ mymaster 127.0.0.1 6379
+8290:X 01 Nov 18:03:48.442 # +switch-master mymaster 127.0.0.1 6379 127.0.0.1 6381
+8290:X 01 Nov 18:03:48.443 * +slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6381
+8290:X 01 Nov 18:03:48.444 * +slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+8290:X 01 Nov 18:04:18.494 # +sdown slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+8290:X 01 Nov 18:17:19.882 # -sdown slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+8290:X 01 Nov 18:17:50.224 # +sdown slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+8290:X 01 Nov 18:17:51.095 # -sdown slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+8290:signal-handler (1509531833) Received SIGINT scheduling shutdown...
+8290:X 01 Nov 18:23:53.836 # User requested shutdown...
+8290:X 01 Nov 18:23:53.836 # Sentinel is now ready to exit, bye bye...
+14877:X 01 Nov 18:30:59.274 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+14877:X 01 Nov 18:30:59.275 # Redis version=4.0.2, bits=64, commit=00000000, modified=0, pid=14877, just started
+14877:X 01 Nov 18:30:59.275 # Configuration loaded
+14877:X 01 Nov 18:30:59.281 * Running mode=sentinel, port=26380.
+14877:X 01 Nov 18:30:59.281 # Sentinel ID is bb0f07453a5beb3bfd285a17fa8b5e68acfbad82
+14877:X 01 Nov 18:30:59.281 # +monitor master mymaster 127.0.0.1 6381 quorum 2
+14877:X 01 Nov 18:31:29.335 # +sdown sentinel cd1cfb38dc24cc63620221e9d8347d9ecfeab921 127.0.0.1 0 @ mymaster 127.0.0.1 6381
+14877:X 01 Nov 18:37:00.283 # +sdown master mymaster 127.0.0.1 6381
+14877:X 01 Nov 18:37:00.402 # +new-epoch 21
+14877:X 01 Nov 18:37:00.459 # +vote-for-leader b4766dc8e15d5447a726a4d21f6612ce47095479 21
+14877:X 01 Nov 18:37:01.275 # +config-update-from sentinel b4766dc8e15d5447a726a4d21f6612ce47095479 127.0.0.1 26379 @ mymaster 127.0.0.1 6381
+14877:X 01 Nov 18:37:01.275 # +switch-master mymaster 127.0.0.1 6381 127.0.0.1 6380
+14877:X 01 Nov 18:37:01.276 * +slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 18:37:01.276 * +slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 18:37:31.282 # +sdown slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 18:38:06.474 # -sdown slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 18:42:23.196 # +sdown slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:44:36.561 * +reboot slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:44:36.614 # -sdown slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:54:10.791 # +sdown master mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:54:10.893 # +odown master mymaster 127.0.0.1 6380 #quorum 3/2
+14877:X 01 Nov 19:54:10.894 # +new-epoch 22
+14877:X 01 Nov 19:54:10.894 # +try-failover master mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:54:11.212 # +vote-for-leader bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 22
+14877:X 01 Nov 19:54:11.217 # 8d124a014d025c1274e974c109b75a2787ae846e voted for 8d124a014d025c1274e974c109b75a2787ae846e 22
+14877:X 01 Nov 19:54:11.223 # b4766dc8e15d5447a726a4d21f6612ce47095479 voted for 8d124a014d025c1274e974c109b75a2787ae846e 22
+14877:X 01 Nov 19:54:21.102 # -failover-abort-not-elected master mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:54:21.162 # Next failover delay: I will not start a failover before Wed Nov  1 19:56:11 2017
+14877:X 01 Nov 19:56:11.094 # +new-epoch 23
+14877:X 01 Nov 19:56:11.095 # +try-failover master mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:56:11.432 # +vote-for-leader bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 23
+14877:X 01 Nov 19:56:11.434 # b4766dc8e15d5447a726a4d21f6612ce47095479 voted for b4766dc8e15d5447a726a4d21f6612ce47095479 23
+14877:X 01 Nov 19:56:11.473 # 8d124a014d025c1274e974c109b75a2787ae846e voted for bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 23
+14877:X 01 Nov 19:56:21.213 # -failover-abort-not-elected master mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:56:21.285 # Next failover delay: I will not start a failover before Wed Nov  1 19:58:11 2017
+14877:X 01 Nov 19:58:11.249 # +new-epoch 24
+14877:X 01 Nov 19:58:11.249 # +try-failover master mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:58:11.589 # +vote-for-leader bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 24
+14877:X 01 Nov 19:58:11.622 # b4766dc8e15d5447a726a4d21f6612ce47095479 voted for bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 24
+14877:X 01 Nov 19:58:11.622 # 8d124a014d025c1274e974c109b75a2787ae846e voted for bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 24
+14877:X 01 Nov 19:58:11.641 # +elected-leader master mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:58:11.641 # +failover-state-select-slave master mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:58:11.696 # +selected-slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:58:11.697 * +failover-state-send-slaveof-noone slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:58:11.750 * +failover-state-wait-promotion slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:58:12.671 # +promoted-slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:58:12.672 # +failover-state-reconf-slaves master mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:58:12.725 * +slave-reconf-sent slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:58:13.680 * +slave-reconf-inprog slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:58:13.681 * +slave-reconf-done slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:58:13.769 # -odown master mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:58:13.770 # +failover-end master mymaster 127.0.0.1 6380
+14877:X 01 Nov 19:58:13.770 # +switch-master mymaster 127.0.0.1 6380 127.0.0.1 6381
+14877:X 01 Nov 19:58:13.771 * +slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+14877:X 01 Nov 19:58:13.772 * +slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6381
+14877:X 01 Nov 19:58:43.795 # +sdown slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6381
+14877:X 01 Nov 20:00:02.447 # -sdown slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6381
+14877:X 01 Nov 20:10:00.849 # +sdown master mymaster 127.0.0.1 6381
+14877:X 01 Nov 20:10:00.927 # +odown master mymaster 127.0.0.1 6381 #quorum 2/2
+14877:X 01 Nov 20:10:00.927 # +new-epoch 25
+14877:X 01 Nov 20:10:00.927 # +try-failover master mymaster 127.0.0.1 6381
+14877:X 01 Nov 20:10:01.283 # +vote-for-leader bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 25
+14877:X 01 Nov 20:10:01.283 # b4766dc8e15d5447a726a4d21f6612ce47095479 voted for b4766dc8e15d5447a726a4d21f6612ce47095479 25
+14877:X 01 Nov 20:10:01.289 # 8d124a014d025c1274e974c109b75a2787ae846e voted for bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 25
+14877:X 01 Nov 20:10:11.453 # -failover-abort-not-elected master mymaster 127.0.0.1 6381
+14877:X 01 Nov 20:10:11.506 # Next failover delay: I will not start a failover before Wed Nov  1 20:12:01 2017
+14877:X 01 Nov 20:12:01.447 # +new-epoch 26
+14877:X 01 Nov 20:12:01.448 # +try-failover master mymaster 127.0.0.1 6381
+14877:X 01 Nov 20:12:01.787 # +vote-for-leader bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 26
+14877:X 01 Nov 20:12:01.826 # 8d124a014d025c1274e974c109b75a2787ae846e voted for bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 26
+14877:X 01 Nov 20:12:01.831 # b4766dc8e15d5447a726a4d21f6612ce47095479 voted for bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 26
+14877:X 01 Nov 20:12:01.841 # +elected-leader master mymaster 127.0.0.1 6381
+14877:X 01 Nov 20:12:01.841 # +failover-state-select-slave master mymaster 127.0.0.1 6381
+14877:X 01 Nov 20:12:01.908 # +selected-slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6381
+14877:X 01 Nov 20:12:01.908 * +failover-state-send-slaveof-noone slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6381
+14877:X 01 Nov 20:12:01.968 * +failover-state-wait-promotion slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6381
+14877:X 01 Nov 20:12:02.043 # +promoted-slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6381
+14877:X 01 Nov 20:12:02.043 # +failover-state-reconf-slaves master mymaster 127.0.0.1 6381
+14877:X 01 Nov 20:12:02.108 * +slave-reconf-sent slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+14877:X 01 Nov 20:12:02.870 * +slave-reconf-inprog slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+14877:X 01 Nov 20:12:02.954 # -odown master mymaster 127.0.0.1 6381
+14877:X 01 Nov 20:12:03.883 * +slave-reconf-done slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+14877:X 01 Nov 20:12:03.944 # +failover-end master mymaster 127.0.0.1 6381
+14877:X 01 Nov 20:12:03.945 # +switch-master mymaster 127.0.0.1 6381 127.0.0.1 6380
+14877:X 01 Nov 20:12:03.946 * +slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 20:12:03.946 * +slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 20:12:33.949 # +sdown slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 20:16:56.822 # -sdown slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 21:33:17.948 # +new-epoch 27
+14877:X 01 Nov 21:33:19.092 # +config-update-from sentinel b4766dc8e15d5447a726a4d21f6612ce47095479 127.0.0.1 26379 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 21:33:19.092 # +switch-master mymaster 127.0.0.1 6380 127.0.0.1 6381
+14877:X 01 Nov 21:33:19.093 * +slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6381
+14877:X 01 Nov 21:33:19.093 * +slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6381
+14877:X 01 Nov 21:34:08.313 # +new-epoch 28
+14877:X 01 Nov 21:34:09.347 # +config-update-from sentinel b4766dc8e15d5447a726a4d21f6612ce47095479 127.0.0.1 26379 @ mymaster 127.0.0.1 6381
+14877:X 01 Nov 21:34:09.347 # +switch-master mymaster 127.0.0.1 6381 127.0.0.1 6380
+14877:X 01 Nov 21:34:09.352 * +slave slave 127.0.0.1:6379 127.0.0.1 6379 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 21:34:09.353 * +slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 21:34:19.448 * +convert-to-slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 21:36:17.534 # +sdown master mymaster 127.0.0.1 6380
+14877:X 01 Nov 21:36:17.593 # +odown master mymaster 127.0.0.1 6380 #quorum 2/2
+14877:X 01 Nov 21:36:17.593 # +new-epoch 29
+14877:X 01 Nov 21:36:17.593 # +try-failover master mymaster 127.0.0.1 6380
+14877:X 01 Nov 21:36:17.930 # +vote-for-leader bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 29
+14877:X 01 Nov 21:36:17.935 # b4766dc8e15d5447a726a4d21f6612ce47095479 voted for b4766dc8e15d5447a726a4d21f6612ce47095479 29
+14877:X 01 Nov 21:36:17.943 # 8d124a014d025c1274e974c109b75a2787ae846e voted for bb0f07453a5beb3bfd285a17fa8b5e68acfbad82 29
+14877:X 01 Nov 21:36:23.678 # +sdown slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 21:36:28.263 # -failover-abort-not-elected master mymaster 127.0.0.1 6380
+14877:X 01 Nov 21:36:28.347 # Next failover delay: I will not start a failover before Wed Nov  1 21:38:18 2017
+14877:X 01 Nov 21:37:10.338 * +reboot slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 21:37:10.425 # -sdown slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 21:37:24.880 * +reboot master mymaster 127.0.0.1 6380
+14877:X 01 Nov 21:37:24.938 # -sdown master mymaster 127.0.0.1 6380
+14877:X 01 Nov 21:37:24.938 # -odown master mymaster 127.0.0.1 6380
+14877:X 01 Nov 21:39:55.584 * +reboot master mymaster 127.0.0.1 6380
+14877:X 01 Nov 21:41:01.639 # +sdown master mymaster 127.0.0.1 6380
+14877:X 01 Nov 21:41:01.914 # +new-epoch 30
+14877:X 01 Nov 21:41:01.933 # +vote-for-leader 8d124a014d025c1274e974c109b75a2787ae846e 30
+14877:X 01 Nov 21:41:02.727 # +odown master mymaster 127.0.0.1 6380 #quorum 3/2
+14877:X 01 Nov 21:41:02.727 # Next failover delay: I will not start a failover before Wed Nov  1 21:43:02 2017
+14877:X 01 Nov 21:43:02.383 # +new-epoch 31
+14877:X 01 Nov 21:43:02.406 # +vote-for-leader b4766dc8e15d5447a726a4d21f6612ce47095479 31
+14877:X 01 Nov 21:43:02.421 # Next failover delay: I will not start a failover before Wed Nov  1 21:45:02 2017
+14877:X 01 Nov 21:43:02.802 # +config-update-from sentinel b4766dc8e15d5447a726a4d21f6612ce47095479 127.0.0.1 26379 @ mymaster 127.0.0.1 6380
+14877:X 01 Nov 21:43:02.803 # +switch-master mymaster 127.0.0.1 6380 127.0.0.1 6379
+14877:X 01 Nov 21:43:02.805 * +slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6379
+14877:X 01 Nov 21:43:02.805 * +slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+14877:X 01 Nov 21:43:32.848 # +sdown slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+14877:X 01 Nov 21:43:53.521 # -sdown slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+14877:X 01 Nov 21:44:03.436 * +convert-to-slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+14877:signal-handler (1509545754) Received SIGTERM scheduling shutdown...
+14877:X 01 Nov 22:15:54.110 # User requested shutdown...
+14877:X 01 Nov 22:15:54.110 # Sentinel is now ready to exit, bye bye...

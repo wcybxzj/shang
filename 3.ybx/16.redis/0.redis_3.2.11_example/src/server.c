@@ -137,6 +137,8 @@ struct redisCommand redisCommandTable[] = {
 	{"ping",pingCommand,-1,"tF",0,NULL,0,0,0,0,0},
     {"keys",keysCommand,2,"rS",0,NULL,0,0,0,0,0},
     {"psync",syncCommand,3,"ars",0,NULL,0,0,0,0,0},
+	{"replconf",replconfCommand,-1,"aslt",0,NULL,0,0,0,0,0},
+
 };
 
 
