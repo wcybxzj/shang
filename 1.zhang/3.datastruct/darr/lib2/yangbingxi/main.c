@@ -91,6 +91,8 @@ int main(void)
 		insert_darr(me, &tmp);
 	}
 
+	traval_darr(me, print_arr);
+	printf("------------------------------------------------\n");
 	qsort(me->arr, me->num, me->size, id_qsort);
 	traval_darr(me, print_arr);
 

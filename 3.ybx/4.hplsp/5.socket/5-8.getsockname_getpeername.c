@@ -14,25 +14,16 @@
 
 int connfd;
 
-void sig_urg(int s){
-	int ret;
-	char buffer[ BUF_SIZE ];
-	memset( buffer,'\0' ,BUF_SIZE-1 );
-	ret = recv( connfd, buffer, BUF_SIZE-1, MSG_OOB );
-	printf("got %d bytes of oob data '%s'\n", ret, buffer);
-}
-
-
 /*
-终端1:
-./5-7.oobrecv 127.0.0.1 1234
-got 1 bytes of oob data 'c'
-got 0 bytes of normal data '123ab'
-got 0 bytes of normal data '123'
-received EOF
+电脑1:
+[root@web11 5.socket]# ./5-8.getsockname_getpeername 192.168.91.11 1234
+Local IP address is: 192.168.91.11
+Local port is: 1234
+remote IP address is: 192.168.91.138
+remote port is: 40017
 
-终端2:
-./5-6.oobsend 127.0.0.1 1234 
+电脑2:
+nc 192.168.91.11 1234
 */
 //原来代码有问题，增加signal和fcntl信号驱动IO 才成功
 int main(int argc, char *argv[])
@@ -70,8 +61,17 @@ int main(int argc, char *argv[])
 	socklen_t client_addrlength = sizeof( client );
 	connfd = accept(sock, ( struct sockaddr* )&client, &client_addrlength );
 
-	signal(SIGURG, sig_urg);
-	fcntl(connfd, F_SETOWN, getpid());
+	//获取本地和远程的ip addr和port
+	unsigned int len;
+	struct sockaddr_in local_address, remote_address;
+	len = sizeof( local_address );
+	getsockname( connfd, ( struct sockaddr* )&local_address, &len );
+	printf( "Local IP address is: %s\n", inet_ntoa( local_address.sin_addr ) );
+	printf("Local port is: %d\n", (int) ntohs(local_address.sin_port));
+
+	getpeername( connfd, ( struct sockaddr* )&remote_address, &len );
+	printf( "remote IP address is: %s\n", inet_ntoa( remote_address.sin_addr ) );
+	printf("remote port is: %d\n", (int) ntohs(remote_address.sin_port));
 
 	if (connfd < 0) {
 		printf( "errno is %d\n", errno );
@@ -88,17 +88,6 @@ int main(int argc, char *argv[])
 
 	}
 
-	//获取本地和远程的ip addr和port
-	unsigned int len;
-	struct sockaddr_in local_address, remote_address;
-	len = sizeof( local_address );
-	getsockname( connfd, ( struct sockaddr* )&local_address, &len );
-	printf( "Local IP address is: %s\n", inet_ntoa( local_address.sin_addr ) );
-	printf("Local port is: %d\n", (int) ntohs(local_address.sin_port));
-
-	getpeername( connfd, ( struct sockaddr* )&remote_address, &len );
-	printf( "remote IP address is: %s\n", inet_ntoa( remote_address.sin_addr ) );
-	printf("remote port is: %d\n", (int) ntohs(remote_address.sin_port));
 
 	close( connfd );
 	return 0;
