@@ -1,0 +1,38 @@
+这个参数可以用于tcp和udp
+==================================================================================================
+这个参数有两个用处
+用处1:一台机器上不同的ip想使用同一个port，需要设置此参数否侧第一个服务可以开启,第二个则不能开启
+
+tcp例子:
+[root@web11 7.SO_REUSEADDR]# ./server 127.0.0.1 1234 not
+not use SO_REUSEADDR
+
+[root@web11 7.SO_REUSEADDR]# ./server 192.168.91.11 1234 not
+not use SO_REUSEADDR
+bind(): Address already in use
+
+udp例子: tcpip卷1-11.12.4中使用sock
+
+==================================================================================================
+用处2:
+通过设置SO_REUSEADDR, 让server 再次启动bind时无视残留的TIME_WAIT
+
+tcp的例子:
+在客户端连上的前提下，服务端主动关闭，服务端进入TIME_WAIT,也就是2MSL
+
+服务端:
+[root@web11 7.SO_REUSEADDR]# ./server 127.0.0.1 1234 not
+not use SO_REUSEADDR
+radd:0.0.0.0 rport:0
+=====len:11======
+^C
+[root@web11 7.SO_REUSEADDR]# ./server 127.0.0.1 1234 not
+not use SO_REUSEADDR
+bind(): Address already in use
+
+[root@web11 5-3.basic]# netstat -antp|grep 1234
+tcp        0      0 127.0.0.1:1234              127.0.0.1:52970             TIME_WAIT   -
+
+客户端:
+[root@web11 7.SO_REUSEADDR]# nc 127.0.0.1 1234
+1524566409
