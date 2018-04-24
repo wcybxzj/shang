@@ -32,9 +32,14 @@ int main(int argc, char *argv[]){
 		printf("./a.out ip  port is_SO_REUSEADDR\n");
 		exit(1);
 	}
+	int use;
+	int num=0;
+	int sd, newsd;
+	struct sockaddr_in laddr, raddr;
+	socklen_t rlen;
+	char ip[IP_SIZE];
 
 	int port = atoi(argv[2]);
-	int use;
 	if (strcmp(argv[3],"use")==0) {
 		printf("use SO_REUSEADDR\n");
 		use=1;
@@ -42,12 +47,6 @@ int main(int argc, char *argv[]){
 		printf("not use SO_REUSEADDR\n");
 		use=0;
 	}
-
-	int num=0;
-	int sd, newsd;
-	struct sockaddr_in laddr, raddr;
-	socklen_t rlen;
-	char ip[IP_SIZE];
 
 	sd = socket(AF_INET, SOCK_STREAM, 0);
 	if(sd < 0){
@@ -66,7 +65,7 @@ int main(int argc, char *argv[]){
 
 	laddr.sin_family = AF_INET;
 	laddr.sin_port = htons(port);
-	if(inet_pton(AF_INET,"0.0.0.0",&laddr.sin_addr) != 1){
+	if(inet_pton(AF_INET,argv[1],&laddr.sin_addr) != 1){
 		perror("inet_pton()");
 		exit(0);
 	}
@@ -87,15 +86,6 @@ int main(int argc, char *argv[]){
 			perror("accept()");
 			exit(-2);
 		}
-
-		if(inet_ntop(AF_INET, (void *)&raddr.sin_addr, \
-					ip, IP_SIZE) == NULL){
-			perror("inet_ntop()");
-			exit(-2);
-		}
-
-		printf("radd:%s rport:%d\n", \
-				ip, htons(raddr.sin_port));
 
 		worker(newsd);
 
