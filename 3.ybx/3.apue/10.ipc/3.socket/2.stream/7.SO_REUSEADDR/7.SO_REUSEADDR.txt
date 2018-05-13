@@ -7,7 +7,8 @@
 
 实验1:服务端例子(失败)
 实验2:服务端例子(成功) 如果想不让TIME_WAIT状态影响服务的启动 要一直开启SO_REUSEADDR
-实验3:客户端例子(成功)
+实验3:客户端例子(失败)
+实验4:客户端例子(成功) 本参数的效果和在服务端一样
 ==================================================================================================
 实验1:(失败)
 
@@ -50,20 +51,37 @@ use SO_REUSEADDR
 [root@web11 ~]# nc 127.0.0.1 1234
 1524593236
 ==================================================================================================
-实验3:
+实验3(失败):
 客户端主动关闭,如果客户端再用同样的 ip+port访问服务因为之前连接在2MSL而报错
-
 tcp例子:tcp ip卷1-18.6.1 2MSL等待状态 (实验2)
-[root@web11 sock]# ./sock -v 127.0.0.1 echo
-client
-connected on 127.0.0.1.36148 to 127.0.0.1.7
-TCP_MAXSEG = 32741
-loop
-^\Quit (core dumped)
-
-[root@web11 sock]# ./sock -b36148 -v 127.0.0.1 echo
+[root@web11 sock]# ./sock 127.0.0.1 echo
+ok
+ok
+^C
+[root@web11 sock]# netstat -antp|grep 7
+tcp        0      0 127.0.0.1:42556             127.0.0.1:7                 TIME_WAIT   -
+[root@web11 sock]# ./sock -b42556 127.0.0.1 echo
 client
 bind() error: Address already in use
+[root@web11 sock]# ./sock -A -b42556 127.0.0.1 echo
+client
+SOL_SOCKET SO_REUSEADDR
+bind() error: Address already in use
+==================================================================================================
 
-[root@web11 ~]# netstat -antp|grep 36148
-tcp        0      0 127.0.0.1:36148             127.0.0.1:7 TIME_WAIT   -
+实验4(成功):
+[root@web11 sock]# ./sock -A 127.0.0.1 echo
+SOL_SOCKET SO_REUSEADDR
+yes
+yes
+^C
+[root@web11 sock]# netstat -antp|grep 7
+tcp        0      0 127.0.0.1:42557             127.0.0.1:7                 TIME_WAIT   -
+[root@web11 sock]# ./sock -A -b42557 127.0.0.1 echo
+client
+SOL_SOCKET SO_REUSEADDR
+loop
+ok
+ok
+^C
+
