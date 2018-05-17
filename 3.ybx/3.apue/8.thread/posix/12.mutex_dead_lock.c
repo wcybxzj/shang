@@ -7,7 +7,6 @@ static int num = 1;
 pthread_mutex_t mut_num = PTHREAD_MUTEX_INITIALIZER;
 static void* func(void *p);
 
-
 int main(int argc, const char *argv[])
 {
 	int err;

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <errno.h>
 #define NUM 20
 #define  FNAME "/tmp/out"
 #define LEN 100
@@ -13,6 +14,10 @@ static void* func(void *p)
 	char str[LEN];
 	int num;
 	fp = fopen(FNAME, "r+");
+	if (!fp) {
+		perror("fopen");
+		exit(1);
+	}
 	
 	pthread_mutex_lock(&mut);
 	fgets(str, LEN, fp);

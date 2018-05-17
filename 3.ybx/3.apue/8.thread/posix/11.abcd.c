@@ -43,7 +43,9 @@ int main(int argc, const char *argv[])
 	pthread_mutex_unlock(mut+0);
 	alarm(5);
 
+	//根本不执行
 	for (i = 0; i < NUM; i++) {
+		printf("join\n");
 		pthread_join(tid[i], NULL);
 	}
 
