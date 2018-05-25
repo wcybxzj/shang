@@ -9,6 +9,7 @@
 
 #include "proto.h"
 
+//fscanf()版
 void func2(int sd){
 	FILE *fp;
 	long long time;
@@ -27,6 +28,17 @@ void func2(int sd){
 	fclose(fp);
 	close(sd);
 }
+
+//read()版
+void func3(int sd)
+{
+	char buf[100]={'\0'};
+	if (read(sd, buf,100)) {
+		printf("%s\n",buf);
+	}
+	close(sd);
+}
+
 
 //最简单测试server的方法
 //nc 127.0.0.1 1998
@@ -58,7 +70,8 @@ int main(int argc, const char *argv[])
 		exit(-2);
 	}
 
-	func2(sd);
+	//func2(sd);
+	func3(sd);
 
 	return 0;
 }

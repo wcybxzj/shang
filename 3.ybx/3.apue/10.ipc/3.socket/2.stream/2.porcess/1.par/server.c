@@ -18,6 +18,7 @@ int func2(int newsd){
 	char str[IP_SIZE]={'\0'};
 	int len;
 
+	//如果这样写fork后的父进程不用close(newsd);
 	//len = sprintf(str, FMT_STAMP, (long long)time(NULL))+1;
 	len = sprintf(str, FMT_STAMP, (long long)time(NULL));
 
@@ -27,7 +28,9 @@ int func2(int newsd){
 		perror("send()");
 		exit(-3);
 	}
+	//printf("子进程 already send\n");
 	close(newsd);//如果不close fd会泄露
+	//printf("子进程结束\n");
 }
 
 //测试看到100个请求，server产生100个子进程服务
@@ -93,6 +96,7 @@ int main(){
 			perror("fork()");
 			exit(-2);
 		}else{
+			//重点，这里如果不关闭newsd客户端得不到输出
 			//关闭用于子进程的newsd,防止泄露,导致最后父进程sd 数量超过ulimit -a
 			close(newsd);
 		}

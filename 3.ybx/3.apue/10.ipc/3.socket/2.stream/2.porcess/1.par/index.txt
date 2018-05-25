@@ -1,0 +1,20 @@
+前提:
+server.c:父进程如果不去close(newsd)
+
+客户端:
+client.c用fscanf()确实获取不到数据
+client.c用read()就ok
+
+客户端:
+nc 127.0.0.1 1989就ok
+
+
+分析:
+nc和read能用就说明服务端没问题
+发生的原因是client用fscanf可以server没给数据最后加\0所以服务端读不出来
+
+解决办法:
+办法1:server父进程去close(newsd) ,没想好怎么解释原因
+办法2:server子进程send的时候最后多发一个\0
+办法3:client 用read()来读数据
+

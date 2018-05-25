@@ -59,7 +59,7 @@ int main(int argc, const char *argv[])
 	daemonize();//避免和daemon名字冲突
 
 	//ret = execl("./3.exec_programe", "3.exec_programe", NULL);//报错
-	ret = execl("/root/www/shangguan/3.ybx/3.apue/6.few/20.daemon/3.exec_programe", "3.exec_programe", NULL);
+	ret = execl("/root/www/shang/3.ybx/3.apue/6.few/20.daemon/3.exec_programe", "3.exec_programe", NULL);
 	if (ret==-1) {
 		printf("execl error :%s\n", strerror(errno));
 		return -1;
