@@ -24,7 +24,7 @@ void* func(void* arg)
 {
 	int i;
 	struct st* me = arg;
-	pthread_setspecific(item_lock_type_key, &me->id);
+	//pthread_setspecific(item_lock_type_key, &me->id);
 	me->id=22222222;
 	for (i = 0; i <20; i++) {
 		printf("tid:%d, id:%d\n",gettid(), me->id);

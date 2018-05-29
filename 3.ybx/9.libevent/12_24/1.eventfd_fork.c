@@ -9,10 +9,10 @@ int eventfd(unsigned int initval, intflags);
 
 Flags支持一下标志位：
 
-EFD_NONBLOCK       
+EFD_NONBLOCK
 类似于使用O_NONBLOCK标志设置文件描述符。
 
-EFD_CLOEXEC          
+EFD_CLOEXEC
 类似open以O_CLOEXEC标志打开,O_CLOEXEC 应该表示执行exec()时，
 之前通过open()打开的文件描述符会自动关闭测试时，在open()之后，
 调用一下exec()，在新的进程中检测描述符是否已经关闭
