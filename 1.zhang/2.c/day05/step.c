@@ -19,9 +19,9 @@ int is_empty(void)
 
 int push(int val)
 {
-	if (is_full()) 
+	if (is_full())
 		return -1;
-	stack[top++] = val;		
+	stack[top++] = val;
 	return 0;
 }
 
@@ -39,12 +39,12 @@ void traval(void)
 
 	for (i = 0; i < top || !printf("\n"); i++) {
 		printf("%d ", stack[i]);
-	}	
+	}
 }
 
 int step(int n)
 {
-	int sum = 0;	
+	int sum = 0;
 	int i;
 
 	if (n == 0) {
@@ -60,13 +60,13 @@ int step(int n)
 		sum += step(n - i);
 		pop();
 	}
-	
+
 	return sum;
 }
 
 int main(void)
 {
-	printf("*****%d*****\n", step(9));	
+	printf("*****%d*****\n", step(9));
 
 	return 0;
 }

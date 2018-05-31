@@ -8,11 +8,11 @@ int binsearch(int *arr, int num, int key)
 {
 	int start, end;
 	int mid;
-	
-	start = 0, end = num - 1;	
+
+	start = 0, end = num - 1;
 
 	while (start <= end) {
-		mid = (start + end) / 2;	
+		mid = (start + end) / 2;
 		if (arr[mid] == key) {
 			return mid;
 		}
@@ -30,7 +30,7 @@ int main(void)
 {
 	int arr[] = {5,4,3,1,9,2,10,7,8,6};
 	int id, ind;
-	
+
 	traval(arr, 10);
 	qsort(arr, 10, sizeof(int), cmpare);
 	traval(arr, 10);
@@ -43,14 +43,14 @@ int main(void)
 	}else {
 		printf("find it in %d\n", ind);
 	}
-		
+
 	return 0;
 }
 
 int cmpare(const void *d1, const void *d2)
 {
-	const int *num1 = d1;	
-	const int *num2 = d2;	
+	const int *num1 = d1;
+	const int *num2 = d2;
 
 	return *num1 - *num2;
 }
