@@ -1,53 +1,69 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
-#define POWER_LARGEST 200
-#define POWER_SMALLEST 1
+#include "memcached.h"
 
-typedef unsigned int rel_time_t;
-int power_largest;
+static size_t mem_limit = 0;
+static size_t mem_malloced = 0;
+static int power_largest;
+static void *mem_base = NULL;
+static void *mem_current = NULL;
+static size_t mem_avail = 0;
+
+struct settings settings;
 
 typedef struct _stritem {
-    struct _stritem *next;
-    struct _stritem *prev;
-    struct _stritem *h_next;    /* hash chain next */
-    rel_time_t      time;       /* least recent access */
-    rel_time_t      exptime;    /* expire time */
-    int             nbytes;     /* size of data */
-    unsigned short  refcount;
-    uint8_t         nsuffix;    /* length of flags-and-length string */
-    uint8_t         it_flags;   /* ITEM_* above */
-    uint8_t         slabs_clsid;/* which slab class we're in */
-    uint8_t         nkey;       /* key length, w/terminating null and padding */
-    union {
-        uint64_t cas;
-        char end;
-    } data[];
+	struct _stritem *next;
+	struct _stritem *prev;
+	struct _stritem *h_next;    /* hash chain next */
+	rel_time_t      time;       /* least recent access */
+	rel_time_t      exptime;    /* expire time */
+	int             nbytes;     /* size of data */
+	unsigned short  refcount;
+	uint8_t         nsuffix;    /* length of flags-and-length string */
+	uint8_t         it_flags;   /* ITEM_* above */
+	uint8_t         slabs_clsid;/* which slab class we're in */
+	uint8_t         nkey;       /* key length, w/terminating null and padding */
+	union {
+		uint64_t cas;
+		char end;
+	} data[];
 } item;
 
-void slab_init()
-{
-	int i = 0;
-	unsigned int size = sizeof(item) + 48;
-	int perslab;
-	double factor = 1.25;
-	while (++i < 200 && size <= 1024*1024 / factor) {  
-		size = size;  
-		perslab = 1024*1024/ size;
-		printf("slab class :%d , chunk size(每个item大小,单位:字节):%d ,preslab(可以放入几个item):%d\n",
-				i, size, perslab);
-		size *= factor;  
-	}  
+typedef struct {
+    unsigned int size;      /* sizes of items */
+    unsigned int perslab;   /* how many items per slab */
+    void *slots;           /* list of item ptrs */
+    unsigned int sl_curr;   /* total free items in list */
+    unsigned int slabs;     /* how many slabs were allocated for this class */
+    void **slab_list;       /* array of slab pointers */
+    unsigned int list_size; /* size of prev array */
+    unsigned int killing;  /* index+1 of dying slab, or zero if none */
+    size_t requested; /* The number of requested bytes */
+} slabclass_t;
 
-	printf("============================\n");
-	printf("size:%d\n",size);
-	printf("============================\n");
+static slabclass_t slabclass[MAX_NUMBER_OF_SLAB_CLASSES];
 
-	power_largest = i;
-    size = 1024*1024;
-    perslab = 1;
-	printf("slab class :%d , chunk size(每个item大小,单位:字节):%d ,preslab(可以放入几个item):%d\n",
-			i, size, perslab);
+
+static void slabs_preallocate (const unsigned int maxslabs) {
+	int i;
+	unsigned int prealloc = 0;
+
+	for (i = POWER_SMALLEST; i <= POWER_LARGEST; i++) {
+		if (++prealloc > maxslabs)
+			return;
+
+		//printf("i:%d\n", i);//打印 1->42
+
+		//if (do_slabs_newslab(i) == 0) {
+		//    fprintf(stderr, "Error while preallocating slab memory!\n"
+		//        "If using -L or other prealloc options, max memory must be "
+		//        "at least %d megabytes.\n", power_largest);
+		//    exit(1);
+		//}
+	}
+
 }
 
 //slab class :1 , chunk size(每个item大小,单位:字节):96 ,preslab(可以放入几个item):10922
@@ -95,8 +111,70 @@ void slab_init()
 //size:889570
 //============================
 //slab class :42 , chunk size(每个item大小,单位:字节):1048576 ,preslab(可以放入几个item):1
+void slab_init(const size_t limit, const double factor, const bool prealloc)
+{
+	int i = POWER_SMALLEST - 1;
+	unsigned int size = sizeof(item) + settings.chunk_size;
+	mem_limit = limit;//默认64M
+
+	if (prealloc) {
+		/* Allocate everything in a big chunk with malloc */
+		mem_base = malloc(mem_limit);
+		if (mem_base != NULL) {
+			mem_current = mem_base;
+			mem_avail = mem_limit;
+		} else {
+			fprintf(stderr, "Warning: Failed to allocate requested memory in"
+					" one large chunk.\nWill allocate in smaller chunks\n");
+		}
+	}
+
+	int perslab;
+	while (++i < POWER_LARGEST && size <= settings.item_size_max / factor) {
+		size = size;
+		perslab = 1024*1024/ size;
+		printf("slab class :%d , chunk size(每个item大小,单位:字节):%d ,preslab(可以放入几个item):%d\n",
+				i, size, perslab);
+		size *= factor;
+	}
+
+	memset(slabclass, 0, sizeof(slabclass));
+
+	printf("============================\n");
+	printf("size:%d\n",size);
+	printf("============================\n");
+
+	power_largest = i;
+	size = 1024*1024;
+	perslab = 1;
+	printf("slab class :%d , chunk size(每个item大小,单位:字节):%d ,preslab(可以放入几个item):%d\n",
+			i, size, perslab);
+	if (prealloc) {
+		slabs_preallocate(power_largest);
+	}
+}//end of slab_init()
+
+void test1()
+{
+	int prealloc = 0;
+	slab_init(64*1024*1024, 1.25, prealloc);
+}
+
+void test2()
+{
+	int prealloc=1;
+	slab_init(64*1024*1024, 1.25, prealloc);
+}
+
 int main(int argc, const char *argv[])
 {
-	slab_init();
+
+	settings.chunk_size=48;
+	settings.item_size_max=1024*1024;//1M
+
+	//test1();
+
+	test2();
+
 	return 0;
 }
