@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
+
 
 void my_srand()
 {
@@ -13,3 +15,28 @@ int my_rand(int min, int max)
 	return (rand()%(max-min+1))+min;
 }
 
+void travel(int arr[], int num)
+{
+	printf("遍历:");
+	int i;
+	for (i = 0; i < num; i++) {
+		printf("%d ",arr[i]);
+	}
+	printf("\n");
+}
+
+void swap(int *a, int *b)
+{
+	*a = *a^*b;
+	*b = *a^*b;
+	*a = *a^*b;
+}
+
+
+void copy_arr(int dst_arr[], int src_arr[], int num)
+{
+	int i;
+	for (i = 0; i < num; i++) {
+		dst_arr[i] =src_arr[i];
+	}
+}
