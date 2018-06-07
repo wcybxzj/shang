@@ -31,8 +31,8 @@ void func2()
 	int number = 429496729;
 	char string[25];
 	sprintf(string, "%d", number);
-
 	printf("integer = %d string = %s\n", number, string);
+	return;
 }
 
 int main()
