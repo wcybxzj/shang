@@ -64,13 +64,22 @@ void test(int n)
 	travel(arr1, num);
 	copy_arr(arr1, arr2, num);
 
-	//heap_test1(n);
+	heap_test1(n);
 
 	printf("堆排序2:\n");
 	travel(arr1, num);
 	heap_sort2(arr1, num);
 	travel(arr1, num);
 	copy_arr(arr1, arr2, num);
+
+	printf("二路归并排序递归版:\n");
+	travel(arr1, num);
+	merge_recusive(arr1, num);
+	travel(arr1, num);
+	travel(arr1, num);
+	copy_arr(arr1, arr2, num);
+
+
 }
 
 void heap_test1(int n)

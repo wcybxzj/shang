@@ -71,7 +71,7 @@ void heap_sort2(int arr[], int num)
 	for (i = num-1; i > 0 ; i--) {
 		swap(&arr[0], &arr[i]);
 		move_times+=3;
-		heap_adjust2(arr, 0, i-1);
+		heap_adjust2(arr, 0, i);
 	}
 	printf("比较次数:%d 移动次数:%d 总数:%d\n",
 			compare_times, move_times,compare_times+move_times);

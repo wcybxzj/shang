@@ -1,8 +1,10 @@
-PROGS= 1.int_to_string 2.fibonacci
-OBJS= 1.int_to_string.o 2.fibonacci.o
+PROGS= 0.divisor 1.int_to_string 2.fibonacci
 CFLAGS+=-c -Wall -g
 
 all:$(PROGS)
+
+0.divisor:0.divisor.o
+	$(CC) $^ -o $@
 
 1.int_to_string:1.int_to_string.o
 	$(CC) $^ -o $@
