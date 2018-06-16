@@ -74,12 +74,15 @@ void test(int n)
 
 	printf("二路归并排序递归版:\n");
 	travel(arr1, num);
-	merge_recusive(arr1, num);
-	travel(arr1, num);
+	merge_sort_recursive(arr1, num);
 	travel(arr1, num);
 	copy_arr(arr1, arr2, num);
 
-
+	printf("二路归并排序循环版:\n");
+	travel(arr1, num);
+	merge_sort_while(arr1, num);
+	travel(arr1, num);
+	copy_arr(arr1, arr2, num);
 }
 
 void heap_test1(int n)

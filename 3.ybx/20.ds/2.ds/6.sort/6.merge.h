@@ -1,2 +1,2 @@
 #include <stdio.h>
-void merge_recusive(int arr[], int num);
+void merge_sort_recusive(int arr[], int num);

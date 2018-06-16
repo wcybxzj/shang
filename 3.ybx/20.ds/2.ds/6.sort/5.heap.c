@@ -1,6 +1,5 @@
 #include "5.heap.h"
 
-
 static int compare_times=0;//比较次数
 static int move_times=0;//移动次数
 
