@@ -2,6 +2,7 @@
 #include <time.h>
 
 void heap_test1(int n);
+void test_quick_sort_r();
 
 
 //冒泡优化版本vs 选择排序vs插入排序
@@ -83,6 +84,12 @@ void test(int n)
 	merge_sort_while(arr1, num);
 	travel(arr1, num);
 	copy_arr(arr1, arr2, num);
+
+	printf("快排递归版:\n");
+	travel(arr1, num);
+	quick_sort_r(arr1, num);
+	travel(arr1, num);
+	copy_arr(arr1, arr2, num);
 }
 
 void heap_test1(int n)
@@ -107,6 +114,18 @@ void heap_test1(int n)
 	copy_arr(arr1, arr2, num);
 }
 
+//单独模拟数据测试快速排序
+void test_quick_sort_r()
+{
+	int arr1[]={5,2,6,0,3,9,1,7,4,8};
+	int len = sizeof(arr1)/sizeof(arr1[0]);
+
+	printf("快排递归版(指定数据):\n");
+	travel(arr1, len);
+	quick_sort_r(arr1, len);
+	travel(arr1, len);
+}
+
 int main(int argc, const char *argv[])
 {
 	int  n=0;
@@ -115,6 +134,6 @@ int main(int argc, const char *argv[])
 	}
 	test(n);
 
-
+	//test_quick_sort_r();
 	return 0;
 }

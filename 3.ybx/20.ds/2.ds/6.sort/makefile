@@ -1,5 +1,5 @@
 PROGS = 00.sort_test 01.bubble_test 02.select_vs_bubble
-OBJS =  1.bubble.o 2.select.o 3.insert.o 4.shell.o 5.heap.o 6.merge.o
+OBJS =  1.bubble.o 2.select.o 3.insert.o 4.shell.o 5.heap.o 6.merge.o 7.quick.o
 CFLAGS=-g -g3 -gdwarf-2
 $(CC)=gcc
 all:$(PROGS)

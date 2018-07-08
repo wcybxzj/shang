@@ -25,13 +25,11 @@ void travel(int arr[], int num)
 	printf("\n");
 }
 
-void swap(int *a, int *b)
-{
-	*a = *a^*b;
-	*b = *a^*b;
-	*a = *a^*b;
+void swap(int *x, int *y) {
+    int t = *x;
+    *x = *y;
+    *y = t;
 }
-
 
 void copy_arr(int dst_arr[], int src_arr[], int num)
 {
