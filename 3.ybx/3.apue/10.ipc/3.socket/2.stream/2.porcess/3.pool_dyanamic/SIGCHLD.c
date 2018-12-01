@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <signal.h>
 
-//资料tlpi26.3.3
+//资料tlpi26.3.3+apue10.7
 //选项1或者选项2 
 //任何一个都可以完成子进程不用收尸,不会让子进程成为僵尸
 void func(){
