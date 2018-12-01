@@ -1,0 +1,18 @@
+https://blog.csdn.net/mutourenzhang/article/details/47803803
+
+===============================================================
+
+想要做的是，第一个函数符号可以被导出，第二个被隐藏。
+先编译成一个动态库，使用到属性-fvisibility
+
+gcc -shared -o libvis.so -fvisibility=hidden vis.c
+
+readelf -s libvis.so |grep hidden
+9: 000000000000061a    24 FUNC    GLOBAL DEFAULT   12 not_hidden
+37: 0000000000000632    24 FUNC    LOCAL  DEFAULT   12 is_hidden
+51: 000000000000061a    24 FUNC    GLOBAL DEFAULT   12 not_hidden
+===============================================================
+gcc -o main main.c -L ./ -lvis
+/tmp/cc3ynypM.o: In function `main':
+main.c:(.text+0x1f): undefined reference to `is_hidden'
+说明了hidden确实起到作用了。
