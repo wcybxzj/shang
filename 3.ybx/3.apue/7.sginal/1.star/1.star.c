@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <unistd.h>
+
 void int_handler(int s){
 	write(1, "!",1);
 }
