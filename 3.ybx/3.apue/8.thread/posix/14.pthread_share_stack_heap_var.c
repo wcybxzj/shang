@@ -40,20 +40,26 @@ void test_stack_var()
 }
 
 static void* func3(void *p){
-	printf("%d\n", *(*((int **)p)));//123
+	printf("func3()%d\n", *(*((int **)p)));
 	*(*((int **)p))=456;
+	printf("func3()%d\n", *(*((int **)p)));
+	sleep(3);
+	printf("func3()%d\n", *(*((int **)p)));
 }
 
 static void* func4(void *p){
-	printf("%d\n", *(*((int **)p)));//456
+	sleep(1);
+	printf("func4()%d\n", *(*((int **)p)));
 	*(*((int **)p))=789;
 }
 
 //测试2:测试堆变量在线程之间的共享
 //结果:
-//123
-//456
-//789
+//func3()123
+//func3()456
+//func4()456
+//func3()789
+//test_heap_var() 789
 void test_heap_var()
 {
 	int *p = malloc(sizeof(int));
@@ -61,19 +67,16 @@ void test_heap_var()
 	int i;
 	pthread_t tid;
 	pthread_create(&tid, NULL, func3, &p);
-	sleep(1);
 	pthread_create(&tid, NULL, func4, &p);
-	sleep(1);
-	printf("%d\n",*p);//789
-	pause();
-
+	sleep(5);
+	printf("test_heap_var() %d\n",*p);
 }
 
 //线程之间 栈变量 堆变量 是否可以共享的问题
 //全局变量在线程之间是共享的
 int main(int argc, const char *argv[])
 {
-	test_stack_var();
-	//test_heap_var();
+	//test_stack_var();
+	test_heap_var();
 	return 0;
 }
