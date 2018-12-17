@@ -9,6 +9,7 @@
 #include <string.h>
 #include <time.h>
 #include <signal.h>
+#include <unistd.h>
 
 #include "proto.h"
 #define IP_SIZE 16
