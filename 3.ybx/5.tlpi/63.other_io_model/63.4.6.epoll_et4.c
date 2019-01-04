@@ -123,10 +123,10 @@ void display(int *fd_arr){
 /*
 终端1:
 mkfifo 123 456
-for i in {1..10}; do echo 11111111112222222222 > 123; done
+for i in {1..1000}; do echo 11111111112222222222 > 123; done
 
 终端2:
-for i in {1..10}; do echo 44444444445555555555 > 456; done
+for i in {1..1000}; do echo 44444444445555555555 > 456; done
 
 终端3:
 ./63.4.6.epoll_et4  123 456
