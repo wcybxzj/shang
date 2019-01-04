@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <signal.h>
+#include <string.h>
 
 #define MAX_BUF     10
 #define MAX_EVENTS     5

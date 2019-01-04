@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/epoll.h>
+#include <string.h>
 
 #define MAX_BUF     10
 #define MAX_EVENTS     5

@@ -6,11 +6,22 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <string.h>
 
 #define MAX_BUF     10
 #define MAX_EVENTS     5
 int numOpenFds;
 int running_fd[MAX_EVENTS]={0,};
+
+void errExit(char *str);
+void handler(int s);
+int get_pos(int *fdarr);
+int is_empty(int *fdarr);
+int is_full(int *fdarr);
+int get_len(int *fdarr);
+int add_fd(int *fdarr, int fd);
+int delete_fd(int *fdarr,int fd);
+void display(int *fd_arr);
 
 void errExit(char *str){
 	perror(str);
@@ -558,6 +569,7 @@ void epollin_et_func3(int argc, char * argv[]){
 	exit(EXIT_SUCCESS);
 }
 
+//mkfifo 123 456
 /*
  终端1:
 	read 10 bytes: 1112222222
@@ -589,14 +601,13 @@ void epollin_et_func3(int argc, char * argv[]){
  for i in {1..10}; do echo 44444444444444444444 > 456; done
  */
 
-//mkfifo 123 456
 //tlpi表63-8
 //tlpi63.4.6
 int main(int argc, char *argv[])
 {
-	//epollin_et(argc, argv);
+	epollin_et(argc, argv);
 	//epollin_et_func1(argc, argv);
-	epollin_et_func2(argc, argv);
+	//epollin_et_func2(argc, argv);
 	//epollin_et_func3(argc, argv);
 
 
