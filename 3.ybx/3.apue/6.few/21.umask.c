@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 int main(int argc, const char *argv[])
 {
 	umask(0);//设置当前umask

@@ -15,9 +15,9 @@ int main(int argc, const char *argv[])
 	}
 
 	if (pid > 0) {
-		printf("pid:%d, tmp:address:%X\n", getpid(), &tmp);
+		printf("pid:%d, tmp:address:%ls\n", getpid(), &tmp);
 	}else{
-		printf("pid:%d, tmp:address:%X\n", getpid(), &tmp);
+		printf("pid:%d, tmp:address:%ls\n", getpid(), &tmp);
 	}
 
 	return 0;

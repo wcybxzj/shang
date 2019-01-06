@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <glob.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #define SIZE 1024
 
@@ -46,7 +48,7 @@ int main(int argc, const char *argv[])
 	pid_t pid;
 	int i;
 	char *str = NULL;
-	int size = 0;
+	size_t size = 0;
 	cmd_st cmd;
 
 	while (1) {

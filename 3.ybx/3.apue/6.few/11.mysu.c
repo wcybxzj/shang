@@ -4,7 +4,8 @@
 #include <sys/types.h>
 #include <pwd.h>
 #include <errno.h>
-
+#include <sys/types.h>
+#include <sys/wait.h>
 //./mysu username cat /home/username
 int main(int argc, char *argv[])
 {
