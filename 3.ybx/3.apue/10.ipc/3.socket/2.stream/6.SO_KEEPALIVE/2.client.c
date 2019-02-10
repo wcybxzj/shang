@@ -1,13 +1,4 @@
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <stdio.h>
-#include <libgen.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <unistd.h>
-#include <errno.h>
+#include "header.h"
 
 void worker(int newsd)
 {
@@ -52,14 +43,24 @@ int main(int argc, char *argv[])
 	server_address.sin_port = htons( port );
 
 	int sockfd = socket(PF_INET, SOCK_STREAM, 0);
-	assert( sockfd >= 0 );
+	if ( sockfd < 0 ){
+		printf("socket() error\n");
+		exit(1);
+	}
 
 	if (use_keepalive) {
-		int val=1;
-		if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,\
-					&val, sizeof(val)) < 0){
-			perror("setsockopt()");
-			exit(0);
+		//int val=1;
+		//if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,\
+		//			&val, sizeof(val)) < 0){
+		//	perror("setsockopt()");
+		//	exit(0);
+		//}
+
+		int interval=3;
+		int ret = anetKeepAlive(sockfd, interval);
+		if (ret == ANET_ERR) {
+			printf("keppalive error\n");
+			exit(1);
 		}
 	}
 
