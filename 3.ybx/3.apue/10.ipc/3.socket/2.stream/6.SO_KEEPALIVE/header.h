@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <assert.h>
 
 
 #define ANET_OK 0
