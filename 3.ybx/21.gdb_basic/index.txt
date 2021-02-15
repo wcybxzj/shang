@@ -1,0 +1,31 @@
+b站GDB Basic
+
+
+
+
+============================================================
+7.core_dump.c:
+
+cat  /proc/sys/kernel/core_pattern
+core
+
+ulimit -c unlimited
+
+./7.core_dump
+Segmentation fault (core dumped)
+
+
+gdb ./7.core_dump -c core
+Program terminated with signal SIGSEGV, Segmentation fault.
+#0  0x000055c8aa58360a in func1 () at 7.core_dump.c:12
+*p =1;
+
+============================================================
+8.gdbserver的基本使用
+t1:
+gdbserver 127.0.0.1:12345 ./3.gdb_server
+
+
+t2:
+gdb ./3.gdb_server
+target remote 127.0.0.1:12345
