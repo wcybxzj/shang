@@ -24,40 +24,45 @@
 //如果一个选项是有参数的，那么全局变量optarg就会指向这个参数字符串的开始位置。
 //从上面的代码也可以看到，如果选项e有参数，那么optarg就不等于NULL，否则就等于NULL。
 
+//char *optarg：如果有参数，则包含当前选项参数字符串
+//int optind：argv的当前索引值。当getopt函数在while循环中使用时，剩下的字符串为操作数，下标从optind到argc-1。
+//int opterr：这个变量非零时，getopt()函数为“无效选项”和“缺少参数选项，并输出其错误信息。
+//int optopt：当发现无效选项字符之时，getopt()函数或返回 \’ ? \’ 字符，或返回字符 \’ : \’ ，并且optopt包含了所发现的无效选项字符。
+
 //a.out -a -b 111 -c -d -e
 //a.out -a -b 111 -c -d -e 222
-int main(int argc, char** argv)  
-{  
-    int opt;  
-  
-    while( (opt = getopt(argc, argv, "ab:c:de::")) >= 0 )   
-    {  
+int main(int argc, char** argv)
+{
+	int opt;
+
+	while( (opt = getopt(argc, argv, "ab:c:de::")) >= 0 )
+	{
 		if (opt=='b') {
 		}
-        switch( opt )  
-        {  
-            case 'a' :  
+		switch( opt )
+		{
+			case 'a' :
 				printf("a\n");
-				break;            
-            case 'b' :  
-				printf("option b has parm = %s\n", optarg); 
-				break;  
-            case 'c' :  
+				break;
+			case 'b' :
+				printf("option b has parm = %s\n", optarg);
+				break;
+			case 'c' :
 				printf("c\n");
-						break;  
-            case 'd' :  
+				break;
+			case 'd' :
 				printf("d\n");
-				break;  
-  
-            case 'e' :    
-                    if(optarg)  
-                    {  
-                        printf("option e has parm\n");    
-                    }  
-                    break;  
-  
-            default : //出现了不是选项的字符  
-					break;
-        }  
-    }  
-}  
+				break;
+
+			case 'e' :
+				if(optarg)
+				{
+					printf("option e has parm\n");
+				}
+				break;
+
+			default : //出现了不是选项的字符
+				break;
+		}
+	}
+}

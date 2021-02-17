@@ -23,7 +23,6 @@ static int inited = 0;
 static mytbf_st *job[MYTBF_MAX];
 
 static pthread_mutex_t mut_job = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t mut_init = PTHREAD_MUTEX_INITIALIZER;
 static pthread_once_t once_init = PTHREAD_ONCE_INIT;
 static pthread_t tid;
 
