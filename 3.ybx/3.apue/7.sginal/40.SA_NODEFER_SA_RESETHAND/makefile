@@ -1,5 +1,15 @@
-all:40.star 41.star_SA_NODEFER 42.star_SA_RESTHAND
+src = $(wildcard *.c)
+targets = $(patsubst %.c, %, $(src))
 
+CC = gcc
+CFLAGS = -Wall -g -pthread
+
+all:$(targets)
+
+$(targets):%:%.c
+	$(CC) $< -o $@ $(CFLAGS)
+
+.PHONY:clean all
 clean:
-	rm 40.star 41.star_SA_NODEFER 42.star_SA_RESTHAND
+	-rm -rf $(targets) 
 
