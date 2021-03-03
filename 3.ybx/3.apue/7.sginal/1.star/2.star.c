@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
+#include <errno.h>
+#include <sys/time.h>
+#include <time.h>
 
 void int_handler(int s){
 	write(1, "!",1);
@@ -17,18 +20,50 @@ void int_handler(int s){
 
 int main(int argc, const char *argv[])
 {
-	int i, ret, num = 1;
-	//signal(SIGINT, SIG_IGN);//忽略此信号
+	struct timeval start, finish;
+
+	int i, s;
+    struct timespec request, remain;
+
+    request.tv_sec = 1;
+    request.tv_nsec = 0;
+
 	signal(SIGINT, int_handler);
 
 	for (i = 0; i < 10; i++) {
-		ret = write(1, "*", 1);
-		//printf("write  返回值来确定是否被中断%d\n", ret);
-
-		while ( (ret = sleep(num)) > 0 ) {
-			printf("i is %d,sleep was interrupted elapsed %d\n",i , ret);
-			sleep(ret);
+		s = write(1, "*", 1);
+		if (s==-1) {
+			printf("write()\n");
+			return 0;
 		}
+		
+		if (gettimeofday(&start, NULL) == -1){
+			printf("gettimeofday()\n");
+			return 0;
+		}
+		
+		for (;;) {
+			s = nanosleep(&request, &remain);
+			if (s == -1 && errno != EINTR){
+				printf("nanosleep()\n");
+				return 0;
+			}
+
+			if (gettimeofday(&finish, NULL) == -1)
+			{
+				printf("gettimeofday()\n");
+				return 0;
+			}
+				
+			//printf("Slept for: %9.6f secs\n", finish.tv_sec - start.tv_sec + (finish.tv_usec - start.tv_usec) / 1000000.0);
+
+			if (s == 0)
+				break;                      /* nanosleep() completed */
+
+			//printf("Remaining: %2ld.%09ld\n", (long) remain.tv_sec, remain.tv_nsec);
+			request = remain;               /* Next sleep is with remaining time */
+		}
+
 	}
 	return 0;
 }

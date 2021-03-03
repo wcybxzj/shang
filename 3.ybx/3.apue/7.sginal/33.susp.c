@@ -34,6 +34,7 @@ void star()
 			sleep(1);
 		}
 		write(1, "\n", 1);
+		//sigsuspend(&oset);
 		sigsuspend(&oset);
 		//sigprocmask(SIG_SETMASK, &oset, &tmpset);//UNBLOCK SIGINT
 		//pause();
