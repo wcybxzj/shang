@@ -2,13 +2,12 @@ src = $(wildcard *.c)
 targets = $(patsubst %.c, %, $(src))
 
 CC = gcc
-CFLAGS =  -D_FILE_OFFSET_BITS=64 -D_XOPEN_SOURCE  -Wall -g -pthread
-LDFLAGS+=-lcrypt
+CFLAGS = -Wall -g -pthread
 
 all:$(targets)
 
 $(targets):%:%.c
-	$(CC) $< -o $@ $(CFLAGS) $(LDFLAGS)
+	$(CC) $< -o $@ $(CFLAGS)
 
 .PHONY:clean all
 clean:

@@ -8,22 +8,15 @@
 * See the files COPYING.lgpl-v3 and COPYING.gpl-v3 for details.           *
 \*************************************************************************/
 
-/* Header file for Listing 20-4 */
+/* Header file for Listing 36-2 */
 
-/* signal_functions.h
+/* print_rlimit.h
 
-   Header file for signal_functions.c.
+   Header file for print_rlimit.c.
 */
-#ifndef SIGNAL_FUNCTIONS_H
-#define SIGNAL_FUNCTIONS_H
+#ifndef PRINT_RLIMIT_H      /* Prevent accidental double inclusion */
+#define PRINT_RLIMIT_H
 
-#include <signal.h>
-#include "tlpi_hdr.h"
-
-int printSigMask(FILE *of, const char *msg);
-
-int printPendingSigs(FILE *of, const char *msg);
-
-void printSigset(FILE *of, const char *ldr, const sigset_t *mask);
+int printRlimit(const char *msg, int resource);
 
 #endif

@@ -8,22 +8,15 @@
 * See the files COPYING.lgpl-v3 and COPYING.gpl-v3 for details.           *
 \*************************************************************************/
 
-/* Header file for Listing 20-4 */
+/* Header file for Listing 10-2 */
 
-/* signal_functions.h
+/* curr_time.h
 
-   Header file for signal_functions.c.
+   Header file for curr_time.c.
 */
-#ifndef SIGNAL_FUNCTIONS_H
-#define SIGNAL_FUNCTIONS_H
+#ifndef CURR_TIME_H
+#define CURR_TIME_H             /* Prevent accidental double inclusion */
 
-#include <signal.h>
-#include "tlpi_hdr.h"
-
-int printSigMask(FILE *of, const char *msg);
-
-int printPendingSigs(FILE *of, const char *msg);
-
-void printSigset(FILE *of, const char *ldr, const sigset_t *mask);
+char *currTime(const char *fmt);
 
 #endif

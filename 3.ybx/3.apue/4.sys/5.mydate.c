@@ -27,15 +27,16 @@ int main(int argc,char **argv)
 
 	while(1)
 	{
-		//printf("==optind:%d===\n", optind);
+		printf("before ==optind:%d===\n", optind);
 		ch = getopt(argc,argv,"-y:mdH:MS");
-		//printf("==optind:%d===\n", optind);
+		printf("after ==optind:%d===\n", optind);
 		if(ch < 0)
 			break;
 
 		switch(ch)
 		{
 			case 1:
+				//printf("aaaaaaaaaa\n");
 				//printf("%s\n", argv[optind-1]);
 				if(fp == stdout)
 				{

@@ -1,6 +1,6 @@
 include ../Makefile.inc
 
-GEN_EXE = 1.sigprocmask catch_rtsigs demo_SIGFPE ignore_pending_sig intquit \
+GEN_EXE = catch_rtsigs demo_SIGFPE ignore_pending_sig intquit \
 	nonreentrant ouch sig_receiver sig_sender sig_speed_sigsuspend \
 	sigmask_longjmp sigmask_siglongjmp \
 	t_kill t_sigaltstack t_sigsuspend t_sigqueue t_sigwaitinfo

@@ -1,8 +1,32 @@
+/*************************************************************************\
+*                  Copyright (C) Michael Kerrisk, 2020.                   *
+*                                                                         *
+* This program is free software. You may use, modify, and redistribute it *
+* under the terms of the GNU Lesser General Public License as published   *
+* by the Free Software Foundation, either version 3 or (at your option)   *
+* any later version. This program is distributed without any warranty.    *
+* See the files COPYING.lgpl-v3 and COPYING.gpl-v3 for details.           *
+\*************************************************************************/
+
+/* Listing 20-4 */
+
+/* signal_functions.c
+
+   Various useful functions for working with signals.
+*/
 #define _GNU_SOURCE
 #include <string.h>
 #include <signal.h>
-#include "signal_functions.h"
-void printSigset(FILE *of, const char *prefix, const sigset_t *sigset)
+#include "signal_functions.h"           /* Declares functions defined here */
+#include "tlpi_hdr.h"
+
+/* NOTE: All of the following functions employ fprintf(), which
+   is not async-signal-safe (see Section 21.1.2). As such, these
+   functions are also not async-signal-safe (i.e., beware of
+   indiscriminately calling them from signal handlers). */
+
+void                    /* Print list of signals within a signal set */
+printSigset(FILE *of, const char *prefix, const sigset_t *sigset)
 {
     int sig, cnt;
 
@@ -17,7 +41,9 @@ void printSigset(FILE *of, const char *prefix, const sigset_t *sigset)
     if (cnt == 0)
         fprintf(of, "%s<empty signal set>\n", prefix);
 }
-int printSigMask(FILE *of, const char *msg)
+
+int                     /* Print mask of blocked signals for this process */
+printSigMask(FILE *of, const char *msg)
 {
     sigset_t currMask;
 
@@ -32,7 +58,8 @@ int printSigMask(FILE *of, const char *msg)
     return 0;
 }
 
-int printPendingSigs(FILE *of, const char *msg)
+int                     /* Print signals currently pending for this process */
+printPendingSigs(FILE *of, const char *msg)
 {
     sigset_t pendingSigs;
 

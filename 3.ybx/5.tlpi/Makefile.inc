@@ -28,14 +28,24 @@ IMPL_CFLAGS = -std=c99 -D_XOPEN_SOURCE=600 \
 		-W \
 		-Wmissing-prototypes \
 		-Wno-sign-compare \
+		-Wimplicit-fallthrough \
 		-Wno-unused-parameter
+
+# clang(1) is a little more zealous than gcc(1) with respect to some warnings.
+# Suppress those warnings (which, at least in the book code, relate to code
+# that is fine).
+
+ifeq ($(CC),clang)
+	IMPL_CFLAGS += -Wno-uninitialized -Wno-infinite-recursion \
+		       -Wno-format-pedantic
+endif
 
 CFLAGS = ${IMPL_CFLAGS}
 
 IMPL_THREAD_FLAGS = -pthread
 
-IMPL_LDLIBS = ${TLPI_LIB} -lm
+IMPL_LDLIBS = ${TLPI_LIB}
 
-LDLIBS = ${IMPL_LDLIBS}
+LDLIBS =
 
 RM = rm -f

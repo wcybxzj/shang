@@ -8,22 +8,17 @@
 * See the files COPYING.lgpl-v3 and COPYING.gpl-v3 for details.           *
 \*************************************************************************/
 
-/* Header file for Listing 20-4 */
+/* Solution for Exercise 36-2:c */
 
-/* signal_functions.h
+/* print_rusage.h
 
-   Header file for signal_functions.c.
+   Header file for print_rusage.c.
 */
-#ifndef SIGNAL_FUNCTIONS_H
-#define SIGNAL_FUNCTIONS_H
+#ifndef PRINT_RUSAGE_H      /* Prevent accidental double inclusion */
+#define PRINT_RUSAGE_H
 
-#include <signal.h>
-#include "tlpi_hdr.h"
+#include <sys/resource.h>
 
-int printSigMask(FILE *of, const char *msg);
-
-int printPendingSigs(FILE *of, const char *msg);
-
-void printSigset(FILE *of, const char *ldr, const sigset_t *mask);
+void printRusage(const char *leader, const struct rusage *ru);
 
 #endif
